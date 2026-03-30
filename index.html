@@ -291,15 +291,15 @@ const INIT_SCORES = {};
 
 let ST = loadST();
 function loadST(){
-  try{ const s=localStorage.getItem('ttgo_fixed');if(s)return JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('ttgo_v2');if(s)return JSON.parse(s); }catch(e){}
   return {
     scores:{},
     week:{date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]},
     final:{win:'',second:'',third:'',lucky:''},
-    weekDate:'2026-03-27',
+    tournament:{},
   };
 }
-function saveST(){ localStorage.setItem('ttgo_fixed',JSON.stringify(ST)); }
+function saveST(){ localStorage.setItem('ttgo_v2',JSON.stringify(ST)); }
 
 function switchTab(name,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
