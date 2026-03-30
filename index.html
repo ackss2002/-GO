@@ -108,6 +108,9 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
       <div id="dash-top5"></div>
     </div>
   </div>
+  <div style="text-align:right;margin-top:8px;">
+    <button class="btn btn-sm" onclick="resetAll()" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;">🗑 이번주 데이터 초기화</button>
+  </div>
 </div>
 
 <!-- 이번주 리그 -->
@@ -300,6 +303,15 @@ function loadST(){
   };
 }
 function saveST(){ localStorage.setItem('ttgo_v2',JSON.stringify(ST)); }
+
+function resetAll(){
+  if(!confirm('이번주 선수 선택, 조 편성, 경기 결과, 토너먼트를 모두 초기화할까요?\n(누적 승점은 유지됩니다)')) return;
+  ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
+  ST.final = {win:'',second:'',third:'',lucky:''};
+  ST.tournament = {};
+  saveST();
+  location.reload();
+}
 
 function switchTab(name,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
