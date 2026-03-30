@@ -706,7 +706,7 @@ function renderBracket(bracket, size){
   const r = ST.tournament.rounds || {};
   const gInfo = getPlayerGroupInfo();
 
-  // 라운드 구성 - bracket 배열에서 순서대로 페어 구성
+  // 라운드별 페어 구성
   const rounds = [];
   let curBracket = [...bracket];
   let roundSize = size;
@@ -714,57 +714,84 @@ function renderBracket(bracket, size){
   while(roundSize >= 2){
     const pairs = [];
     for(let i=0;i<roundSize/2;i++) pairs.push([curBracket[i*2], curBracket[i*2+1]]);
-    rounds.push({size:roundSize, pairs, roundNum});
-    const winners = pairs.map((_,i)=>r[`r${roundNum}m${i}`]||'?');
+    rounds.push({pairs, roundNum});
+    const winners = pairs.map((_,i)=>r['r'+roundNum+'m'+i]||'?');
     curBracket = winners;
     roundSize = roundSize/2;
     roundNum++;
   }
 
-  const labels = {16:'16강', 8:'8강', 4:'4강', 2:'결승'};
-  let html = `<div style="font-size:13px;font-weight:700;margin-bottom:10px;">${size}강 대진표</div>`;
-  html += `<div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;">`;
+  // 선수 칸 높이: 이름줄 + 조순위줄 포함해서 약 52px
+  const CELL_H = 52;   // 선수 1명 칸 높이(px)
+  const MATCH_MB = 10; // 매치 간 아래 여백
 
-  rounds.forEach(({size:rSize, pairs, roundNum:rn})=>{
-    const marginTop = size===16 ? (rSize===8?'0':rSize===4?'22px':rSize===2?'68px':'0') :
-                      size===8  ? (rSize===4?'0':rSize===2?'22px':'0') : '0';
-    html += `<div style="min-width:140px;">`;
-    html += `<div style="font-size:11px;color:#888;font-weight:700;text-align:center;margin-bottom:8px;">${labels[rSize]||rSize+'강'}</div>`;
-    pairs.forEach((pair,i)=>{
-      const winner = r[`r${rn}m${i}`]||'';
-      const mt = i===0 ? '0' : rSize===size ? '10px' : rSize===size/2 ? '34px' : '78px';
-      html += '<div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:10px;margin-top:'+mt+';background:white;">';
-      [pair[0], pair[1]].forEach(function(p){
-        const isBye = p==='BYE';
-        const isWin = winner===p && winner!=='';
-        const opp = p===pair[0] ? pair[1] : pair[0];
+  const labels = {8:'8강', 4:'4강', 2:'결승'};
+  let html = '<div style="font-size:13px;font-weight:700;margin-bottom:10px;">'+size+'강 대진표</div>';
+  html += '<div style="display:flex;gap:16px;overflow-x:auto;padding-bottom:8px;align-items:flex-start;">';
+
+  rounds.forEach(function(round){
+    const rn = round.roundNum;
+    const pairs = round.pairs;
+    const matchCount = pairs.length; // 이 라운드 매치 수
+    const roundLabel = labels[size/Math.pow(2,rn-1)] || (size/Math.pow(2,rn-1))+'강';
+
+    // 이 라운드에서 매치 1개가 차지하는 총 높이 (선수2명 + 이전 라운드 간격)
+    // 첫 라운드: 매치높이 = CELL_H*2
+    // 다음 라운드부터: 이전 두 매치의 중간에 위치
+    const prevMatchH = (CELL_H * 2 + MATCH_MB) * Math.pow(2, rn-1) - MATCH_MB;
+    const matchH = CELL_H * 2; // 매치 박스 자체 높이는 항상 동일
+
+    html += '<div style="min-width:150px;">';
+    html += '<div style="font-size:11px;color:#888;font-weight:700;text-align:center;margin-bottom:8px;">'+roundLabel+'</div>';
+
+    pairs.forEach(function(pair, i){
+      const winner = r['r'+rn+'m'+i]||'';
+      // 첫 라운드는 위에서부터 순서대로, 이후 라운드는 이전 두 매치 중간에 위치
+      const mt = rn === 1
+        ? (i === 0 ? 0 : MATCH_MB)
+        : (i === 0 ? (prevMatchH - matchH) / 2 : prevMatchH - matchH);
+
+      html += '<div style="border:1px solid #ddd;border-radius:8px;overflow:hidden;margin-bottom:'+MATCH_MB+'px;margin-top:'+mt+'px;background:white;box-shadow:0 1px 3px rgba(0,0,0,0.06);">';
+
+      [pair[0], pair[1]].forEach(function(p, pi){
+        const isBye = p==='BYE' || p==='?';
+        const isWin = winner && winner===p;
+        const opp = pi===0 ? pair[1] : pair[0];
         const pSafe = (p||'').replace(/'/g,"\\'");
         const oppSafe = (opp||'').replace(/'/g,"\\'");
         const matchId = 'r'+rn+'m'+i;
-        const clickFn = isBye ? '' : "setWinner('"+matchId+"','"+pSafe+"','"+oppSafe+"')";
-        const bg = isWin ? '#e8f5e9' : isBye ? '#f5f5f5' : 'white';
+        const clickFn = (isBye||!p) ? '' : "setWinner('"+matchId+"','"+pSafe+"','"+oppSafe+"')";
+        const bg = isWin ? '#e8f5e9' : (isBye ? '#fafafa' : 'white');
         const fw = isWin ? '700' : '400';
-        const color = isWin ? '#2e7d32' : isBye ? '#aaa' : '#1a1a2e';
-        const gi = (!isBye && gInfo[p]) ? gInfo[p] : null;
-        const subLabel = gi ? '<div style="font-size:10px;color:#888;margin-top:1px;">'+gi.g+'조 '+gi.rank+'위</div>' : (isBye?'':'<div style="font-size:10px;color:#ccc;">-</div>');
-        html += '<div onclick="'+clickFn+'" style="padding:6px 10px;font-size:12px;border-bottom:1px solid #f0f0f0;cursor:'+(isBye?'default':'pointer')+';background:'+bg+';font-weight:'+fw+';color:'+color+';">'+(p||'?')+(isWin?' ✓':'')+subLabel+'</div>';
+        const fc = isWin ? '#2e7d32' : (isBye ? '#bbb' : '#1a1a2e');
+        const borderB = pi===0 ? '1px solid #f0f0f0' : 'none';
+        const gi = (!isBye && p && gInfo[p]) ? gInfo[p] : null;
+        const sub = gi
+          ? '<div style="font-size:10px;color:#999;margin-top:1px;">'+gi.g+'조 '+gi.rank+'위</div>'
+          : '<div style="font-size:10px;color:#ddd;margin-top:1px;">-</div>';
+        html += '<div onclick="'+clickFn+'" style="padding:6px 10px;min-height:'+CELL_H+'px;box-sizing:border-box;cursor:'+(isBye?'default':'pointer')+';background:'+bg+';border-bottom:'+borderB+';display:flex;flex-direction:column;justify-content:center;">'
+          +'<div style="font-size:12px;font-weight:'+fw+';color:'+fc+';">'+(p&&!isBye?p:'?')+(isWin?' ✓':'')+'</div>'
+          +sub+'</div>';
       });
+
       html += '</div>';
     });
-    html += `</div>`;
+
+    html += '</div>';
   });
-  html += `</div>`;
+
+  html += '</div>';
   document.getElementById('t-bracket').innerHTML = html;
 
   // 결승 승자 자동 반영
   const lastRound = rounds.length;
-  const fw = r[`r${lastRound}m0`]||'';
+  const finWinner = r['r'+lastRound+'m0']||'';
   const finalist = rounds[rounds.length-1].pairs[0];
-  if(fw){
-    const second = finalist[0]===fw ? finalist[1] : finalist[0];
+  if(finWinner){
+    const second = finalist[0]===finWinner ? finalist[1] : finalist[0];
     const twEl = document.getElementById('t-win');
     const tsEl = document.getElementById('t-second');
-    if(twEl) twEl.value = fw;
+    if(twEl) twEl.value = finWinner;
     if(tsEl) tsEl.value = second||'';
   }
 }
