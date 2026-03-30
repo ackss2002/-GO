@@ -601,16 +601,23 @@ function calcResults(){
   document.getElementById('s3-status').textContent='계산 완료';
 }
 function renderTournamentTab(){
-  // 탭 전환 시 아무것도 자동으로 채우지 않음
-  // 대진 생성 버튼 눌러야만 진행
+  // 이미 생성된 토너먼트가 있으면 복원
+  if(ST.tournament && ST.tournament.bracket && ST.tournament.bracket.length > 0){
+    const seeds = ST.tournament.seeds;
+    const size = ST.tournament.size;
+    document.getElementById('t-seeds').innerHTML=
+      `<div style="font-size:12px;font-weight:700;margin-bottom:6px;color:#1a1a2e;">시드 배정 (조별 순위 기준)</div>`+
+      seeds.filter(s=>s!=='BYE').map((s,i)=>`<span class="pill pill-blue" style="margin:2px;">${i+1}번: ${s}</span>`).join('');
+    renderBracket(ST.tournament.bracket, size);
+    document.getElementById('t2').style.display='block';
+  }
 }
 
 function genTournament(){
   const res=ST.week.results;
-  if(!res||res.length===0){alert('리그 순위를 먼저 계산하세요.');return;}
-  // 리그 결과 유효성 검사 - 모든 선수 승수 합계가 0이면 미입력
+  if(!res||res.length===0){alert('리그 순위를 먼저 계산하세요.\n이번주 리그 탭 → 경기 결과 입력 → 순위 계산하기');return;}
   const totalWins = res.reduce((sum,g)=>sum+g.players.reduce((s,p)=>s+p.w,0),0);
-  if(totalWins===0){alert('경기 결과를 먼저 입력하세요.\n아직 입력된 경기 결과가 없습니다.');return;}
+  if(totalWins===0){alert('경기 결과를 먼저 입력하세요.\n이번주 리그 탭 → 경기 결과 입력 → 순위 계산하기');return;}
   const size=parseInt(document.getElementById('t-size').value);
 
   // 시드 배정: 조별 순위 순서 (1조1위, 2조1위, ..., 1조2위, 2조2위, ...)
@@ -685,14 +692,27 @@ function genTournament(){
 
   document.getElementById('t-seeds').innerHTML=
     `<div style="font-size:12px;font-weight:700;margin-bottom:6px;color:#1a1a2e;">시드 배정 (조별 순위 기준)</div>`+
-    seeds.map((s,i)=>`<span class="pill pill-blue" style="margin:2px;">${i+1}번: ${s}</span>`).join('');
+    seeds.filter(s=>s!=='BYE').map((s,i)=>`<span class="pill pill-blue" style="margin:2px;">${i+1}번: ${s}</span>`).join('');
 
   renderBracket(bracket, size);
   document.getElementById('t2').style.display='block';
 }
 
+function getPlayerGroupInfo(){
+  // 선수별 조번호, 조순위 맵 반환: {이름: {g:1, rank:1}}
+  const info = {};
+  const res = ST.week.results || [];
+  res.forEach(g=>{
+    g.players.forEach((p,i)=>{
+      info[p.name] = {g: g.g, rank: i+1};
+    });
+  });
+  return info;
+}
+
 function renderBracket(bracket, size){
   const r = ST.tournament.rounds || {};
+  const gInfo = getPlayerGroupInfo();
 
   // 라운드 구성 - bracket 배열에서 순서대로 페어 구성
   const rounds = [];
@@ -721,17 +741,23 @@ function renderBracket(bracket, size){
     pairs.forEach((pair,i)=>{
       const winner = r[`r${rn}m${i}`]||'';
       const mt = i===0 ? '0' : rSize===size ? '10px' : rSize===size/2 ? '34px' : '78px';
-      html += `<div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:10px;margin-top:${mt};background:white;">`;
-      [pair[0], pair[1]].forEach(p=>{
+      html += '<div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:10px;margin-top:'+mt+';background:white;">';
+      [pair[0], pair[1]].forEach(function(p){
         const isBye = p==='BYE';
-        const isWin = winner===p;
-        html += `<div class="t-player ${isWin?'winner':isBye?'bye':''}"
-          onclick="${isBye?'':''}`+"`setWinner('r${rn}m${i}','${p}','${p===pair[0]?pair[1]:pair[0]}')`"+`"
-          style="cursor:${isBye?'default':'pointer'};">
-          ${p||'?'}
-        </div>`;
+        const isWin = winner===p && winner!=='';
+        const opp = p===pair[0] ? pair[1] : pair[0];
+        const pSafe = (p||'').replace(/'/g,"\\'");
+        const oppSafe = (opp||'').replace(/'/g,"\\'");
+        const matchId = 'r'+rn+'m'+i;
+        const clickFn = isBye ? '' : "setWinner('"+matchId+"','"+pSafe+"','"+oppSafe+"')";
+        const bg = isWin ? '#e8f5e9' : isBye ? '#f5f5f5' : 'white';
+        const fw = isWin ? '700' : '400';
+        const color = isWin ? '#2e7d32' : isBye ? '#aaa' : '#1a1a2e';
+        const gi = (!isBye && gInfo[p]) ? gInfo[p] : null;
+        const subLabel = gi ? '<div style="font-size:10px;color:#888;margin-top:1px;">'+gi.g+'조 '+gi.rank+'위</div>' : (isBye?'':'<div style="font-size:10px;color:#ccc;">-</div>');
+        html += '<div onclick="'+clickFn+'" style="padding:6px 10px;font-size:12px;border-bottom:1px solid #f0f0f0;cursor:'+(isBye?'default':'pointer')+';background:'+bg+';font-weight:'+fw+';color:'+color+';">'+(p||'?')+(isWin?' ✓':'')+subLabel+'</div>';
       });
-      html += `</div>`;
+      html += '</div>';
     });
     html += `</div>`;
   });
@@ -755,7 +781,7 @@ function setWinner(matchId, winner, loser){
   if(!ST.tournament.rounds) ST.tournament.rounds={};
   ST.tournament.rounds[matchId]=winner;
   saveST();
-  renderBracket(ST.tournament.seeds, ST.tournament.size);
+  renderBracket(ST.tournament.bracket, ST.tournament.size);
 }
 
 function saveResult(){
