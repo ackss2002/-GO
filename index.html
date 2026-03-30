@@ -620,66 +620,52 @@ function genTournament(){
   if(totalWins===0){alert('경기 결과를 먼저 입력하세요.\n이번주 리그 탭 → 경기 결과 입력 → 순위 계산하기');return;}
   const size=parseInt(document.getElementById('t-size').value);
 
-  // 시드 배정: 조별 순위 순서 (1조1위, 2조1위, ..., 1조2위, 2조2위, ...)
-  const maxRank=Math.max(...res.map(r=>r.players.length));
-  let seeds=[];
-  for(let rank=0;rank<maxRank;rank++){
-    res.forEach(g=>{if(g.players[rank]) seeds.push(g.players[rank].name);});
-  }
-  seeds=seeds.slice(0,size);
+  // 조별 선수 목록 (최대 4명씩)
+  const groups = res.map(g=>g.players.map(p=>p.name));
+  // A조, B조 (조가 2개일 때 8강 크로스매치)
+  // 조가 1개면 순위순, 3~4개면 조합 처리
+  let bracket = [];
 
-  // BYE 위치 결정: 전체 성적 1위 (동률이면 부수 높은 사람) 이 BYE 받음
-  // BYE는 1번 시드 상대방 자리에 배치 (즉 16번 슬롯)
-  if(seeds.length < size){
-    seeds.push('BYE');
+  if(groups.length === 2){
+    // 표준 크로스매치 (2조 기준):
+    // 상반부: A1vsB4, A3vsB2
+    // 하반부: B1vsA4, B3vsA2
+    const A = groups[0]; const B = groups[1];
+    // 부족한 자리는 BYE
+    const get = (arr, i) => arr[i] || 'BYE';
+    bracket = [
+      get(A,0), get(B,3),  // 8강1: A1 vs B4
+      get(A,2), get(B,1),  // 8강2: A3 vs B2
+      get(B,0), get(A,3),  // 8강3: B1 vs A4
+      get(B,2), get(A,1),  // 8강4: B3 vs A2
+    ];
+  } else if(groups.length === 1){
+    // 조가 1개면 순위순으로 배치
+    bracket = groups[0].slice(0, size);
+    while(bracket.length < size) bracket.push('BYE');
   } else {
-    // 전체 선수 성적 비교해서 BYE 받을 1번 시드 결정
-    const allPlayers = res.flatMap(g=>g.players);
-    const memberMap = {};
-    MEMBERS.forEach(m=>{memberMap[m.name]=m.total;});
-    allPlayers.sort((a,b)=>{
-      if(b.w !== a.w) return b.w - a.w;
-      const aRatio = a.lost ? a.scored/a.lost : a.scored;
-      const bRatio = b.lost ? b.scored/b.lost : b.scored;
-      if(Math.abs(bRatio-aRatio)>0.001) return bRatio - aRatio;
-      // 동률이면 부수 높은 사람이 BYE (부수 숫자 클수록 높음)
-      return (memberMap[a.name]||99) - (memberMap[b.name]||99);
-    });
-    const byePlayer = allPlayers[0].name;
-    // byePlayer를 1번 시드로, BYE를 16번에
-    const byeIdx = seeds.indexOf(byePlayer);
-    if(byeIdx > 0){
-      seeds.splice(byeIdx,1);
-      seeds.unshift(byePlayer);
+    // 3~4조: 조 순환 방식 (1조1위, 2조1위, 3조1위, 4조1위, 1조2위 ...)
+    const maxRank = Math.max(...groups.map(g=>g.length));
+    for(let rank=0;rank<maxRank;rank++){
+      groups.forEach(g=>{ if(g[rank]) bracket.push(g[rank]); });
     }
-    seeds.push('BYE');
+    bracket = bracket.slice(0, size);
+    while(bracket.length < size) bracket.push('BYE');
+    // 크로스: 상위 절반 vs 하위 절반 역순 인터리브
+    const top = bracket.slice(0, size/2);
+    const bot = bracket.slice(size/2).reverse();
+    bracket = [];
+    for(let i=0;i<size/2;i++){ bracket.push(top[i]); bracket.push(bot[i]); }
   }
 
-  // 대진 배치: 같은 조 선수 최대한 늦게 만나도록
-  // 표준 토너먼트 시드 배치 (1vs16, 2vs15, 3vs14 ...)
-  const bracket=new Array(size).fill(null);
-  function placeSeed(seed, pos, total){
-    if(total===1){bracket[pos]=seeds[seed-1];return;}
-    const half=total/2;
-    if(seed<=half) placeSeed(seed, pos, half);
-    else placeSeed(total+1-seed, pos+half, half);
-  }
-  // 표준 시드 배치
-  const slotOrder=[];
-  function buildSlots(lo,hi){
-    if(lo>=hi){slotOrder.push(lo);return;}
-    const mid=Math.floor((lo+hi)/2);
-    buildSlots(lo,mid);
-    buildSlots(mid+1,hi);
-  }
-  buildSlots(0,size-1);
-  seeds.forEach((s,i)=>{bracket[slotOrder[i]]=s;});
+  // seeds: 대진표 순서대로 (표시용)
+  const seeds = bracket.filter(p=>p!=='BYE');
 
-  ST.tournament=ST.tournament||{};
-  ST.tournament.seeds=seeds;
-  ST.tournament.size=size;
-  ST.tournament.bracket=bracket;
-  ST.tournament.rounds={};
+  ST.tournament = ST.tournament||{};
+  ST.tournament.seeds = seeds;
+  ST.tournament.size = size;
+  ST.tournament.bracket = bracket;
+  ST.tournament.rounds = {};
   saveST();
 
   // BYE 자동 처리
@@ -690,9 +676,15 @@ function genTournament(){
   }
   saveST();
 
+  // 시드 표시: 경기 순서로
+  const matchLabels = [];
+  for(let i=0;i<size/2;i++){
+    const p1=bracket[i*2], p2=bracket[i*2+1];
+    matchLabels.push(`<span class="pill pill-blue" style="margin:2px;">${i+1}경기: ${p1} vs ${p2}</span>`);
+  }
   document.getElementById('t-seeds').innerHTML=
-    `<div style="font-size:12px;font-weight:700;margin-bottom:6px;color:#1a1a2e;">시드 배정 (조별 순위 기준)</div>`+
-    seeds.filter(s=>s!=='BYE').map((s,i)=>`<span class="pill pill-blue" style="margin:2px;">${i+1}번: ${s}</span>`).join('');
+    `<div style="font-size:12px;font-weight:700;margin-bottom:6px;color:#1a1a2e;">8강 대진 (크로스매치)</div>`+
+    matchLabels.join('');
 
   renderBracket(bracket, size);
   document.getElementById('t2').style.display='block';
