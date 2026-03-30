@@ -281,8 +281,9 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
 
 <!-- 회원 관리 -->
 <div id="members" class="section">
-  <div class="grid2" style="margin-bottom:14px;">
-    <div class="metric"><div class="metric-label">활성 회원</div><div class="metric-value" id="active-cnt">27명</div></div>
+  <div class="grid3" style="margin-bottom:14px;">
+    <div class="metric"><div class="metric-label">정회원</div><div class="metric-value" id="active-cnt">27명</div></div>
+    <div class="metric"><div class="metric-label">외부 회원</div><div class="metric-value" id="external-cnt">0명</div></div>
     <div class="metric"><div class="metric-label">휴면 회원</div><div class="metric-value" id="dormant-cnt">4명</div></div>
   </div>
   <div class="card">
@@ -293,11 +294,25 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
     </tbody></table>
   </div>
   <div class="card">
-    <div class="card-title">활성 회원 명단 (27명)</div>
+    <div class="card-title">정회원 명단 (27명)</div>
     <div style="overflow-x:auto;">
     <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>통합</th></tr></thead>
     <tbody id="active-tbody"></tbody></table>
     </div>
+  </div>
+  <div class="card">
+    <div class="card-title">외부 회원 명단</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+      <input type="text" id="ext-name" placeholder="이름" style="max-width:100px;">
+      <select id="ext-gender" style="width:70px;"><option>남</option><option>여</option></select>
+      <input type="number" id="ext-bu" placeholder="부수" min="1" max="10" style="max-width:60px;">
+      <button class="btn btn-primary btn-sm" onclick="addExternal()">+ 추가</button>
+    </div>
+    <div style="overflow-x:auto;">
+    <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>승점</th><th>관리</th></tr></thead>
+    <tbody id="external-tbody"></tbody></table>
+    </div>
+    <div id="external-empty" style="font-size:13px;color:#888;text-align:center;padding:12px;">등록된 외부 회원이 없습니다</div>
   </div>
   <div class="card">
     <div class="card-title">휴면 회원 명단 (4명)</div>
@@ -331,6 +346,12 @@ const DORMANT = [
   {name:'이동규',g:'남',bu:5,total:5},
   {name:'허순임',g:'여',bu:6,total:9},
 ];
+// 외부 회원 (localStorage에서 관리)
+function getExternals(){ 
+  try{ return JSON.parse(localStorage.getItem('ttgo_externals')||'[]'); }catch(e){ return []; }
+}
+function saveExternals(arr){ localStorage.setItem('ttgo_externals', JSON.stringify(arr)); }
+
 const MNAMES = MEMBERS.map(m=>m.name);
 const INIT_SCORES = {};
 
@@ -619,7 +640,12 @@ function renderDash(){
 }
 
 function getSorted(){
-  return MEMBERS.map(m=>{const s=ST.scores[m.name]||{w:0,s:0,t:0,pts:0};return{name:m.name,...s};})
+  const exts = getExternals();
+  const allMembers = [
+    ...MEMBERS.map(m=>({...m, isExt:false})),
+    ...exts.map(m=>({...m, isExt:true}))
+  ];
+  return allMembers.map(m=>{const s=ST.scores[m.name]||{w:0,s:0,t:0,pts:0};return{name:m.name,isExt:m.isExt,...s};})
     .filter(p=>p.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
 }
 
@@ -628,17 +654,61 @@ function renderLeague(){
   const ps=ST.week.players;
   const isDoubles = ST.week.type==='복식';
   const nms = (ST.doubles&&ST.doubles.nonMembers)||[];
+  const exts = getExternals();
+  const temps = ST.week.tempPlayers||[];
 
-  document.getElementById('player-select').innerHTML=MEMBERS.map(m=>`
-    <span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')">${m.name} <small style="opacity:.7">${m.total}부</small></span>`).join('')+
-    (isDoubles && nms.length>0 ? nms.map(n=>`
-    <span class="player-chip selected" style="background:#fff3e0;border-color:#ffcc80;color:#e65100;" onclick="removeNonMember('${n}')">${n} <small>비회원 ✕</small></span>`).join('') : '');
+  // 정회원 칩
+  let html = '<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원</div>';
+  html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')">${m.name} <small style="opacity:.7">${m.total}부</small></span>`).join('');
 
+  // 외부 회원 칩
+  if(exts.length>0){
+    html += '<div style="font-size:11px;color:#e65100;font-weight:700;margin:10px 0 6px;">🏸 외부 회원</div>';
+    html += exts.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')"
+      style="${ps.includes(m.name)?'background:#e65100;color:white;border-color:#e65100;':'background:#fff3e0;border-color:#ffcc80;color:#e65100;'}">${m.name} <small style="opacity:.8">${m.total}부</small></span>`).join('');
+  }
+
+  // 일회성 참가자
+  html += '<div style="font-size:11px;color:#888;font-weight:700;margin:10px 0 6px;">👤 일회성 참가자 <span style="font-weight:400;">(승점 없음)</span></div>';
+  html += temps.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')"
+    style="${ps.includes(m.name)?'background:#607d8b;color:white;border-color:#607d8b;':'background:#f5f5f5;border-color:#ddd;color:#888;'}">${m.name} <small>${m.total}부</small> <small onclick="removeTempPlayer('${m.name}');event.stopPropagation();" style="color:#e94560;margin-left:2px;cursor:pointer;">✕</small></span>`).join('');
+  html += `<div style="display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap;">
+    <input type="text" id="temp-name" placeholder="이름" style="max-width:90px;padding:5px 8px;">
+    <input type="number" id="temp-bu" placeholder="부수" min="1" max="10" style="max-width:55px;padding:5px 8px;">
+    <button class="btn btn-sm" onclick="addTempPlayer()" style="background:#f5f5f5;color:#555;">+ 추가</button>
+  </div>`;
+
+  if(isDoubles && nms.length>0){
+    html += nms.map(n=>`<span class="player-chip selected" style="background:#fff3e0;border-color:#ffcc80;color:#e65100;" onclick="removeNonMember('${n}')">${n} <small>비회원 ✕</small></span>`).join('');
+  }
+
+  document.getElementById('player-select').innerHTML = html;
   document.getElementById('nonmember-area').style.display = isDoubles?'block':'none';
   const total = ps.length + (isDoubles?nms.length:0);
   document.getElementById('sel-count').textContent=`선택: ${total}명`;
   document.getElementById('s1-status').textContent=`${total}명 선택`;
   if(isDoubles) renderNonMemberList();
+}
+
+function addTempPlayer(){
+  const name = document.getElementById('temp-name').value.trim();
+  const bu = parseInt(document.getElementById('temp-bu').value);
+  if(!name){ alert('이름을 입력하세요.'); return; }
+  if(isNaN(bu)||bu<1||bu>10){ alert('부수를 입력하세요 (1~10).'); return; }
+  if(MNAMES.includes(name)||getExternals().find(e=>e.name===name)){
+    alert('이미 회원 명단에 있습니다. 위에서 선택하세요.'); return;
+  }
+  if(!ST.week.tempPlayers) ST.week.tempPlayers=[];
+  if(ST.week.tempPlayers.find(p=>p.name===name)){ alert('이미 추가됐습니다.'); return; }
+  ST.week.tempPlayers.push({name, total:bu, g:'', temp:true});
+  ST.week.players.push(name);
+  saveST(); renderLeague();
+}
+
+function removeTempPlayer(name){
+  ST.week.tempPlayers=(ST.week.tempPlayers||[]).filter(p=>p.name!==name);
+  ST.week.players=ST.week.players.filter(p=>p!==name);
+  saveST(); renderLeague();
 }
 
 function onTypeChange(){
@@ -1808,16 +1878,19 @@ function fillResultInfo(inputId){
   const name = input.value.trim();
   if(!name){ info.textContent=''; return; }
   const m = MEMBERS.find(function(x){ return x.name===name; });
+  const ext = getExternals().find(function(x){ return x.name===name; });
+  const person = m || ext;
   const gi = (ST.week.results||[]).reduce(function(found, g){
     if(found) return found;
     const idx = g.players.findIndex(function(p){ return p.name===name; });
     return idx>=0 ? {g:g.g, rank:idx+1} : null;
   }, null);
-  const buStr  = m ? m.total+'부' : '';
+  const buStr  = person ? person.total+'부' : '';
   const giStr  = gi ? gi.g+'조 '+gi.rank+'위' : '';
+  const extTag = ext ? ' [외부]' : '';
   const parts  = [buStr, giStr].filter(Boolean);
-  info.textContent = parts.length ? parts.join(' · ') : (m?'':'비회원');
-  info.style.color = m ? '#1565C0' : '#e65100';
+  info.textContent = parts.length ? parts.join(' · ')+extTag : (person?extTag:'일회성참가자');
+  info.style.color = m ? '#1565C0' : ext ? '#e65100' : '#888';
 }
 
 function setWinner(matchId, winner, loser){
@@ -1855,25 +1928,41 @@ function saveResult(){
   if(!win||!sec){alert('우승/준우승은 필수입니다.');return;}
   if(!confirm(`우승: ${win}\n준우승: ${sec}\n공동3위: ${[trd,trd2].filter(Boolean).join(', ')||'없음'}\n행운상: ${lky||'없음'}\n\n승점을 반영할까요?`))return;
   ST.final={win,second:sec,third:trd,third2:trd2,lucky:lky};
+
+  const exts = getExternals();
+  const extNames = exts.map(e=>e.name);
+  const temps = (ST.week.tempPlayers||[]).map(p=>p.name);
+
   [win,sec,trd,trd2].forEach((name,i)=>{
-    if(!name||!MNAMES.includes(name))return;
-    if(!ST.scores[name])ST.scores[name]={w:0,s:0,t:0,pts:0};
+    if(!name) return;
+    const isMember = MNAMES.includes(name);
+    const isExt = extNames.includes(name);
+    const isTemp = temps.includes(name);
+    if(!isMember && !isExt) return; // 일회성 참가자는 승점 없음
+    if(!ST.scores[name]) ST.scores[name]={w:0,s:0,t:0,pts:0};
     if(i===0){ST.scores[name].w++;ST.scores[name].pts+=5;}
     else if(i===1){ST.scores[name].s++;ST.scores[name].pts+=3;}
     else{ST.scores[name].t++;ST.scores[name].pts+=1;}
-    if(ST.scores[name].pts>15&&!ST.scores[name].up)ST.scores[name].up=true;
+    // 승급은 정회원만
+    if(isMember && ST.scores[name].pts>15&&!ST.scores[name].up) ST.scores[name].up=true;
   });
   saveST();
   document.getElementById('t-result-display').innerHTML=`
     <div style="background:#e8f5e9;border-radius:8px;padding:12px;font-size:13px;">
-      저장 완료! 🥇 ${win}(+5점) · 🥈 ${sec}(+3점)${trd&&MNAMES.includes(trd)?' · 🥉 '+trd+'(+1점)':''}
+      저장 완료! 🥇 ${win}(+5점) · 🥈 ${sec}(+3점)${trd?' · 🥉 '+trd+'(+1점)':''}
     </div>`;
   alert('승점 반영 완료!');
 }
 
 // 누적 순위
 function renderRanking(){
-  const all=MEMBERS.map(m=>{const s=ST.scores[m.name]||{w:0,s:0,t:0,pts:0};return{name:m.name,gender:m.g,bu:m.total,...s};})
+  const exts = getExternals();
+  const extNames = exts.map(e=>e.name);
+  const allMembers = [
+    ...MEMBERS.map(m=>({...m, isExt:false})),
+    ...exts.map(m=>({...m, isExt:true}))
+  ];
+  const all=allMembers.map(m=>{const s=ST.scores[m.name]||{w:0,s:0,t:0,pts:0};return{name:m.name,gender:m.g,bu:m.total,isExt:m.isExt,...s};})
     .sort((a,b)=>b.pts-a.pts||b.w-a.w||b.s-a.s);
   const bgs=['rank-1','rank-2','rank-3'];
   let rank=1;
@@ -1881,13 +1970,14 @@ function renderRanking(){
     if(i>0&&p.pts<all[i-1].pts)rank=i+1;
     if(p.pts===0)return '';
     const bg=rank<=3?bgs[rank-1]:'rank-n';
+    const extTag = p.isExt?'<span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;margin-left:4px;">외부</span>':'';
     return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
-      <td><strong>${p.name}</strong></td><td>${p.gender}</td><td>${p.bu}부</td>
+      <td><strong>${p.name}</strong>${extTag}</td><td>${p.gender}</td><td>${p.bu}부</td>
       <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td><td><strong>${p.pts}점</strong></td>
       <td>${p.up?'<span class="pill pill-amber">승급</span>':''}</td></tr>`;
   }).join('')||'<tr><td colspan="9" style="color:#888;text-align:center;">데이터 없음</td></tr>';
-  const ups=all.filter(p=>p.up);
-  const near=all.filter(p=>!p.up&&p.pts>=10);
+  const ups=all.filter(p=>p.up&&!p.isExt);
+  const near=all.filter(p=>!p.up&&p.pts>=10&&!p.isExt);
   document.getElementById('upgrade-card').innerHTML=`<div class="card-title">승급 현황</div>`+
     (ups.length?ups.map(p=>`<div class="upgrade-box"><div><div style="font-weight:700;color:#e65100;">${p.name}</div><div style="font-size:12px;color:#f57f17;">${p.bu}부 승급 완료</div></div><span class="pill pill-amber">승급완료</span></div>`).join(''):'<div style="font-size:13px;color:#888;">승급자 없음</div>')+
     (near.length?`<div style="font-size:12px;color:#888;margin-top:8px;">승급 후보: ${near.map(p=>p.name+' '+p.pts+'점').join(' · ')}</div>`:'');
@@ -1899,6 +1989,56 @@ function renderMembers(){
     <tr><td>${i+1}</td><td>${m.name}</td><td>${m.g}</td><td>${m.bu}</td><td>${m.total}</td></tr>`).join('');
   document.getElementById('dormant-tbody').innerHTML=DORMANT.map(m=>`
     <tr><td>${m.name}</td><td>${m.g}</td><td>${m.bu}</td><td>${m.total}</td></tr>`).join('');
+  renderExternalMembers();
+}
+
+function renderExternalMembers(){
+  const exts = getExternals();
+  const el = document.getElementById('external-tbody');
+  const empty = document.getElementById('external-empty');
+  const cnt = document.getElementById('external-cnt');
+  if(cnt) cnt.textContent = exts.length+'명';
+  if(!exts.length){
+    if(el) el.innerHTML='';
+    if(empty) empty.style.display='block';
+    return;
+  }
+  if(empty) empty.style.display='none';
+  if(el) el.innerHTML=exts.map((m,i)=>{
+    const s = ST.scores[m.name]||{pts:0};
+    return `<tr>
+      <td>${i+1}</td>
+      <td><strong>${m.name}</strong> <span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;">외부</span></td>
+      <td>${m.g}</td><td>${m.total}부</td>
+      <td>${s.pts||0}점</td>
+      <td><button class="btn btn-sm" onclick="removeExternal('${m.name}')" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;padding:2px 8px;">삭제</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function addExternal(){
+  const name = document.getElementById('ext-name').value.trim();
+  const gender = document.getElementById('ext-gender').value;
+  const bu = parseInt(document.getElementById('ext-bu').value);
+  if(!name){ alert('이름을 입력하세요.'); return; }
+  if(isNaN(bu)||bu<1||bu>10){ alert('부수를 입력하세요 (1~10).'); return; }
+  if(MNAMES.includes(name)){ alert('정회원 명단에 있는 이름입니다.'); return; }
+  const exts = getExternals();
+  if(exts.find(e=>e.name===name)){ alert('이미 등록된 외부 회원입니다.'); return; }
+  exts.push({name, g:gender, bu, total:bu});
+  saveExternals(exts);
+  document.getElementById('ext-name').value='';
+  document.getElementById('ext-bu').value='';
+  renderExternalMembers();
+  renderLeague();
+}
+
+function removeExternal(name){
+  if(!confirm(name+'을(를) 외부 회원에서 삭제할까요?')) return;
+  const exts = getExternals().filter(e=>e.name!==name);
+  saveExternals(exts);
+  renderExternalMembers();
+  renderLeague();
 }
 
 // 초기 실행
