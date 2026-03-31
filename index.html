@@ -754,7 +754,7 @@ function renderLeague(){
   }
 
   // 게스트 (게스트)
-  html += `<div style="font-size:11px;color:#f57f17;font-weight:700;margin:10px 0 6px;">🎫 게스트</div>`;
+  html += `<div style="font-size:11px;color:#c0392b;font-weight:700;margin:10px 0 6px;">🎫 게스트</div>`;
   
   const maxGuests = 10;
   const guestSlots = Array.from({length:maxGuests}, (_,i)=>{
@@ -762,9 +762,9 @@ function renderLeague(){
     if(guest){
       const sel = ps.includes(guest.name);
       return `<span class="player-chip ${sel?'selected':''}" onclick="toggleP('${guest.name}')"
-        style="${sel?'background:#f57f17;color:white;border-color:#f57f17;':'background:#fff8e1;border-color:#ffcc02;color:#f57f17;'}">${guest.name}${guest.total} <small onclick="removeTempPlayer('${guest.name}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small></span>`;
+        style="${sel?'background:#c0392b;color:white;border-color:#c0392b;':'background:#fdf2f2;border-color:#e8a5a5;color:#c0392b;'}">${guest.name}${guest.total} <small onclick="removeTempPlayer('${guest.name}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small></span>`;
     } else {
-      return `<span class="player-chip" style="background:#fff8e1;border:1px dashed #ffcc02;color:#ffb300;cursor:pointer;" onclick="document.getElementById('temp-name').focus()">+ 추가</span>`;
+      return `<span class="player-chip" style="background:#fdf2f2;border:1px dashed #e8a5a5;color:#e8a5a5;cursor:pointer;" onclick="document.getElementById('temp-name').focus()">+ 추가</span>`;
     }
   });
   html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${guestSlots.join('')}</div>`;
@@ -864,7 +864,7 @@ function renderPairSelect(){
       const isSel = pairTemp.includes(name);
       const bu = buMap[name]||'';
       const isTemp = temps.find(t=>t.name===name);
-      const chipStyle = isSel ? '' : isTemp ? 'background:#fff8e1;border-color:#ffcc02;color:#f57f17;' : '';
+      const chipStyle = isSel ? '' : isTemp ? 'background:#fdf2f2;border-color:#e8a5a5;color:#c0392b;' : '';
       return `<span class="player-chip ${isSel?'selected':''}" onclick="selectForPair('${name}')" style="${chipStyle}">${name}${bu}</span>`;
     }).join('')+
     (unpaired.length===0?'<span style="font-size:12px;color:#888;">모두 배정 완료</span>':'');
@@ -1316,11 +1316,14 @@ function renderMatches(){
           </tr>
         </thead>
         <tbody>
-          ${grp.map((p,ri)=>`
+          ${grp.map((p,ri)=>{
+            const isGuest = (ST.week.tempPlayers||[]).find(t=>t.name===p);
+            const nameColor = isGuest ? '#c0392b' : '#1a1a2e';
+            return `
           <tr>
             <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
             <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:100px;">
-              <span style="font-weight:700;font-size:13px;">${p}${memberBuMap[p]?memberBuMap[p]:''}</span>
+              <span style="font-weight:700;font-size:13px;color:${nameColor};">${p}${memberBuMap[p]?memberBuMap[p]:''}</span>
             </td>
             ${grp.map((_,ci)=>ri===ci?
               `<td style="background:#ccc;border:1px solid #bbb;min-width:54px;"></td>`:
@@ -1334,7 +1337,7 @@ function renderMatches(){
             <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;" id="g${gi}l${ri}">-</td>
             <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:900;font-size:14px;" id="g${gi}wp${ri}">-</td>
             <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:900;font-size:15px;" id="g${gi}rk${ri}">-</td>
-          </tr>`).join('')}
+          </tr>`;}).join('')}
         </tbody>
       </table>
       </div>
@@ -1887,9 +1890,10 @@ function renderBracket(bracket, size){
         const isBye   = p==='BYE';
         const isEmpty = !p||p==='?';
         const isWin   = !isEmpty&&!isBye&&winner===p;
+        const isGuest = !isBye&&!isEmpty&&(ST.week.tempPlayers||[]).find(t=>t.name===p);
         const yCard   = yTop + pi*(CELL_H+CARD_GAP);
         const bg      = isWin?'#e3f8e8':(isEmpty||isBye)?'#fafafa':'white';
-        const fc      = isWin?'#1b5e20':(isEmpty||isBye)?'#ccc':'#1a1a2e';
+        const fc      = isWin?'#1b5e20':(isEmpty||isBye)?'#ccc':isGuest?'#c0392b':'#1a1a2e';
         const fw      = isWin?'700':'500';
         const border  = isWin?'1.5px solid #66bb6a':'1px solid #e0e0e0';
         const buRaw = (!isBye&&!isEmpty&&memberBuMap[p])?memberBuMap[p]:'';
