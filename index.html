@@ -1836,9 +1836,19 @@ function renderBracket(bracket, size){
     });
   });
 
-  // 부수 맵
+  // 부수 맵 (정회원 + 특별회원 + 복식페어)
   const memberBuMap = {};
   MEMBERS.forEach(function(m){ memberBuMap[m.name]=m.total; });
+  getExternals().forEach(function(m){ memberBuMap[m.name]=m.total; });
+  // 복식 페어 부수 (팀명으로 조회)
+  if(ST.doubles && ST.doubles.pairs){
+    ST.doubles.pairs.forEach(function(pair){
+      const tn = pair[0]+'/'+pair[1];
+      const b1 = memberBuMap[pair[0]]||'';
+      const b2 = memberBuMap[pair[1]]||'';
+      if(b1||b2) memberBuMap[tn] = (b1&&b2) ? b1+'부/'+b2+'부' : (b1||b2)+'부';
+    });
+  }
 
   // ── HTML 카드 ──
   let cardsHtml = '';
@@ -1865,7 +1875,9 @@ function renderBracket(bracket, size){
         const fc      = isWin?'#1b5e20':(isEmpty||isBye)?'#ccc':'#1a1a2e';
         const fw      = isWin?'700':'500';
         const border  = isWin?'1.5px solid #66bb6a':'1px solid #e0e0e0';
-        const bu      = (!isBye&&!isEmpty&&memberBuMap[p])?memberBuMap[p]+'부':'';
+        const buRaw = (!isBye&&!isEmpty&&memberBuMap[p])?memberBuMap[p]:'';
+        // 복식 팀명(슬래시 포함)은 이미 '6부/7부' 형태, 단식은 숫자
+        const bu = buRaw ? (String(buRaw).includes('부') ? buRaw : buRaw+'부') : '';
         const gi      = (!isBye&&!isEmpty&&gInfo[p])?gInfo[p]:null;
         const nm      = isEmpty?'':isBye?'BYE':p;
         const chk     = isWin?' <span style="color:#43a047;">✓</span>':'';
