@@ -138,9 +138,10 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
       <div id="player-select"></div>
       <!-- 비회원 추가 (복식용) -->
       <div id="nonmember-area" style="display:none;margin-top:10px;padding:10px;background:#f8f8f8;border-radius:8px;">
-        <div style="font-size:12px;color:#888;margin-bottom:6px;">비회원 추가 (복식 페어용)</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="text" id="nonmember-name" placeholder="비회원 이름" style="max-width:160px;">
+        <div style="font-size:12px;color:#888;margin-bottom:6px;">특별회원 추가 (복식 페어용)</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" id="nonmember-name" placeholder="이름" style="max-width:100px;">
+          <input type="number" id="nonmember-bu" placeholder="부수" min="1" max="10" style="max-width:60px;">
           <button class="btn btn-sm btn-primary" onclick="addNonMember()">추가</button>
         </div>
         <div id="nonmember-list" style="margin-top:8px;"></div>
@@ -747,13 +748,13 @@ function renderLeague(){
 
   // 정회원 칩
   let html = '<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원</div>';
-  html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')">${m.name} <small style="opacity:.7">${m.total}부</small></span>`).join('');
+  html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')">${m.name}${m.total}</span>`).join('');
 
   // 특별 회원 칩
   if(exts.length>0){
     html += '<div style="font-size:11px;color:#e65100;font-weight:700;margin:10px 0 6px;">🏸 특별 회원</div>';
     html += exts.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')"
-      style="${ps.includes(m.name)?'background:#e65100;color:white;border-color:#e65100;':'background:#fff3e0;border-color:#ffcc80;color:#e65100;'}">${m.name} <small style="opacity:.8">${m.total}부</small></span>`).join('');
+      style="${ps.includes(m.name)?'background:#e65100;color:white;border-color:#e65100;':'background:#fff3e0;border-color:#ffcc80;color:#e65100;'}">${m.name}${m.total}</span>`).join('');
   }
 
   // 게스트 (게스트)
@@ -817,14 +818,18 @@ function onTypeChange(){
 
 function addNonMember(){
   const nm = document.getElementById('nonmember-name').value.trim();
+  const bu = parseInt(document.getElementById('nonmember-bu').value);
   if(!nm){ alert('이름을 입력하세요.'); return; }
-  if(MNAMES.includes(nm)){ alert('회원 명단에 있는 이름입니다. 위에서 선택하세요.'); return; }
+  if(isNaN(bu)||bu<1||bu>10){ alert('부수를 입력하세요 (1~10).'); return; }
+  if(MNAMES.includes(nm)){ alert('정회원 명단에 있는 이름입니다. 위에서 선택하세요.'); return; }
   if(!ST.doubles) ST.doubles={pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
   if(!ST.doubles.nonMembers) ST.doubles.nonMembers=[];
-  if(ST.doubles.nonMembers.includes(nm)){ alert('이미 추가된 비회원입니다.'); return; }
-  ST.doubles.nonMembers.push(nm);
+  const displayName = nm+bu;
+  if(ST.doubles.nonMembers.includes(displayName)){ alert('이미 추가됐습니다.'); return; }
+  ST.doubles.nonMembers.push(displayName);
   saveST();
   document.getElementById('nonmember-name').value='';
+  document.getElementById('nonmember-bu').value='';
   renderNonMemberList();
   renderLeague();
 }
