@@ -948,7 +948,7 @@ function updateAdminUI(){
   lockBtn.textContent = isAdmin?'🔓':'🔒';
   // 수정 버튼들 표시/숨김
   const adminBtns = document.querySelectorAll('.admin-only');
-  adminBtns.forEach(btn=>{ btn.style.display = isAdmin?'':'none'; });
+  adminBtns.forEach(btn=>{ btn.style.display = isAdmin ? 'inline-flex' : 'none'; });
 }
 
 
