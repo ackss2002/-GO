@@ -362,20 +362,31 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
     <div style="margin-bottom:20px;">
       <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">📅 금요일 경기 당일 진행 순서</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        ${[
-          ['1', '#e3f2fd', '출전 선수 등록', '이번주 리그 탭 → 날짜/주차/종류/세트 설정 → 출전 선수 클릭으로 선택 → 선수 확정'],
-          ['2', '#e8f5e9', '조 편성', '선수 클릭 시 1조→2조→3조→4조→미배정 순으로 변경 → 조 편성 확정'],
-          ['3', '#fff3e0', '경기 결과 입력', '경기표에 세트 스코어 입력 (숫자 입력 후 Enter) → 순위 자동 계산'],
-          ['4', '#f3e5f5', '토너먼트 진행', '토너먼트 탭 → 강수 설정 → 대진 생성 → 경기 결과 입력 → 승자 자동 진출'],
-          ['5', '#fce4ec', '결과 저장', '토너먼트 탭 → 결과 입력 및 승점 반영 → 우승/준우승/3위 선택 → 저장'],
-        ].map(([num, bg, title, desc])=>`
-        <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:${bg};border-radius:8px;">
-          <span style="background:#1a1a2e;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">${num}</span>
-          <div>
-            <div style="font-weight:700;font-size:13px;margin-bottom:3px;">${title}</div>
-            <div style="font-size:12px;color:#555;">${desc}</div>
-          </div>
-        </div>`).join('')}
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:#e3f2fd;border-radius:8px;">
+          <span style="background:#1a1a2e;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">1</span>
+          <div><div style="font-weight:700;font-size:13px;margin-bottom:3px;">출전 선수 등록</div>
+          <div style="font-size:12px;color:#555;">이번주 리그 탭 → 날짜/주차/종류/세트 설정 → 출전 선수 클릭으로 선택 → 선수 확정</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:#e8f5e9;border-radius:8px;">
+          <span style="background:#1a1a2e;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">2</span>
+          <div><div style="font-weight:700;font-size:13px;margin-bottom:3px;">조 편성</div>
+          <div style="font-size:12px;color:#555;">선수 클릭 시 1조→2조→3조→4조→미배정 순으로 변경 → 조 편성 확정</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:#fff3e0;border-radius:8px;">
+          <span style="background:#1a1a2e;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">3</span>
+          <div><div style="font-weight:700;font-size:13px;margin-bottom:3px;">경기 결과 입력</div>
+          <div style="font-size:12px;color:#555;">경기표에 세트 스코어 입력 (숫자 입력 후 Enter) → 순위 자동 계산</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:#f3e5f5;border-radius:8px;">
+          <span style="background:#1a1a2e;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">4</span>
+          <div><div style="font-weight:700;font-size:13px;margin-bottom:3px;">토너먼트 진행</div>
+          <div style="font-size:12px;color:#555;">토너먼트 탭 → 강수 설정 → 대진 생성 → 경기 결과 입력 → 승자 자동 진출</div></div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:#fce4ec;border-radius:8px;">
+          <span style="background:#1a1a2e;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">5</span>
+          <div><div style="font-weight:700;font-size:13px;margin-bottom:3px;">결과 저장</div>
+          <div style="font-size:12px;color:#555;">토너먼트 탭 → 결과 입력 및 승점 반영 → 우승/준우승/3위 선택 → 저장</div></div>
+        </div>
       </div>
     </div>
 
@@ -383,24 +394,16 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
       <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">🏆 승점 규칙</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <div style="padding:10px 16px;background:#fff9c4;border-radius:8px;text-align:center;min-width:80px;">
-          <div style="font-size:20px;">🥇</div>
-          <div style="font-weight:700;font-size:15px;">+5점</div>
-          <div style="font-size:12px;color:#888;">우승</div>
+          <div style="font-size:20px;">🥇</div><div style="font-weight:700;font-size:15px;">+5점</div><div style="font-size:12px;color:#888;">우승</div>
         </div>
         <div style="padding:10px 16px;background:#f5f5f5;border-radius:8px;text-align:center;min-width:80px;">
-          <div style="font-size:20px;">🥈</div>
-          <div style="font-weight:700;font-size:15px;">+3점</div>
-          <div style="font-size:12px;color:#888;">준우승</div>
+          <div style="font-size:20px;">🥈</div><div style="font-weight:700;font-size:15px;">+3점</div><div style="font-size:12px;color:#888;">준우승</div>
         </div>
         <div style="padding:10px 16px;background:#fff3e0;border-radius:8px;text-align:center;min-width:80px;">
-          <div style="font-size:20px;">🥉</div>
-          <div style="font-weight:700;font-size:15px;">+2점</div>
-          <div style="font-size:12px;color:#888;">공동3위</div>
+          <div style="font-size:20px;">🥉</div><div style="font-weight:700;font-size:15px;">+2점</div><div style="font-size:12px;color:#888;">공동3위</div>
         </div>
         <div style="padding:10px 16px;background:#e8f5e9;border-radius:8px;text-align:center;min-width:120px;">
-          <div style="font-size:20px;">⬆️</div>
-          <div style="font-weight:700;font-size:15px;">10점 달성</div>
-          <div style="font-size:12px;color:#888;">1부수 승급 + 승점 소멸</div>
+          <div style="font-size:20px;">⬆️</div><div style="font-weight:700;font-size:15px;">10점 달성</div><div style="font-size:12px;color:#888;">1부수 승급 + 승점 소멸</div>
         </div>
       </div>
     </div>
@@ -408,16 +411,90 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
     <div style="margin-bottom:20px;">
       <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">❓ 자주 묻는 질문</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        ${[
-          ['내가 입력하면 다른 회원도 바로 볼 수 있나요?', '네! Firebase 실시간 연동으로 입력 즉시 모든 회원에게 반영됩니다.'],
-          ['게스트는 승점이 있나요?', '네! 게스트도 승점이 누적되며 누적 순위 탭의 게스트 섹션에서 확인할 수 있습니다.'],
-          ['이번주 초기화는 언제 하나요?', '경기 종료 후 다음 주 준비할 때 대시보드의 이번주 초기화 버튼을 누르세요. 누적 승점은 유지됩니다.'],
-          ['복식 페어는 어떻게 구성하나요?', '이번주 리그 탭에서 복식 선택 후 선수 확정 → 페어 구성 단계에서 순서대로 2명씩 클릭하면 자동으로 페어가 됩니다.'],
-        ].map(([q, a])=>`
         <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
-          <div style="background:#f5f5f5;padding:8px 12px;font-weight:700;font-size:13px;">Q. ${q}</div>
-          <div style="padding:8px 12px;font-size:13px;color:#555;">A. ${a}</div>
-        </div>`).join('')}
+          <div style="background:#f5f5f5;padding:8px 12px;font-weight:700;font-size:13px;">Q. 내가 입력하면 다른 회원도 바로 볼 수 있나요?</div>
+          <div style="padding:8px 12px;font-size:13px;color:#555;">A. 네! Firebase 실시간 연동으로 입력 즉시 모든 회원에게 반영됩니다.</div>
+        </div>
+        <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f5f5f5;padding:8px 12px;font-weight:700;font-size:13px;">Q. 게스트는 승점이 있나요?</div>
+          <div style="padding:8px 12px;font-size:13px;color:#555;">A. 네! 게스트도 승점이 누적되며 누적 순위 탭의 게스트 섹션에서 확인할 수 있습니다.</div>
+        </div>
+        <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f5f5f5;padding:8px 12px;font-weight:700;font-size:13px;">Q. 이번주 초기화는 언제 하나요?</div>
+          <div style="padding:8px 12px;font-size:13px;color:#555;">A. 경기 종료 후 다음 주 준비할 때 대시보드의 이번주 초기화 버튼을 누르세요. 누적 승점은 유지됩니다.</div>
+        </div>
+        <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f5f5f5;padding:8px 12px;font-weight:700;font-size:13px;">Q. 복식 페어는 어떻게 구성하나요?</div>
+          <div style="padding:8px 12px;font-size:13px;color:#555;">A. 이번주 리그 탭에서 복식 선택 후 선수 확정 → 페어 구성 단계에서 순서대로 2명씩 클릭하면 자동으로 페어가 됩니다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">🏸 토너먼트 대진 방식</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+
+        <div style="padding:10px 12px;background:#e3f2fd;border-radius:8px;">
+          <div style="font-weight:700;margin-bottom:4px;">🔀 크로스매치 시드 배정</div>
+          <div style="color:#555;">조별리그 순위를 교차 배정합니다.<br>
+          예) 2조 운영 시 → 1조1위 vs 2조4위, 2조1위 vs 1조4위, 1조2위 vs 2조3위, 2조2위 vs 1조3위</div>
+        </div>
+
+        <div style="padding:10px 12px;background:#e8f5e9;border-radius:8px;">
+          <div style="font-weight:700;margin-bottom:4px;">🎯 BYE (부전승) 처리</div>
+          <div style="color:#555;">출전 인원이 대진 수보다 적을 때 BYE가 발생합니다.<br>
+          BYE는 <strong>전체 1위</strong> (조 순위 동률 시 부수가 낮은 선수 우선)에게 배정되어 자동 다음 라운드 진출합니다.</div>
+        </div>
+
+        <div style="padding:10px 12px;background:#fff3e0;border-radius:8px;">
+          <div style="font-weight:700;margin-bottom:4px;">📐 강수 선택 기준</div>
+          <div style="color:#555;">
+            · <strong>8강</strong> → 2조 운영 시 (조당 4~7명)<br>
+            · <strong>16강</strong> → 4조 운영 시 (조당 4~7명)<br>
+            · 참가 인원에 따라 자동으로 추천됩니다
+          </div>
+        </div>
+
+        <div style="padding:10px 12px;background:#f3e5f5;border-radius:8px;">
+          <div style="font-weight:700;margin-bottom:4px;">🏆 결과 입력 및 시상</div>
+          <div style="color:#555;">
+            · 우승 → <strong>+5점</strong><br>
+            · 준우승 → <strong>+3점</strong><br>
+            · 공동 3위 (2명) → <strong>+2점</strong><br>
+            · 행운상 → 승점 없음 (별도 시상)
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">📊 조별리그 순위 결정 방식 (ITTF 기준)</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:#e3f2fd;border-radius:8px;font-size:13px;">
+          <span style="background:#1565C0;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;">1</span>
+          <div><strong>승점</strong> — 승리 2점, 패배 1점</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:#e8f5e9;border-radius:8px;font-size:13px;">
+          <span style="background:#2e7d32;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;">2</span>
+          <div><strong>직접 대결</strong> — 동률 선수끼리 직접 경기 결과</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:#fff3e0;border-radius:8px;font-size:13px;">
+          <span style="background:#e65100;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;">3</span>
+          <div><strong>동률자간 승점</strong> — 동률 선수들 사이의 경기만 재계산</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:#f3e5f5;border-radius:8px;font-size:13px;">
+          <span style="background:#6a1b9a;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;">4</span>
+          <div><strong>게임 득실률</strong> — (이긴 게임 수) ÷ (진 게임 수)</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:#fce4ec;border-radius:8px;font-size:13px;">
+          <span style="background:#c62828;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;">5</span>
+          <div><strong>점수 득실률</strong> — (획득 점수) ÷ (실점 점수)</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;padding:8px 12px;background:#f5f5f5;border-radius:8px;font-size:13px;">
+          <span style="background:#888;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;">6</span>
+          <div><strong>추첨</strong> — 위 모든 기준이 동일할 경우 랜덤 추첨</div>
+        </div>
       </div>
     </div>
 
