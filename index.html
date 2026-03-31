@@ -136,16 +136,6 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
       </div>
       <div style="font-size:12px;color:#888;margin-bottom:8px;">출전 선수 클릭으로 선택</div>
       <div id="player-select"></div>
-      <!-- 비회원 추가 (복식용) -->
-      <div id="nonmember-area" style="display:none;margin-top:10px;padding:10px;background:#f8f8f8;border-radius:8px;">
-        <div style="font-size:12px;color:#888;margin-bottom:6px;">특별회원 추가 (복식 페어용)</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input type="text" id="nonmember-name" placeholder="이름" style="max-width:100px;">
-          <input type="number" id="nonmember-bu" placeholder="부수" min="1" max="10" style="max-width:60px;">
-          <button class="btn btn-sm btn-primary" onclick="addNonMember()">추가</button>
-        </div>
-        <div id="nonmember-list" style="margin-top:8px;"></div>
-      </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
         <span id="sel-count" style="font-size:13px;font-weight:700;color:#1a1a2e;"></span>
         <button class="btn btn-primary btn-sm" onclick="confirmPlayers()">선수 확정 →</button>
@@ -778,16 +768,10 @@ function renderLeague(){
     <button class="btn btn-sm" onclick="addTempPlayer()" style="background:#ede7f6;color:#5c6bc0;border-color:#b39ddb;">+ 추가</button>
   </div>`;
 
-  if(isDoubles && nms.length>0){
-    html += nms.map(n=>`<span class="player-chip selected" style="background:#fff3e0;border-color:#ffcc80;color:#e65100;" onclick="removeNonMember('${n}')">${n} <small>비회원 ✕</small></span>`).join('');
-  }
-
   document.getElementById('player-select').innerHTML = html;
-  document.getElementById('nonmember-area').style.display = isDoubles?'block':'none';
-  const total = ps.length + (isDoubles?nms.length:0);
+  const total = ps.length;
   document.getElementById('sel-count').textContent=`선택: ${total}명`;
   document.getElementById('s1-status').textContent=`${total}명 선택`;
-  if(isDoubles) renderNonMemberList();
 }
 
 function addTempPlayer(){
@@ -858,26 +842,36 @@ function renderPairSelect(){
   if(!ST.doubles) ST.doubles={pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
   const pairs = ST.doubles.pairs||[];
   const paired = pairs.flat();
-  const nms = ST.doubles.nonMembers||[];
-  const allPlayers = [...ST.week.players, ...nms];
+  const temps = ST.week.tempPlayers||[];
+  const allPlayers = [...ST.week.players];
   const unpaired = allPlayers.filter(p=>!paired.includes(p));
+
+  // 부수 맵
+  const buMap={};
+  MEMBERS.forEach(m=>{ buMap[m.name]=m.total; });
+  getExternals().forEach(m=>{ buMap[m.name]=m.total; });
+  temps.forEach(m=>{ buMap[m.name]=m.total; });
 
   document.getElementById('pair-select').innerHTML =
     `<div style="font-size:12px;color:#888;margin-bottom:6px;">미배정 선수 (클릭해서 페어 구성)</div>`+
     unpaired.map(name=>{
       const isSel = pairTemp.includes(name);
-      return `<span class="player-chip ${isSel?'selected':''}" onclick="selectForPair('${name}')">${name}</span>`;
+      const bu = buMap[name]||'';
+      const isTemp = temps.find(t=>t.name===name);
+      const chipStyle = isSel ? '' : isTemp ? 'background:#ede7f6;border-color:#b39ddb;color:#5c6bc0;' : '';
+      return `<span class="player-chip ${isSel?'selected':''}" onclick="selectForPair('${name}')" style="${chipStyle}">${name}${bu}</span>`;
     }).join('')+
     (unpaired.length===0?'<span style="font-size:12px;color:#888;">모두 배정 완료</span>':'');
 
   document.getElementById('pair-list').innerHTML =
     `<div style="font-size:12px;color:#888;margin-bottom:6px;">구성된 페어 (${pairs.length}팀)</div>`+
-    pairs.map((pair,i)=>
-      `<div style="display:inline-flex;align-items:center;gap:6px;margin:3px;padding:5px 10px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:20px;font-size:12px;">
-        <strong>${pair[0]}/${pair[1]}</strong>
+    pairs.map((pair,i)=>{
+      const b1=buMap[pair[0]]||''; const b2=buMap[pair[1]]||'';
+      return `<div style="display:inline-flex;align-items:center;gap:6px;margin:3px;padding:5px 10px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:20px;font-size:12px;">
+        <strong>${pair[0]}${b1}/${pair[1]}${b2}</strong>
         <span onclick="removePair(${i})" style="cursor:pointer;color:#e94560;font-size:11px;">✕</span>
-      </div>`
-    ).join('')||'<span style="font-size:12px;color:#bbb;">아직 없음</span>';
+      </div>`;
+    }).join('')||'<span style="font-size:12px;color:#bbb;">아직 없음</span>';
 
   document.getElementById('s-pairs-status').textContent = `${pairs.length}팀 구성`;
 }
@@ -904,8 +898,7 @@ function removePair(idx){
 
 function confirmPairs(){
   const pairs = ST.doubles.pairs||[];
-  const nms = ST.doubles.nonMembers||[];
-  const total = ST.week.players.length + nms.length;
+  const total = ST.week.players.length;
   if(pairs.length*2 < total){
     if(!confirm(`미배정 선수가 있습니다. 계속할까요?`)) return;
   }
