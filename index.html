@@ -724,12 +724,15 @@ function getSorted(){
     ...MEMBERS.map(m=>({...m, isExt:false})),
     ...exts.map(m=>({...m, isExt:true}))
   ];
+  if(!ST.scores) ST.scores={};
   return allMembers.map(m=>{const s=ST.scores[m.name]||{w:0,s:0,t:0,pts:0};return{name:m.name,isExt:m.isExt,...s};})
     .filter(p=>p.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
 }
 
 // 리그
 function renderLeague(){
+  if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
+  if(!ST.week.players) ST.week.players=[];
   const ps=ST.week.players;
   const isDoubles = ST.week.type==='복식';
   const nms = (ST.doubles&&ST.doubles.nonMembers)||[];
@@ -2185,7 +2188,18 @@ function loadFromFirebase(){
   db.ref('ttgo').once('value').then(function(snapshot){
     const data = snapshot.val();
     if(!data) return;
-    if(data.ST){ ST = data.ST; localStorage.setItem('ttgo_v3', JSON.stringify(ST)); }
+    if(data.ST){
+      ST = data.ST;
+      // ST 구조 방어 코드
+      if(!ST.scores) ST.scores={};
+      if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
+      if(!ST.week.players) ST.week.players=[];
+      if(!ST.week.groups) ST.week.groups=[[],[],[],[]];
+      if(!ST.doubles) ST.doubles={pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
+      if(!ST.final) ST.final={win:'',second:'',third:'',third2:'',lucky:''};
+      if(!ST.tournament) ST.tournament={};
+      localStorage.setItem('ttgo_v3', JSON.stringify(ST));
+    }
     if(data.externals) saveExternals(data.externals);
     renderDash();
     renderMembers();
