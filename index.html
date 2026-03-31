@@ -759,26 +759,19 @@ function renderLeague(){
   // 게스트 (게스트)
   html += `<div style="font-size:11px;color:#5c6bc0;font-weight:700;margin:10px 0 6px;">🎫 게스트 <span style="font-weight:400;color:#888;">(승점 없음)</span></div>`;
   
-  // 빈 슬롯 18개 (9명 x 2줄) + 추가된 게스트
-  const maxGuests = 18;
+  const maxGuests = 10;
   const guestSlots = Array.from({length:maxGuests}, (_,i)=>{
     const guest = temps[i];
     if(guest){
       const sel = ps.includes(guest.name);
       return `<span class="player-chip ${sel?'selected':''}" onclick="toggleP('${guest.name}')"
-        style="${sel?'background:#5c6bc0;color:white;border-color:#5c6bc0;':'background:#ede7f6;border-color:#b39ddb;color:#5c6bc0;'};min-width:80px;justify-content:space-between;">
-        <span>${guest.name}${guest.total}</span>
-        <small onclick="removeTempPlayer('${guest.name}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:4px;">✕</small>
-      </span>`;
+        style="${sel?'background:#5c6bc0;color:white;border-color:#5c6bc0;':'background:#ede7f6;border-color:#b39ddb;color:#5c6bc0;'}">${guest.name}${guest.total} <small onclick="removeTempPlayer('${guest.name}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small></span>`;
     } else {
-      return `<span class="player-chip" onclick="openGuestInput(${i})"
-        style="background:#fafafa;border:1px dashed #ddd;color:#ccc;min-width:80px;cursor:pointer;justify-content:center;">
-        <span id="guest-slot-${i}" style="font-size:11px;">+ 추가</span>
-      </span>`;
+      return `<span class="player-chip" style="background:#fafafa;border:1px dashed #ddd;color:#ccc;cursor:pointer;" onclick="document.getElementById('temp-name').focus()">+ 추가</span>`;
     }
   });
-  html += `<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-bottom:8px;">${guestSlots.join('')}</div>`;
-  html += `<div id="guest-input-area" style="display:none;display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+  html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${guestSlots.join('')}</div>`;
+  html += `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;">
     <input type="text" id="temp-name" placeholder="이름" style="max-width:90px;padding:5px 8px;">
     <input type="number" id="temp-bu" placeholder="부수" min="1" max="10" style="max-width:55px;padding:5px 8px;">
     <button class="btn btn-sm" onclick="addTempPlayer()" style="background:#ede7f6;color:#5c6bc0;border-color:#b39ddb;">+ 추가</button>
