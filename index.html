@@ -91,6 +91,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
   <button class="tab" onclick="switchTab('ranking',this)">누적 순위</button>
   <button class="tab" onclick="switchTab('attendance',this)">출석부</button>
   <button class="tab" onclick="switchTab('members',this)">회원 관리</button>
+  <button class="tab" onclick="switchTab('guide',this)">📖 가이드</button>
 </div>
 
 <div class="content">
@@ -323,6 +324,105 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
         </table>
       </div>
       <div style="margin-top:12px;font-size:12px;color:#888;">● 출석 / 빈칸 결석 · 클릭으로 토글</div>
+    </div>
+  </div>
+</div>
+
+<!-- 가이드 -->
+<div id="guide" class="section">
+  <div class="card">
+    <div class="card-title">📖 탁구치GO 금요리그 사용 가이드</div>
+    <div class="notice" style="margin-bottom:16px;">이 앱은 <strong>Firebase 실시간 연동</strong>으로 운영됩니다. 관리자가 입력하면 모든 회원이 즉시 확인할 수 있어요!</div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">👥 회원별 사용법</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr>
+            <th style="background:#1a1a2e;color:white;padding:8px 12px;text-align:left;">구분</th>
+            <th style="background:#1a1a2e;color:white;padding:8px 12px;text-align:left;">할 수 있는 것</th>
+            <th style="background:#1a1a2e;color:white;padding:8px 12px;text-align:left;">대상</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background:#f8f8f8;">
+            <td style="padding:8px 12px;border:1px solid #eee;font-weight:700;color:#e94560;">관리자</td>
+            <td style="padding:8px 12px;border:1px solid #eee;">경기 입력, 토너먼트 운영, 승점 반영, 전체 관리</td>
+            <td style="padding:8px 12px;border:1px solid #eee;">안치국, 이미진</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;border:1px solid #eee;font-weight:700;color:#888;">일반회원</td>
+            <td style="padding:8px 12px;border:1px solid #eee;">대시보드, 순위, 출석부, 결과 조회</td>
+            <td style="padding:8px 12px;border:1px solid #eee;">전체 회원</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">📅 금요일 경기 당일 진행 순서</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${[
+          ['1', '#e3f2fd', '출전 선수 등록', '이번주 리그 탭 → 날짜/주차/종류/세트 설정 → 출전 선수 클릭으로 선택 → 선수 확정'],
+          ['2', '#e8f5e9', '조 편성', '선수 클릭 시 1조→2조→3조→4조→미배정 순으로 변경 → 조 편성 확정'],
+          ['3', '#fff3e0', '경기 결과 입력', '경기표에 세트 스코어 입력 (숫자 입력 후 Enter) → 순위 자동 계산'],
+          ['4', '#f3e5f5', '토너먼트 진행', '토너먼트 탭 → 강수 설정 → 대진 생성 → 경기 결과 입력 → 승자 자동 진출'],
+          ['5', '#fce4ec', '결과 저장', '토너먼트 탭 → 결과 입력 및 승점 반영 → 우승/준우승/3위 선택 → 저장'],
+        ].map(([num, bg, title, desc])=>`
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:${bg};border-radius:8px;">
+          <span style="background:#1a1a2e;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">${num}</span>
+          <div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:3px;">${title}</div>
+            <div style="font-size:12px;color:#555;">${desc}</div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">🏆 승점 규칙</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="padding:10px 16px;background:#fff9c4;border-radius:8px;text-align:center;min-width:80px;">
+          <div style="font-size:20px;">🥇</div>
+          <div style="font-weight:700;font-size:15px;">+5점</div>
+          <div style="font-size:12px;color:#888;">우승</div>
+        </div>
+        <div style="padding:10px 16px;background:#f5f5f5;border-radius:8px;text-align:center;min-width:80px;">
+          <div style="font-size:20px;">🥈</div>
+          <div style="font-weight:700;font-size:15px;">+3점</div>
+          <div style="font-size:12px;color:#888;">준우승</div>
+        </div>
+        <div style="padding:10px 16px;background:#fff3e0;border-radius:8px;text-align:center;min-width:80px;">
+          <div style="font-size:20px;">🥉</div>
+          <div style="font-weight:700;font-size:15px;">+2점</div>
+          <div style="font-size:12px;color:#888;">공동3위</div>
+        </div>
+        <div style="padding:10px 16px;background:#e8f5e9;border-radius:8px;text-align:center;min-width:120px;">
+          <div style="font-size:20px;">⬆️</div>
+          <div style="font-weight:700;font-size:15px;">10점 달성</div>
+          <div style="font-size:12px;color:#888;">1부수 승급 + 승점 소멸</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">❓ 자주 묻는 질문</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${[
+          ['내가 입력하면 다른 회원도 바로 볼 수 있나요?', '네! Firebase 실시간 연동으로 입력 즉시 모든 회원에게 반영됩니다.'],
+          ['게스트는 승점이 있나요?', '네! 게스트도 승점이 누적되며 누적 순위 탭의 게스트 섹션에서 확인할 수 있습니다.'],
+          ['이번주 초기화는 언제 하나요?', '경기 종료 후 다음 주 준비할 때 대시보드의 이번주 초기화 버튼을 누르세요. 누적 승점은 유지됩니다.'],
+          ['복식 페어는 어떻게 구성하나요?', '이번주 리그 탭에서 복식 선택 후 선수 확정 → 페어 구성 단계에서 순서대로 2명씩 클릭하면 자동으로 페어가 됩니다.'],
+        ].map(([q, a])=>`
+        <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f5f5f5;padding:8px 12px;font-weight:700;font-size:13px;">Q. ${q}</div>
+          <div style="padding:8px 12px;font-size:13px;color:#555;">A. ${a}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:12px;background:#f5f5f5;border-radius:8px;font-size:12px;color:#888;">
+      문의: 안치국 (회장) · 이미진 (총무) · 개발: Claude AI
     </div>
   </div>
 </div>
@@ -983,6 +1083,7 @@ function switchTab(name,el){
   if(name==='league') renderLeague();
   if(name==='tournament') renderTournamentTab();
   if(name==='attendance'){ currentAttQuarter===2 ? renderAttendance() : renderQ1Attendance(); switchAttQuarter(currentAttQuarter||1); }
+  if(name==='guide'){}
 }
 
 function toggleStep(id){
