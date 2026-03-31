@@ -1103,12 +1103,16 @@ function closePinOverlay(){
 function updateAdminUI(){
   const adminBadge = document.getElementById('admin-badge');
   const lockBtn = document.getElementById('lock-btn');
-  // 뱃지/잠금 아이콘
   adminBadge.style.display = isAdmin?'inline':'none';
   lockBtn.textContent = isAdmin?'🔓':'🔒';
-  // 수정 버튼들 표시/숨김
   const adminBtns = document.querySelectorAll('.admin-only');
   adminBtns.forEach(btn=>{ btn.style.display = isAdmin ? 'inline-flex' : 'none'; });
+  // 선수 칩 상태 업데이트
+  renderLeague();
+}
+
+function showLockMsg(){
+  alert('운영자 모드에서만 수정할 수 있습니다.\n🔒 버튼을 클릭하여 PIN을 입력하세요.');
 }
 
 
@@ -1454,7 +1458,9 @@ function renderLeague(){
 
   // 정회원 칩
   let html = '<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원</div>';
-  html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')">${m.name}${m.bu!==m.total?m.bu+'('+m.total+')':m.total}</span>`).join('');
+  html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" 
+    onclick="${isAdmin?`toggleP('${m.name}')`:'showLockMsg()'}" 
+    style="${!isAdmin&&ps.includes(m.name)?'opacity:0.5;cursor:default;':''}">${m.name}${m.bu!==m.total?m.bu+'('+m.total+')':m.total}</span>`).join('');
 
   // 게스트 (게스트)
   html += `<div style="font-size:11px;color:#546e7a;font-weight:700;margin:10px 0 6px;">🎫 게스트</div>`;
@@ -1464,10 +1470,10 @@ function renderLeague(){
     const guest = temps[i];
     if(guest){
       const sel = ps.includes(guest.name);
-      return `<span class="player-chip ${sel?'selected':''}" onclick="toggleP('${guest.name}')"
-        style="${sel?'background:#546e7a;color:white;border-color:#546e7a;':'background:#eceff1;border-color:#90a4ae;color:#546e7a;'}">${guest.name}${guest.total} <small onclick="removeTempPlayer('${guest.name}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small></span>`;
+      return `<span class="player-chip ${sel?'selected':''}" onclick="${isAdmin?`toggleP('${guest.name}')`:'showLockMsg()'}"
+        style="${sel?'background:#546e7a;color:white;border-color:#546e7a;':'background:#eceff1;border-color:#90a4ae;color:#546e7a;'}${!isAdmin&&sel?'opacity:0.5;cursor:default;':''}">${guest.name}${guest.total}${isAdmin?` <small onclick="removeTempPlayer('${guest.name}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small>`:''}</span>`;
     } else {
-      return `<span class="player-chip" style="background:#eceff1;border:1px dashed #90a4ae;color:#b0bec5;cursor:pointer;" onclick="document.getElementById('temp-name').focus()">+ 추가</span>`;
+      return `<span class="player-chip" style="background:#eceff1;border:1px dashed #90a4ae;color:#b0bec5;cursor:${isAdmin?'pointer':'default'};" ${isAdmin?`onclick="document.getElementById('temp-name').focus()"`:''}>+ 추가</span>`;
     }
   });
   html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${guestSlots.join('')}</div>`;
