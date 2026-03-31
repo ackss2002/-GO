@@ -2193,8 +2193,7 @@ function loadFromFirebase(){
   }).catch(function(e){ console.error('Firebase 로드 오류:', e); });
 }
 
-// 앱 시작 시 Firebase 데이터 로드
-loadFromFirebase();
+// 앱 시작 시 Firebase 로드는 SDK 초기화 후 실행 (하단 script에서)
 </script>
 
 <!-- Firebase SDK - 맨 마지막에 로드 -->
