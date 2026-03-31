@@ -273,6 +273,16 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
     </table>
     </div>
   </div>
+  <!-- 게스트 순위 -->
+  <div class="card" id="guest-ranking-card">
+    <div class="card-title">🎫 게스트 승점 순위</div>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr><th>순위</th><th>이름</th><th>부수</th><th>우승</th><th>준우승</th><th>3위</th><th>승점</th></tr></thead>
+      <tbody id="guest-ranking-tbody"></tbody>
+    </table>
+    </div>
+  </div>
 </div>
 
 <!-- 출석부 -->
@@ -321,7 +331,6 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
 <div id="members" class="section">
   <div class="grid3" style="margin-bottom:14px;">
     <div class="metric"><div class="metric-label">정회원</div><div class="metric-value" id="active-cnt">26명</div></div>
-    <div class="metric"><div class="metric-label">특별 회원</div><div class="metric-value" id="external-cnt">0명</div></div>
     <div class="metric"><div class="metric-label">휴면 회원</div><div class="metric-value" id="dormant-cnt">5명</div></div>
   </div>
   <div class="card">
@@ -337,20 +346,6 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
     <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>통합</th></tr></thead>
     <tbody id="active-tbody"></tbody></table>
     </div>
-  </div>
-  <div class="card">
-    <div class="card-title">특별 회원 명단</div>
-    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-      <input type="text" id="ext-name" placeholder="이름" style="max-width:100px;">
-      <select id="ext-gender" style="width:70px;"><option>남</option><option>여</option></select>
-      <input type="number" id="ext-bu" placeholder="부수" min="1" max="10" style="max-width:60px;">
-      <button class="btn btn-primary btn-sm" onclick="addExternal()">+ 추가</button>
-    </div>
-    <div style="overflow-x:auto;">
-    <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>승점</th><th>관리</th></tr></thead>
-    <tbody id="external-tbody"></tbody></table>
-    </div>
-    <div id="external-empty" style="font-size:13px;color:#888;text-align:center;padding:12px;">등록된 특별 회원이 없습니다</div>
   </div>
   <div class="card">
     <div class="card-title">휴면 회원 명단 (5명)</div>
@@ -881,7 +876,6 @@ function renderQ1Attendance(){
     </tr>`;
   }).join('');
 }
-}
 
 function getAttendance(){
   try{ return JSON.parse(localStorage.getItem('ttgo_attendance')||'{"dates":[],"records":{}}'); }catch(e){ return {dates:[],records:{}}; }
@@ -1055,13 +1049,6 @@ function renderLeague(){
   // 정회원 칩
   let html = '<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원</div>';
   html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')">${m.name}${m.total}</span>`).join('');
-
-  // 특별 회원 칩
-  if(exts.length>0){
-    html += '<div style="font-size:11px;color:#e65100;font-weight:700;margin:10px 0 6px;">🏸 특별 회원</div>';
-    html += exts.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')"
-      style="${ps.includes(m.name)?'background:#e65100;color:white;border-color:#e65100;':'background:#fff3e0;border-color:#ffcc80;color:#e65100;'}">${m.name}${m.total}</span>`).join('');
-  }
 
   // 게스트 (게스트)
   html += `<div style="font-size:11px;color:#546e7a;font-weight:700;margin:10px 0 6px;">🎫 게스트</div>`;
@@ -2383,17 +2370,28 @@ function saveResult(){
   [win,sec,trd,trd2].forEach((name,i)=>{
     if(!name) return;
     const isMember = MNAMES.includes(name);
-    const isExt = extNames.includes(name);
     const isTemp = temps.includes(name);
-    if(!isMember && !isExt) return; // 게스트는 승점 없음
-    if(!ST.scores[name]) ST.scores[name]={w:0,s:0,t:0,pts:0};
-    if(i===0){ST.scores[name].w++;ST.scores[name].pts+=5;}
-    else if(i===1){ST.scores[name].s++;ST.scores[name].pts+=3;}
-    else{ST.scores[name].t++;ST.scores[name].pts+=2;}
-    // 승급은 정회원만 - 10점 달성 시 승급 + 잔여 승점 소멸 (제한 없음)
-    if(isMember && ST.scores[name].pts>=10){
-      ST.scores[name].up = true;
-      ST.scores[name].pts = 0; // 잔여 승점 소멸
+
+    if(isMember){
+      // 정회원 승점
+      if(!ST.scores[name]) ST.scores[name]={w:0,s:0,t:0,pts:0};
+      if(i===0){ST.scores[name].w++;ST.scores[name].pts+=5;}
+      else if(i===1){ST.scores[name].s++;ST.scores[name].pts+=3;}
+      else{ST.scores[name].t++;ST.scores[name].pts+=2;}
+      // 승급 - 10점 달성 시 승급 + 잔여 승점 소멸
+      if(ST.scores[name].pts>=10){
+        ST.scores[name].up = true;
+        ST.scores[name].pts = 0;
+      }
+    } else if(isTemp){
+      // 게스트 승점
+      if(!ST.guestScores) ST.guestScores={};
+      const guest = (ST.week.tempPlayers||[]).find(p=>p.name===name);
+      const bu = guest ? guest.total : '?';
+      if(!ST.guestScores[name]) ST.guestScores[name]={w:0,s:0,t:0,pts:0,bu};
+      if(i===0){ST.guestScores[name].w++;ST.guestScores[name].pts+=5;}
+      else if(i===1){ST.guestScores[name].s++;ST.guestScores[name].pts+=3;}
+      else{ST.guestScores[name].t++;ST.guestScores[name].pts+=2;}
     }
   });
   saveST();
@@ -2451,24 +2449,40 @@ function renderRanking(){
     if(i>0&&p.pts<all[i-1].pts) rank=i+1;
     if(p.pts===0 && !p.up) return '';
     const bg=rank<=3?bgs[rank-1]:'rank-n';
-    const extTag = p.isExt?'<span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;margin-left:4px;">특별</span>':'';
     const upTag = p.up?'<span class="pill pill-amber" style="margin-left:4px;">↑승급</span>':'';
     return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
-      <td><strong>${p.name}</strong>${extTag}</td><td>${p.gender}</td><td>${p.bu}</td>
+      <td><strong>${p.name}</strong></td><td>${p.gender}</td><td>${p.bu}</td>
       <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td><td><strong>${p.pts}점</strong>${upTag}</td>
       <td></td></tr>`;
   }).join('')||'<tr><td colspan="9" style="color:#888;text-align:center;">데이터 없음</td></tr>';
 
   // 승급 현황 (2분기/전체만)
   if(q!==1){
-    const ups = all.filter(p=>p.up&&!p.isExt);
-    const near = all.filter(p=>!p.up&&p.pts>=7&&!p.isExt);
+    const ups = all.filter(p=>p.up);
+    const near = all.filter(p=>!p.up&&p.pts>=7);
     document.getElementById('upgrade-card').innerHTML=`<div class="card-title">승급 현황</div>`+
       (ups.length?ups.map(p=>`<div class="upgrade-box"><div><div style="font-weight:700;color:#e65100;">${p.name}</div><div style="font-size:12px;color:#f57f17;">${p.bu}부 승급 완료</div></div><span class="pill pill-amber">승급완료</span></div>`).join(''):'<div style="font-size:13px;color:#888;">승급자 없음</div>')+
       (near.length?`<div style="font-size:12px;color:#888;margin-top:8px;">승급 후보: ${near.map(p=>p.name+' '+p.pts+'점').join(' · ')}</div>`:'');
   } else {
     document.getElementById('upgrade-card').innerHTML='';
   }
+
+  // 게스트 순위
+  const guestScores = ST.guestScores||{};
+  const guests = Object.keys(guestScores).map(name=>{
+    const s = guestScores[name];
+    return {name, bu:s.bu||'?', w:s.w||0, s:s.s||0, t:s.t||0, pts:s.pts||0};
+  }).filter(g=>g.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
+  let grank=1;
+  document.getElementById('guest-ranking-tbody').innerHTML = guests.length ?
+    guests.map((g,i)=>{
+      if(i>0&&g.pts<guests[i-1].pts) grank=i+1;
+      const bg=grank<=3?bgs[grank-1]:'rank-n';
+      return `<tr><td><span class="rank-badge ${bg}">${grank}</span></td>
+        <td><strong>${g.name}</strong></td><td>${g.bu}부</td>
+        <td>${g.w}</td><td>${g.s}</td><td>${g.t}</td><td><strong>${g.pts}점</strong></td></tr>`;
+    }).join('')
+    : '<tr><td colspan="7" style="color:#888;text-align:center;">게스트 승점 없음</td></tr>';
 }
 
 // 회원 관리
