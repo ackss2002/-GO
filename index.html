@@ -818,42 +818,69 @@ function switchAttQuarter(q){
 
 function renderQ1Attendance(){
   const members = MEMBERS.map(m=>m.name);
-  const thStyle = 'padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:52px;font-size:11px;';
+  const thStyle = 'padding:6px 6px;border:1px solid #bbb;text-align:center;min-width:48px;font-size:11px;';
   const nameTh = 'background:#1a1a2e;color:white;padding:6px 10px;border:1px solid #555;text-align:left;min-width:80px;';
+
+  // 날짜 통합 정렬 (금요리그=green, 교류전=orange)
+  const allDates = [
+    {d:'2026-01-09', type:'l'},
+    {d:'2026-01-16', type:'l'},
+    {d:'2026-01-23', type:'l'},
+    {d:'2026-02-06', type:'l'},
+    {d:'2026-02-10', type:'e', team:'LG'},
+    {d:'2026-02-13', type:'l'},
+    {d:'2026-02-20', type:'l'},
+    {d:'2026-02-27', type:'l'},
+    {d:'2026-03-05', type:'e', team:'한전'},
+    {d:'2026-03-13', type:'l'},
+    {d:'2026-03-18', type:'e', team:'푸르미'},
+    {d:'2026-03-20', type:'l'},
+    {d:'2026-03-27', type:'l'},
+  ];
 
   // 헤더
   document.getElementById('att-q1-head').innerHTML = `<tr>
     <th style="background:#1a1a2e;color:white;padding:6px 8px;border:1px solid #555;text-align:center;min-width:36px;">순위</th>
     <th style="${nameTh}">이름</th>
-    ${Q1_LEAGUE_DATES.map(d=>`<th style="background:#e8f5e9;color:#1b5e20;${thStyle}">${d.slice(5)}</th>`).join('')}
-    ${Q1_EXCHANGE_DATES.map((d,i)=>`<th style="background:#fff3e0;color:#e65100;${thStyle}">${d.slice(5)}<br>(${Q1_EXCHANGE_TEAMS[i]})</th>`).join('')}
+    ${allDates.map(({d,type,team})=>{
+      const bg = type==='l'?'background:#e8f5e9;color:#1b5e20;':'background:#fff3e0;color:#e65100;';
+      const label = team ? `${d.slice(5)}<br><span style="font-size:10px;">(${team})</span>` : d.slice(5);
+      return `<th style="${bg}${thStyle}">${label}</th>`;
+    }).join('')}
     <th style="background:#fff9c4;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:46px;font-weight:700;">합계</th>
   </tr>`;
 
-  // 데이터 + 랭킹 정렬
+  // 데이터
   const rows = members.map(name=>{
     const lRow = Q1_LEAGUE_ATT[name]||[];
     const eRow = Q1_EXCHANGE_ATT[name]||[];
-    const lTotal = lRow.filter(v=>v).length;
-    const eTotal = eRow.filter(v=>v).length;
-    const total = lTotal + eTotal;
-    return {name, lRow, eRow, lTotal, eTotal, total};
+    // 날짜별 출석 매핑
+    const attMap = {
+      '2026-01-09':lRow[0],'2026-01-16':lRow[1],'2026-01-23':lRow[2],
+      '2026-02-06':lRow[3],'2026-02-13':lRow[4],'2026-02-20':lRow[5],
+      '2026-02-27':lRow[6],'2026-03-13':lRow[7],'2026-03-20':lRow[8],'2026-03-27':lRow[9],
+      '2026-02-10':eRow[0],'2026-03-05':eRow[1],'2026-03-18':eRow[2],
+    };
+    const total = Object.values(attMap).filter(v=>v).length;
+    return {name, attMap, total};
   }).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
 
   let rank=1;
   document.getElementById('att-q1-body').innerHTML = rows.map((r,i)=>{
     if(i>0 && r.total<rows[i-1].total) rank=i+1;
     const rankBg = rank===1?'background:#ffd700;color:#1a1a2e;font-size:15px;':(rank===2?'background:#aaa;color:white;':(rank===3?'background:#cd7f32;color:white;':'background:#f5f5f5;'));
-    // 교류전 칸 3개 보장
-    const eRow = Array.from({length:3}, (_,i)=>r.eRow[i]||0);
     return `<tr>
       <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;${rankBg}">${rank}</td>
       <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${r.name}</td>
-      ${r.lRow.map(v=>`<td style="border:1px solid #bbb;text-align:center;padding:4px;background:${v?'#e8f5e9':'white'};">${v?'●':''}</td>`).join('')}
-      ${eRow.map(v=>`<td style="border:1px solid #bbb;text-align:center;padding:4px;background:${v?'#fff3e0':'white'};">${v?'●':''}</td>`).join('')}
+      ${allDates.map(({d,type})=>{
+        const v = r.attMap[d];
+        const bg = v?(type==='l'?'#e8f5e9':'#fff3e0'):'white';
+        return `<td style="border:1px solid #bbb;text-align:center;padding:4px;background:${bg};">${v?'●':''}</td>`;
+      }).join('')}
       <td style="border:1px solid #bbb;text-align:center;font-weight:900;font-size:14px;background:#fff9c4;">${r.total}</td>
     </tr>`;
   }).join('');
+}
 }
 
 function getAttendance(){
