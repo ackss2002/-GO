@@ -255,7 +255,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
 
 <!-- 누적 순위 -->
 <div id="ranking" class="section">
-  <div class="notice">승점: 우승 5점 / 준우승 3점 / 3위 1점 · 10점 달성 시 1부수 승급 + 잔여 승점 소멸 (최대 2부수)</div>
+  <div class="notice">승점: 우승 5점 / 준우승 3점 / 3위 2점 · 10점 달성 시 1부수 승급 + 잔여 승점 소멸 (승급 부수 제한 없음)</div>
   
   <!-- 분기 탭 -->
   <div style="display:flex;gap:8px;margin-bottom:14px;border-bottom:2px solid #e0e0e0;padding-bottom:0;">
@@ -692,14 +692,14 @@ function loadTestData(numGroups){
 
 // ── 분기 데이터 ──
 const Q1_SCORES = {
-  '이원호':  {w:2, s:0, t:1, pts:0,  up:true},  // 승급 후 소멸
-  '김덕기':  {w:1, s:0, t:1, pts:0,  up:true},  // 승급 후 소멸
-  '안치국':  {w:1, s:0, t:0, pts:7,  up:false},
+  '이원호':  {w:2, s:0, t:0, pts:13, up:true},  // 13점 달성 → 4부 승급
+  '김덕기':  {w:1, s:0, t:1, pts:12, up:true},  // 12점 달성 → 4부 승급
+  '안치국':  {w:1, s:0, t:1, pts:7,  up:false},
   '이미진':  {w:1, s:0, t:0, pts:5,  up:false},
   '최양님':  {w:1, s:0, t:0, pts:5,  up:false},
   '이상건':  {w:0, s:0, t:2, pts:4,  up:false},
-  '이진규':  {w:0, s:0, t:1, pts:3,  up:false},
-  '김영서':  {w:1, s:0, t:0, pts:2,  up:false},
+  '이진규':  {w:0, s:1, t:1, pts:5,  up:false},
+  '김영서':  {w:0, s:0, t:1, pts:2,  up:false},
 };
 
 let currentQuarter = 1;
@@ -784,10 +784,10 @@ function renderAttendance(){
 function initScores(){
   if(!confirm('누적 승점을 1분기 데이터로 초기화할까요?\n(기존 승점이 덮어씌워집니다)')) return;
   ST.scores = {
-    '김영서': {w:0, s:0, t:0, pts:2},
-    '안치국': {w:1, s:0, t:0, pts:7},
+    '김영서': {w:0, s:0, t:1, pts:2},
+    '안치국': {w:1, s:0, t:1, pts:7},
     '이상건': {w:0, s:0, t:2, pts:4},
-    '이진규': {w:0, s:0, t:1, pts:3},
+    '이진규': {w:0, s:1, t:1, pts:5},
     '최양님': {w:1, s:0, t:0, pts:5},
     '이미진': {w:1, s:0, t:0, pts:5},
   };
@@ -2219,9 +2219,9 @@ function saveResult(){
     if(!ST.scores[name]) ST.scores[name]={w:0,s:0,t:0,pts:0};
     if(i===0){ST.scores[name].w++;ST.scores[name].pts+=5;}
     else if(i===1){ST.scores[name].s++;ST.scores[name].pts+=3;}
-    else{ST.scores[name].t++;ST.scores[name].pts+=1;}
-    // 승급은 정회원만 - 10점 달성 시 승급 + 잔여 승점 소멸
-    if(isMember && ST.scores[name].pts>=10 && !ST.scores[name].up){
+    else{ST.scores[name].t++;ST.scores[name].pts+=2;}
+    // 승급은 정회원만 - 10점 달성 시 승급 + 잔여 승점 소멸 (제한 없음)
+    if(isMember && ST.scores[name].pts>=10){
       ST.scores[name].up = true;
       ST.scores[name].pts = 0; // 잔여 승점 소멸
     }
@@ -2279,13 +2279,14 @@ function renderRanking(){
   let rank=1;
   document.getElementById('ranking-tbody').innerHTML=all.map((p,i)=>{
     if(i>0&&p.pts<all[i-1].pts) rank=i+1;
-    if(p.pts===0) return '';
+    if(p.pts===0 && !p.up) return '';
     const bg=rank<=3?bgs[rank-1]:'rank-n';
     const extTag = p.isExt?'<span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;margin-left:4px;">특별</span>':'';
+    const upTag = p.up?'<span class="pill pill-amber" style="margin-left:4px;">↑승급</span>':'';
     return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
       <td><strong>${p.name}</strong>${extTag}</td><td>${p.gender}</td><td>${p.bu}</td>
-      <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td><td><strong>${p.pts}점</strong></td>
-      <td>${p.up?'<span class="pill pill-amber">승급</span>':''}</td></tr>`;
+      <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td><td><strong>${p.pts}점</strong>${upTag}</td>
+      <td></td></tr>`;
   }).join('')||'<tr><td colspan="9" style="color:#888;text-align:center;">데이터 없음</td></tr>';
 
   // 승급 현황 (2분기/전체만)
