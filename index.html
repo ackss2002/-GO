@@ -285,25 +285,15 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
 
   <!-- 1분기 -->
   <div id="att-q1">
-    <!-- 금요리그 -->
     <div class="card">
-      <div class="card-title">1분기 금요리그 출석 (10회)</div>
+      <div class="card-title">1분기 출석 현황 (금요리그 10회 + 교류전 3회)</div>
       <div style="overflow-x:auto;">
         <table style="border-collapse:collapse;font-size:12px;">
-          <thead id="att-q1-league-head"></thead>
-          <tbody id="att-q1-league-body"></tbody>
+          <thead id="att-q1-head"></thead>
+          <tbody id="att-q1-body"></tbody>
         </table>
       </div>
-    </div>
-    <!-- 교류전 -->
-    <div class="card">
-      <div class="card-title">1분기 교류전 출석 (3회)</div>
-      <div style="overflow-x:auto;">
-        <table style="border-collapse:collapse;font-size:12px;">
-          <thead id="att-q1-exchange-head"></thead>
-          <tbody id="att-q1-exchange-body"></tbody>
-        </table>
-      </div>
+      <div style="margin-top:8px;font-size:12px;color:#888;">🟢 금요리그 · 🟠 교류전 · 합계 기준 랭킹 순</div>
     </div>
   </div>
 
@@ -754,6 +744,7 @@ function switchQuarter(q){
 // ── 1분기 출석 하드코딩 ──
 const Q1_LEAGUE_DATES = ['2026-01-09','2026-01-16','2026-01-23','2026-02-06','2026-02-13','2026-02-20','2026-02-27','2026-03-13','2026-03-20','2026-03-27'];
 const Q1_EXCHANGE_DATES = ['2026-02-10','2026-03-05','2026-03-18'];
+const Q1_EXCHANGE_TEAMS = ['LG','한전','푸르미'];
 
 const Q1_LEAGUE_ATT = {
   '이원호':  [1,1,1,1,1,1,1,1,0,0],
@@ -827,41 +818,38 @@ function switchAttQuarter(q){
 
 function renderQ1Attendance(){
   const members = MEMBERS.map(m=>m.name);
-  const thStyle = 'padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:55px;font-size:11px;';
+  const thStyle = 'padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:52px;font-size:11px;';
   const nameTh = 'background:#1a1a2e;color:white;padding:6px 10px;border:1px solid #555;text-align:left;min-width:80px;';
-  const totalTh = 'background:#fff9c4;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:50px;';
 
-  // 금요리그
-  document.getElementById('att-q1-league-head').innerHTML = `<tr>
+  // 헤더
+  document.getElementById('att-q1-head').innerHTML = `<tr>
+    <th style="background:#1a1a2e;color:white;padding:6px 8px;border:1px solid #555;text-align:center;min-width:36px;">순위</th>
     <th style="${nameTh}">이름</th>
-    ${Q1_LEAGUE_DATES.map(d=>`<th style="background:#e3f2fd;color:#1a1a2e;${thStyle}">${d.slice(5)}</th>`).join('')}
-    <th style="${totalTh}">합계</th>
+    ${Q1_LEAGUE_DATES.map(d=>`<th style="background:#e8f5e9;color:#1b5e20;${thStyle}">${d.slice(5)}</th>`).join('')}
+    ${Q1_EXCHANGE_DATES.map((d,i)=>`<th style="background:#fff3e0;color:#e65100;${thStyle}">${d.slice(5)}<br>(${Q1_EXCHANGE_TEAMS[i]})</th>`).join('')}
+    <th style="background:#fff9c4;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:46px;font-weight:700;">합계</th>
   </tr>`;
-  document.getElementById('att-q1-league-body').innerHTML = members.map(name=>{
-    const row = Q1_LEAGUE_ATT[name]||[];
-    const total = row.filter(v=>v).length;
-    if(total===0) return '';
-    return `<tr>
-      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${name}</td>
-      ${Q1_LEAGUE_DATES.map((_,i)=>`<td style="border:1px solid #bbb;text-align:center;padding:4px;background:${row[i]?'#e8f5e9':'white'};">${row[i]?'●':''}</td>`).join('')}
-      <td style="border:1px solid #bbb;text-align:center;font-weight:700;background:#fff9c4;">${total}</td>
-    </tr>`;
-  }).join('');
 
-  // 교류전
-  document.getElementById('att-q1-exchange-head').innerHTML = `<tr>
-    <th style="${nameTh}">이름</th>
-    ${Q1_EXCHANGE_DATES.map(d=>`<th style="background:#fff3e0;color:#e65100;${thStyle}">${d.slice(5)}</th>`).join('')}
-    <th style="${totalTh}">합계</th>
-  </tr>`;
-  document.getElementById('att-q1-exchange-body').innerHTML = members.map(name=>{
-    const row = Q1_EXCHANGE_ATT[name]||[];
-    const total = row.filter(v=>v).length;
-    if(total===0) return '';
+  // 데이터 + 랭킹 정렬
+  const rows = members.map(name=>{
+    const lRow = Q1_LEAGUE_ATT[name]||[];
+    const eRow = Q1_EXCHANGE_ATT[name]||[];
+    const lTotal = lRow.filter(v=>v).length;
+    const eTotal = eRow.filter(v=>v).length;
+    const total = lTotal + eTotal;
+    return {name, lRow, eRow, lTotal, eTotal, total};
+  }).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
+
+  let rank=1;
+  document.getElementById('att-q1-body').innerHTML = rows.map((r,i)=>{
+    if(i>0 && r.total<rows[i-1].total) rank=i+1;
+    const rankBg = rank===1?'background:#ffd700;':(rank===2?'background:#c0c0c0;':(rank===3?'background:#cd7f32;color:white;':''));
     return `<tr>
-      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${name}</td>
-      ${Q1_EXCHANGE_DATES.map((_,i)=>`<td style="border:1px solid #bbb;text-align:center;padding:4px;background:${row[i]?'#fff3e0':'white'};">${row[i]?'●':''}</td>`).join('')}
-      <td style="border:1px solid #bbb;text-align:center;font-weight:700;background:#fff9c4;">${total}</td>
+      <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;${rankBg}">${rank}</td>
+      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${r.name}</td>
+      ${r.lRow.map(v=>`<td style="border:1px solid #bbb;text-align:center;padding:4px;background:${v?'#e8f5e9':'white'};">${v?'●':''}</td>`).join('')}
+      ${r.eRow.map(v=>`<td style="border:1px solid #bbb;text-align:center;padding:4px;background:${v?'#fff3e0':'white'};">${v?'●':''}</td>`).join('')}
+      <td style="border:1px solid #bbb;text-align:center;font-weight:900;font-size:14px;background:#fff9c4;">${r.total}</td>
     </tr>`;
   }).join('');
 }
@@ -906,20 +894,30 @@ function renderAttendance(){
   const dates = att.dates;
   const members = MEMBERS.map(m=>m.name);
   document.getElementById('att-head').innerHTML = `<tr>
+    <th style="background:#1a1a2e;color:white;padding:6px 8px;border:1px solid #555;text-align:center;min-width:36px;">순위</th>
     <th style="background:#1a1a2e;color:white;padding:6px 10px;border:1px solid #555;text-align:left;min-width:80px;">이름</th>
     ${dates.map(d=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:70px;font-size:11px;">
       ${d.slice(5)}<br><small onclick="removeAttendanceDate('${d}')" style="color:#e94560;cursor:pointer;font-size:10px;">✕</small>
     </th>`).join('')}
     <th style="background:#fff9c4;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:50px;">합계</th>
   </tr>`;
-  document.getElementById('att-body').innerHTML = members.map(name=>{
+
+  const rows = members.map(name=>{
     const rec = att.records[name]||{};
     const total = dates.filter(d=>rec[d]).length;
+    return {name, rec, total};
+  }).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
+
+  let rank=1;
+  document.getElementById('att-body').innerHTML = rows.map((r,i)=>{
+    if(i>0 && r.total<rows[i-1].total) rank=i+1;
+    const rankBg = rank===1?'background:#ffd700;':(rank===2?'background:#c0c0c0;':(rank===3?'background:#cd7f32;color:white;':''));
     return `<tr>
-      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${name}</td>
-      ${dates.map(d=>`<td style="border:1px solid #bbb;text-align:center;cursor:pointer;padding:4px;background:${rec[d]?'#e8f5e9':'white'};"
-        onclick="toggleAttendance('${name}','${d}')">${rec[d]?'●':''}</td>`).join('')}
-      <td style="border:1px solid #bbb;text-align:center;font-weight:700;background:#fff9c4;">${total}</td>
+      <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;${rankBg}">${rank}</td>
+      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${r.name}</td>
+      ${dates.map(d=>`<td style="border:1px solid #bbb;text-align:center;cursor:pointer;padding:4px;background:${r.rec[d]?'#e8f5e9':'white'};"
+        onclick="toggleAttendance('${r.name}','${d}')">${r.rec[d]?'●':''}</td>`).join('')}
+      <td style="border:1px solid #bbb;text-align:center;font-weight:900;font-size:14px;background:#fff9c4;">${r.total}</td>
     </tr>`;
   }).join('');
 }
