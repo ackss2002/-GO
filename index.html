@@ -1332,39 +1332,52 @@ function renderMatchesDoubles(){
   if(!ST.doubles) return;
   const pairs = ST.doubles.pairs||[];
   const gs = ST.doubles.groups.map(g=>g.map(pi=>pairs[pi])).filter(g=>g.length>0);
+  const memberBuMap={};
+  MEMBERS.forEach(m=>{ memberBuMap[m.name]=m.total; });
+  getExternals().forEach(m=>{ memberBuMap[m.name]=m.total; });
+
   let html='';
   gs.forEach((grp,gi)=>{
     const n=grp.length;
     const ord=getOrder(n);
     const teamNames = grp.map(p=>p[0]+'/'+p[1]);
-    html+=`<div style="margin-bottom:20px;">
-      <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#1a1a2e;">${gi+1}조 대진표 (${n}팀)</div>
+    // 팀별 부수 표시 (두 선수 부수)
+    const teamBu = grp.map(p=>{
+      const b1 = memberBuMap[p[0]]||'';
+      const b2 = memberBuMap[p[1]]||'';
+      return b1&&b2 ? b1+'부/'+b2+'부' : '';
+    });
+    html+=`<div style="margin-bottom:28px;">
       <div style="overflow-x:auto;">
-      <table style="border-collapse:collapse;font-size:12px;width:100%;">
+      <table style="border-collapse:collapse;font-size:13px;">
         <thead><tr>
-          <th style="background:#1a1a2e;color:white;padding:6px 8px;border:1px solid #555;min-width:28px;text-align:center;">NO</th>
-          <th style="background:#FFD700;color:#333;padding:6px 8px;border:1px solid #ccc;min-width:100px;">팀</th>
-          ${teamNames.map((_,i)=>`<th style="background:#4fc3f7;color:#1a1a2e;padding:6px 8px;border:1px solid #ccc;text-align:center;min-width:42px;">${i+1}</th>`).join('')}
-          <th style="background:#f5f5f5;padding:6px 8px;border:1px solid #ccc;text-align:center;min-width:50px;">승패</th>
-          <th style="background:#f5f5f5;padding:6px 8px;border:1px solid #ccc;text-align:center;min-width:45px;">득실</th>
-          <th style="background:#f5f5f5;padding:6px 8px;border:1px solid #ccc;text-align:center;min-width:35px;">순위</th>
+          <th colspan="2" style="background:#e8f5e9;color:#1a1a2e;padding:8px 14px;border:2px solid #aaa;font-size:15px;font-weight:900;text-align:left;min-width:140px;">${gi+1}조</th>
+          ${teamNames.map(tn=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:80px;font-weight:700;font-size:12px;">${tn}</th>`).join('')}
+          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">승</th>
+          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">패</th>
+          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:46px;font-weight:700;">승점</th>
+          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:44px;font-weight:700;">순위</th>
         </tr></thead>
         <tbody>
           ${teamNames.map((tn,ri)=>`
           <tr>
-            <td style="background:#4fc3f7;color:#1a1a2e;font-weight:700;text-align:center;padding:6px;border:1px solid #ccc;">${ri+1}</td>
-            <td style="padding:6px 8px;border:1px solid #ccc;font-weight:700;white-space:nowrap;">${tn}</td>
+            <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
+            <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:130px;">
+              <span style="font-weight:700;font-size:13px;">${tn}</span>
+              <span style="font-size:11px;color:#888;margin-left:4px;">${teamBu[ri]}</span>
+            </td>
             ${teamNames.map((_,ci)=>ri===ci?
-              `<td style="background:#ddd;border:1px solid #ccc;"></td>`:
-              `<td style="border:1px solid #ccc;padding:2px;text-align:center;">
+              `<td style="background:#ccc;border:1px solid #bbb;min-width:80px;"></td>`:
+              `<td style="border:1px solid #bbb;padding:2px;text-align:center;min-width:80px;">
                 <input type="number" id="dg${gi}r${ri}c${ci}" min="0" max="${getMaxScore()}" placeholder="-"
                   oninput="realtimeCalcDoubles(${gi})"
-                  style="width:36px;text-align:center;border:none;background:transparent;font-size:13px;font-weight:700;padding:2px;">
+                  style="width:50px;text-align:center;border:none;background:transparent;font-size:15px;font-weight:700;padding:2px;color:#1a1a2e;">
               </td>`
             ).join('')}
-            <td style="text-align:center;padding:6px;border:1px solid #ccc;font-weight:700;" id="dg${gi}wp${ri}">-</td>
-            <td style="text-align:center;padding:6px;border:1px solid #ccc;" id="dg${gi}ds${ri}">-</td>
-            <td style="text-align:center;padding:6px;border:1px solid #ccc;font-weight:700;" id="dg${gi}rk${ri}">-</td>
+            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;" id="dg${gi}w${ri}">-</td>
+            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;" id="dg${gi}l${ri}">-</td>
+            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:900;font-size:14px;" id="dg${gi}wp${ri}">-</td>
+            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:900;font-size:15px;" id="dg${gi}rk${ri}">-</td>
           </tr>`).join('')}
         </tbody>
       </table></div>
