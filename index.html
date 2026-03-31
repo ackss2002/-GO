@@ -283,7 +283,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
 <div id="members" class="section">
   <div class="grid3" style="margin-bottom:14px;">
     <div class="metric"><div class="metric-label">정회원</div><div class="metric-value" id="active-cnt">27명</div></div>
-    <div class="metric"><div class="metric-label">외부 회원</div><div class="metric-value" id="external-cnt">0명</div></div>
+    <div class="metric"><div class="metric-label">특별 회원</div><div class="metric-value" id="external-cnt">0명</div></div>
     <div class="metric"><div class="metric-label">휴면 회원</div><div class="metric-value" id="dormant-cnt">4명</div></div>
   </div>
   <div class="card">
@@ -301,7 +301,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
     </div>
   </div>
   <div class="card">
-    <div class="card-title">외부 회원 명단</div>
+    <div class="card-title">특별 회원 명단</div>
     <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
       <input type="text" id="ext-name" placeholder="이름" style="max-width:100px;">
       <select id="ext-gender" style="width:70px;"><option>남</option><option>여</option></select>
@@ -312,7 +312,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
     <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>승점</th><th>관리</th></tr></thead>
     <tbody id="external-tbody"></tbody></table>
     </div>
-    <div id="external-empty" style="font-size:13px;color:#888;text-align:center;padding:12px;">등록된 외부 회원이 없습니다</div>
+    <div id="external-empty" style="font-size:13px;color:#888;text-align:center;padding:12px;">등록된 특별 회원이 없습니다</div>
   </div>
   <div class="card">
     <div class="card-title">휴면 회원 명단 (4명)</div>
@@ -346,7 +346,7 @@ const DORMANT = [
   {name:'이동규',g:'남',bu:5,total:5},
   {name:'허순임',g:'여',bu:6,total:9},
 ];
-// 외부 회원 (localStorage에서 관리)
+// 특별 회원 (localStorage에서 관리)
 function getExternals(){ 
   try{ return JSON.parse(localStorage.getItem('ttgo_externals')||'[]'); }catch(e){ return []; }
 }
@@ -366,7 +366,10 @@ function loadST(){
     tournament:{},
   };
 }
-function saveST(){ localStorage.setItem('ttgo_v3',JSON.stringify(ST)); }
+function saveST(){ 
+  localStorage.setItem('ttgo_v3',JSON.stringify(ST)); 
+  saveToFirebase();
+}
 
 function loadTestDataDoubles(numGroups){
   if(!confirm('복식 '+numGroups+'조 테스트 데이터를 불러올까요?')) return;
@@ -661,9 +664,9 @@ function renderLeague(){
   let html = '<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원</div>';
   html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')">${m.name} <small style="opacity:.7">${m.total}부</small></span>`).join('');
 
-  // 외부 회원 칩
+  // 특별 회원 칩
   if(exts.length>0){
-    html += '<div style="font-size:11px;color:#e65100;font-weight:700;margin:10px 0 6px;">🏸 외부 회원</div>';
+    html += '<div style="font-size:11px;color:#e65100;font-weight:700;margin:10px 0 6px;">🏸 특별 회원</div>';
     html += exts.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')"
       style="${ps.includes(m.name)?'background:#e65100;color:white;border-color:#e65100;':'background:#fff3e0;border-color:#ffcc80;color:#e65100;'}">${m.name} <small style="opacity:.8">${m.total}부</small></span>`).join('');
   }
@@ -1887,7 +1890,7 @@ function fillResultInfo(inputId){
   }, null);
   const buStr  = person ? person.total+'부' : '';
   const giStr  = gi ? gi.g+'조 '+gi.rank+'위' : '';
-  const extTag = ext ? ' [외부]' : '';
+  const extTag = ext ? ' [특별]' : '';
   const parts  = [buStr, giStr].filter(Boolean);
   info.textContent = parts.length ? parts.join(' · ')+extTag : (person?extTag:'일회성참가자');
   info.style.color = m ? '#1565C0' : ext ? '#e65100' : '#888';
@@ -1970,7 +1973,7 @@ function renderRanking(){
     if(i>0&&p.pts<all[i-1].pts)rank=i+1;
     if(p.pts===0)return '';
     const bg=rank<=3?bgs[rank-1]:'rank-n';
-    const extTag = p.isExt?'<span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;margin-left:4px;">외부</span>':'';
+    const extTag = p.isExt?'<span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;margin-left:4px;">특별</span>':'';
     return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
       <td><strong>${p.name}</strong>${extTag}</td><td>${p.gender}</td><td>${p.bu}부</td>
       <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td><td><strong>${p.pts}점</strong></td>
@@ -2008,7 +2011,7 @@ function renderExternalMembers(){
     const s = ST.scores[m.name]||{pts:0};
     return `<tr>
       <td>${i+1}</td>
-      <td><strong>${m.name}</strong> <span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;">외부</span></td>
+      <td><strong>${m.name}</strong> <span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;">특별</span></td>
       <td>${m.g}</td><td>${m.total}부</td>
       <td>${s.pts||0}점</td>
       <td><button class="btn btn-sm" onclick="removeExternal('${m.name}')" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;padding:2px 8px;">삭제</button></td>
@@ -2024,7 +2027,7 @@ function addExternal(){
   if(isNaN(bu)||bu<1||bu>10){ alert('부수를 입력하세요 (1~10).'); return; }
   if(MNAMES.includes(name)){ alert('정회원 명단에 있는 이름입니다.'); return; }
   const exts = getExternals();
-  if(exts.find(e=>e.name===name)){ alert('이미 등록된 외부 회원입니다.'); return; }
+  if(exts.find(e=>e.name===name)){ alert('이미 등록된 특별 회원입니다.'); return; }
   exts.push({name, g:gender, bu, total:bu});
   saveExternals(exts);
   document.getElementById('ext-name').value='';
@@ -2034,7 +2037,7 @@ function addExternal(){
 }
 
 function removeExternal(name){
-  if(!confirm(name+'을(를) 외부 회원에서 삭제할까요?')) return;
+  if(!confirm(name+'을(를) 특별 회원에서 삭제할까요?')) return;
   const exts = getExternals().filter(e=>e.name!==name);
   saveExternals(exts);
   renderExternalMembers();
@@ -2044,6 +2047,53 @@ function removeExternal(name){
 // 초기 실행
 renderDash();
 renderMembers();
+
+// ── Firebase 연동 함수 ──
+function saveToFirebase(){
+  if(typeof db === 'undefined') return;
+  db.ref('ttgo').set({
+    ST: ST,
+    externals: getExternals(),
+    updatedAt: Date.now()
+  }).catch(function(e){ console.error('Firebase 저장 오류:', e); });
+}
+
+function loadFromFirebase(){
+  if(typeof db === 'undefined') return;
+  db.ref('ttgo').once('value').then(function(snapshot){
+    const data = snapshot.val();
+    if(!data) return;
+    if(data.ST){ ST = data.ST; localStorage.setItem('ttgo_v3', JSON.stringify(ST)); }
+    if(data.externals) saveExternals(data.externals);
+    renderDash();
+    renderMembers();
+    renderLeague();
+  }).catch(function(e){ console.error('Firebase 로드 오류:', e); });
+}
+
+// 앱 시작 시 Firebase 데이터 로드
+loadFromFirebase();
 </script>
+
+<!-- Firebase SDK - 맨 마지막에 로드 -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+// Firebase 초기화 (SDK 로드 후 실행)
+const firebaseConfig = {
+  apiKey: "AIzaSyAz_QQGLibCZxeYQGD7K-2CwNKp13RKT2I",
+  authDomain: "ttgo-league.firebaseapp.com",
+  databaseURL: "https://ttgo-league-default-rtdb.firebaseio.com",
+  projectId: "ttgo-league",
+  storageBucket: "ttgo-league.firebasestorage.app",
+  messagingSenderId: "928846732074",
+  appId: "1:928846732074:web:26baa81874ca8374595c53"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+loadFromFirebase();
+</script>
+</body>
+</html>
 </body>
 </html>
