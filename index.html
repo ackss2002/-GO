@@ -282,9 +282,9 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
 <!-- 회원 관리 -->
 <div id="members" class="section">
   <div class="grid3" style="margin-bottom:14px;">
-    <div class="metric"><div class="metric-label">정회원</div><div class="metric-value" id="active-cnt">27명</div></div>
+    <div class="metric"><div class="metric-label">정회원</div><div class="metric-value" id="active-cnt">26명</div></div>
     <div class="metric"><div class="metric-label">특별 회원</div><div class="metric-value" id="external-cnt">0명</div></div>
-    <div class="metric"><div class="metric-label">휴면 회원</div><div class="metric-value" id="dormant-cnt">4명</div></div>
+    <div class="metric"><div class="metric-label">휴면 회원</div><div class="metric-value" id="dormant-cnt">5명</div></div>
   </div>
   <div class="card">
     <div class="card-title">운영진</div>
@@ -294,7 +294,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
     </tbody></table>
   </div>
   <div class="card">
-    <div class="card-title">정회원 명단 (27명)</div>
+    <div class="card-title">정회원 명단 (26명)</div>
     <div style="overflow-x:auto;">
     <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>통합</th></tr></thead>
     <tbody id="active-tbody"></tbody></table>
@@ -315,7 +315,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
     <div id="external-empty" style="font-size:13px;color:#888;text-align:center;padding:12px;">등록된 특별 회원이 없습니다</div>
   </div>
   <div class="card">
-    <div class="card-title">휴면 회원 명단 (4명)</div>
+    <div class="card-title">휴면 회원 명단 (5명)</div>
     <table><thead><tr><th>이름</th><th>성별</th><th>부수</th><th>통합</th></tr></thead>
     <tbody id="dormant-tbody"></tbody></table>
   </div>
@@ -331,7 +331,7 @@ const MEMBERS = [
   {name:'김영서',g:'남',bu:6,total:6},{name:'김옥란',g:'여',bu:6,total:9},
   {name:'김조영',g:'남',bu:6,total:6},{name:'김현종',g:'남',bu:6,total:6},
   {name:'변현진',g:'여',bu:5,total:8},{name:'신문섭',g:'남',bu:6,total:6},
-  {name:'안경식',g:'남',bu:6,total:6},{name:'안치국',g:'남',bu:6,total:6},
+  {name:'안치국',g:'남',bu:6,total:6},
   {name:'양선한',g:'남',bu:6,total:6},{name:'이미진',g:'여',bu:5,total:8},
   {name:'이봄희',g:'여',bu:6,total:9},{name:'이상건',g:'남',bu:6,total:6},
   {name:'이운희',g:'남',bu:7,total:7},{name:'이원호',g:'남',bu:5,total:5},
@@ -341,6 +341,7 @@ const MEMBERS = [
   {name:'최양님',g:'여',bu:4,total:7},{name:'한금환',g:'남',bu:5,total:5},
   {name:'한철호',g:'남',bu:6,total:6},];
 const DORMANT = [
+  {name:'안경식',g:'남',bu:6,total:6},
   {name:'김성훈',g:'남',bu:7,total:7},
   {name:'오영준',g:'남',bu:4,total:4},
   {name:'이동규',g:'남',bu:5,total:5},
@@ -373,10 +374,12 @@ function saveST(){
 
 function loadTestDataDoubles(numGroups){
   if(!confirm('복식 '+numGroups+'조 테스트 데이터를 불러올까요?')) return;
+
   const pool = MEMBERS.map(m=>m.name);
-  const perGroup = 4; // 각 조 4팀 = 8명
+  const perGroup = 4; // 각 조 4팀
   const totalPlayers = numGroups * perGroup * 2;
   const players = pool.slice(0, totalPlayers);
+  const max = 2;
 
   // 2명씩 페어 구성
   const pairs = [];
@@ -387,51 +390,132 @@ function loadTestDataDoubles(numGroups){
     pairs.map((_,pi)=>pi).filter(pi=>pi%numGroups===gi)
   );
 
-  // 경기 결과 계산
-  const max = 2;
-  const results = groups.map(function(grpIndices, gi){
-    const grp = grpIndices.map(pi=>pairs[pi]);
-    const n = grp.length;
-    const st = {};
-    grp.forEach((_,i)=>{ st[i]={w:0,l:0,scored:0,lost:0}; });
+  // 경기별 점수 행렬 생성
+  const scoreMatrix = groups.map(function(grpIndices){
+    const n = grpIndices.length;
+    const sc = Array.from({length:n}, ()=>new Array(n).fill(null));
     for(let ri=0;ri<n;ri++){
       for(let ci=ri+1;ci<n;ci++){
-        st[ri].w++; st[ri].scored+=max;
-        st[ci].l++; st[ci].lost+=max;
-        st[ri].lost+=Math.floor(Math.random()*max);
-        st[ci].scored+=Math.floor(Math.random()*max);
+        const winner = Math.random()>0.5 ? ri : ci;
+        const loser  = winner===ri ? ci : ri;
+        sc[winner][loser] = max;
+        sc[loser][winner] = Math.floor(Math.random()*max);
       }
     }
-    const sorted = Object.values(st).map((s,i)=>({
-      ...s, idx:i,
-      name: grp[i][0]+'/'+grp[i][1],
-      pair: grp[i]
-    })).sort((a,b)=>{
-      if(b.w!==a.w) return b.w-a.w;
-      const ar=a.lost?a.scored/a.lost:a.scored;
-      const br=b.lost?b.scored/b.lost:b.scored;
-      return br-ar;
-    });
-    return {g:gi+1, players:sorted};
+    return sc;
   });
 
-  ST.week = {
-    date:'2026-04-03', type:'복식', set:'3판2승',
-    players: players,
-    groups: [[],[],[],[]],
-    results: results
-  };
+  // ITTF 방식으로 결과 계산
+  const results = groups.map(function(grpIndices, gi){
+    const grp = grpIndices.map(pi=>pairs[pi]);
+    const teamNames = grp.map(p=>p[0]+'/'+p[1]);
+    const sc = scoreMatrix[gi];
+    const n = grp.length;
+    const matchResults = Array.from({length:n},()=>Array(n).fill(null));
+    for(let ri=0;ri<n;ri++){
+      for(let ci=ri+1;ci<n;ci++){
+        if(sc[ri][ci]===null) continue;
+        matchResults[ri][ci]={gw:sc[ri][ci],gl:sc[ci][ri],pw:0,pl:0,played:true};
+        matchResults[ci][ri]={gw:sc[ci][ri],gl:sc[ri][ci],pw:0,pl:0,played:true};
+      }
+    }
+    const stats = getPlayerStats(teamNames, matchResults);
+    const ranked = ittfRank(teamNames, matchResults);
+    return {
+      g: gi+1,
+      players: ranked.map(pi=>({
+        name: teamNames[pi],
+        pair: grp[pi],
+        w: stats[pi].w, l: stats[pi].l,
+        scored: stats[pi].gw, lost: stats[pi].gl,
+        mp: stats[pi].mp
+      }))
+    };
+  });
+
+  ST.week = {date:'2026-04-03', type:'복식', set:'3판2승', players, groups:[[],[],[],[]], results};
   ST.doubles = {
-    pairs: pairs,
-    nonMembers: [],
+    pairs, nonMembers:[],
     groups: groups.concat([[],[]]).slice(0,4),
-    results: results
+    results
   };
-  ST.tournament = {};
-  ST.final = {win:'',second:'',third:'',third2:'',lucky:''};
+  ST.tournament={};
+  ST.final={win:'',second:'',third:'',third2:'',lucky:''};
   saveST();
-  alert('복식 '+numGroups+'조 테스트 데이터 로드 완료!\n토너먼트 탭에서 대진 생성하세요.');
-  renderDash();
+
+  // 리그 탭으로 이동
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('league').classList.add('active');
+  document.querySelector('.tab[onclick*="league"]').classList.add('active');
+  renderLeague();
+
+  document.getElementById('s3').style.display='block';
+  document.getElementById('s4').style.display='block';
+
+  const memberBuMap={};
+  MEMBERS.forEach(m=>{ memberBuMap[m.name]=m.total; });
+
+  // 경기표 생성
+  let matchHtml='';
+  groups.forEach(function(grpIndices, gi){
+    const grp = grpIndices.map(pi=>pairs[pi]);
+    const teamNames = grp.map(p=>p[0]+'/'+p[1]);
+    const n = grp.length;
+    const sc = scoreMatrix[gi];
+    const ord = getOrder(n);
+    matchHtml+=`<div style="margin-bottom:28px;">
+      <div style="overflow-x:auto;">
+      <table style="border-collapse:collapse;font-size:13px;">
+        <thead><tr>
+          <th colspan="2" style="background:#e8f5e9;color:#1a1a2e;padding:8px 14px;border:2px solid #aaa;font-size:15px;font-weight:900;text-align:left;min-width:140px;">${gi+1}조</th>
+          ${teamNames.map(tn=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:80px;font-weight:700;font-size:12px;">${tn}</th>`).join('')}
+          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">승</th>
+          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">패</th>
+          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:46px;font-weight:700;">승점</th>
+          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:44px;font-weight:700;">순위</th>
+        </tr></thead>
+        <tbody>
+        ${teamNames.map((tn,ri)=>`
+          <tr>
+            <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;">${ri+1}</td>
+            <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:120px;font-weight:700;font-size:13px;">${tn}</td>
+            ${teamNames.map((_,ci)=>ri===ci?
+              `<td style="background:#ccc;border:1px solid #bbb;min-width:80px;"></td>`:
+              `<td style="border:1px solid #bbb;padding:2px;text-align:center;min-width:80px;">
+                <input type="number" id="dg${gi}r${ri}c${ci}" value="${sc[ri][ci]!==null?sc[ri][ci]:''}"
+                  min="0" max="${max}"
+                  oninput="realtimeCalcDoubles(${gi})"
+                  style="width:50px;text-align:center;border:none;background:transparent;font-size:15px;font-weight:700;padding:2px;color:#1a1a2e;">
+              </td>`
+            ).join('')}
+            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;" id="dg${gi}w${ri}">-</td>
+            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;" id="dg${gi}l${ri}">-</td>
+            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:900;font-size:14px;" id="dg${gi}wp${ri}">-</td>
+            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:900;font-size:15px;" id="dg${gi}rk${ri}">-</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+      <div style="margin-top:8px;">${ord.map(m=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;">${m[0]}:${m[1]}</span>`).join('')}</div>
+    </div>`;
+  });
+  document.getElementById('league-matches').innerHTML=matchHtml;
+
+  // 실시간 순위 계산
+  groups.forEach((_,gi)=>realtimeCalcDoubles(gi));
+
+  // 조별 순위 표시
+  const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n'];
+  document.getElementById('league-results').innerHTML=results.map(r=>`
+    <div style="margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${r.g}조 순위</div>
+      <table><thead><tr><th>순위</th><th>팀</th><th>승</th><th>패</th><th>승점</th><th>게임득실</th></tr></thead><tbody>
+      ${r.players.map((p,i)=>`<tr><td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>
+        <td>${p.name}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td></tr>`).join('')}
+      </tbody></table>
+    </div>`).join('');
+
+  document.getElementById('s3-status').textContent='계산 완료';
 }
 
 function loadTestData(numGroups){
@@ -1297,18 +1381,22 @@ function realtimeCalcDoubles(gi){
   const grpPairs = ST.doubles.groups.map(g=>g.map(pi=>pairs[pi])).filter(g=>g.length>0)[gi];
   if(!grpPairs) return;
   const teamNames = grpPairs.map(p=>p[0]+'/'+p[1]);
-  const n = grpPairs.length;
   const matchResults = buildMatchResults(teamNames, `dg${gi}`, false);
   const stats = getPlayerStats(teamNames, matchResults);
   const ranked = ittfRank(teamNames, matchResults);
   ranked.forEach((pi, rank)=>{
     const p = stats[pi];
-    const wb=document.getElementById(`dg${gi}wp${pi}`);
-    const db=document.getElementById(`dg${gi}ds${pi}`);
-    const rb=document.getElementById(`dg${gi}rk${pi}`);
-    if(wb) wb.textContent=`${p.w}승${p.l}패 (${p.mp}점)`;
-    if(db) db.textContent=`${p.gw}/${p.gl}`;
-    if(rb){ rb.textContent=rank+1; rb.style.color=rank===0?'#e94560':rank===1?'#1565C0':'#CD7F32'; }
+    const wEl =document.getElementById(`dg${gi}w${pi}`);
+    const lEl =document.getElementById(`dg${gi}l${pi}`);
+    const mpEl=document.getElementById(`dg${gi}wp${pi}`);
+    const rkEl=document.getElementById(`dg${gi}rk${pi}`);
+    if(wEl)  wEl.textContent = p.w;
+    if(lEl)  lEl.textContent = p.l;
+    if(mpEl) mpEl.textContent = p.mp+'점';
+    if(rkEl){
+      rkEl.textContent = rank+1;
+      rkEl.style.color = rank===0?'#e94560':rank===1?'#1565C0':rank===2?'#CD7F32':'#aaa';
+    }
   });
 }
 
