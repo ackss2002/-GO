@@ -760,6 +760,8 @@ function initScores(){
   renderRanking();
   alert('누적 승점 초기화 완료!');
 }
+
+function resetAll(){
   if(!confirm('이번주 선수 선택, 조 편성, 경기 결과, 토너먼트를 모두 초기화할까요?\n(누적 승점은 유지됩니다)')) return;
   const savedTemps = ST.week.tempPlayers||[];
   ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[],tempPlayers:savedTemps};
