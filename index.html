@@ -277,20 +277,53 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
 
 <!-- 출석부 -->
 <div id="attendance" class="section">
-  <div class="card">
-    <div class="card-title">2분기 출석부</div>
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-      <span style="font-size:13px;color:#888;">날짜 추가:</span>
-      <input type="date" id="att-date" style="padding:5px 8px;font-size:13px;">
-      <button class="btn btn-primary btn-sm" onclick="addAttendanceDate()">+ 날짜 추가</button>
+  <!-- 분기 탭 -->
+  <div style="display:flex;gap:8px;margin-bottom:14px;border-bottom:2px solid #e0e0e0;">
+    <button id="atab-1" onclick="switchAttQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">1분기</button>
+    <button id="atab-2" onclick="switchAttQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">2분기</button>
+  </div>
+
+  <!-- 1분기 -->
+  <div id="att-q1">
+    <!-- 금요리그 -->
+    <div class="card">
+      <div class="card-title">1분기 금요리그 출석 (10회)</div>
+      <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:12px;">
+          <thead id="att-q1-league-head"></thead>
+          <tbody id="att-q1-league-body"></tbody>
+        </table>
+      </div>
     </div>
-    <div style="overflow-x:auto;">
-      <table id="attendance-table" style="border-collapse:collapse;font-size:12px;min-width:100%;">
-        <thead id="att-head"></thead>
-        <tbody id="att-body"></tbody>
-      </table>
+    <!-- 교류전 -->
+    <div class="card">
+      <div class="card-title">1분기 교류전 출석 (3회)</div>
+      <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:12px;">
+          <thead id="att-q1-exchange-head"></thead>
+          <tbody id="att-q1-exchange-body"></tbody>
+        </table>
+      </div>
     </div>
-    <div style="margin-top:12px;font-size:12px;color:#888;">● 출석 / 빈칸 결석 · 클릭으로 토글</div>
+  </div>
+
+  <!-- 2분기 -->
+  <div id="att-q2" style="display:none;">
+    <!-- 금요리그 -->
+    <div class="card">
+      <div class="card-title">2분기 금요리그 출석</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+        <input type="date" id="att-date" style="padding:5px 8px;font-size:13px;">
+        <button class="btn btn-primary btn-sm" onclick="addAttendanceDate()">+ 날짜 추가</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;font-size:12px;min-width:100%;">
+          <thead id="att-head"></thead>
+          <tbody id="att-body"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:#888;">● 출석 / 빈칸 결석 · 클릭으로 토글</div>
+    </div>
   </div>
 </div>
 
@@ -718,6 +751,121 @@ function switchQuarter(q){
 }
 
 
+// ── 1분기 출석 하드코딩 ──
+const Q1_LEAGUE_DATES = ['2026-01-09','2026-01-16','2026-01-23','2026-02-06','2026-02-13','2026-02-20','2026-02-27','2026-03-13','2026-03-20','2026-03-27'];
+const Q1_EXCHANGE_DATES = ['2026-02-10','2026-03-05','2026-03-18'];
+
+const Q1_LEAGUE_ATT = {
+  '이원호':  [1,1,1,1,1,1,1,1,0,0],
+  '곽동석':  [0,0,0,0,0,0,0,1,1,1],
+  '김동수':  [0,0,0,1,1,0,0,1,1,0],
+  '김영서':  [0,0,0,0,0,0,0,0,1,1],
+  '김조영':  [0,1,0,1,0,1,1,1,1,0],
+  '김현종':  [0,0,1,0,0,0,0,0,1,0],
+  '신문섭':  [0,0,0,0,0,0,0,1,1,0],
+  '안경식':  [1,1,1,1,1,1,1,1,0,0],
+  '안치국':  [1,1,1,1,1,1,1,1,1,1],
+  '양선한':  [0,0,1,0,0,0,0,1,1,0],
+  '이상건':  [1,1,1,1,1,1,1,1,1,0],
+  '이진규':  [0,0,0,0,0,0,1,0,0,1],
+  '한철호':  [0,0,0,1,0,0,1,1,0,0],
+  '전인석':  [0,0,0,0,0,0,0,1,1,0],
+  '정헌모':  [1,1,1,1,1,1,1,1,1,0],
+  '정희남':  [1,1,0,1,1,0,1,1,1,0],
+  '김영란':  [0,0,1,0,0,0,0,1,1,0],
+  '최양님':  [0,0,0,1,0,0,0,1,1,0],
+  '변현진':  [0,0,0,0,0,0,0,1,1,0],
+  '이미진':  [1,1,1,1,1,1,1,1,1,1],
+  '정영아':  [1,1,0,1,0,1,1,1,1,0],
+  '김옥란':  [1,0,1,0,1,1,0,1,1,0],
+  '이봄희':  [1,1,1,1,1,1,1,1,1,1],
+  '조경숙':  [0,0,0,0,0,0,0,1,1,0],
+  '김덕기':  [1,1,1,1,1,1,1,1,1,0],
+  '이운희':  [0,0,0,0,0,0,0,1,1,0],
+};
+
+const Q1_EXCHANGE_ATT = {
+  '이원호':  [1,1,1],
+  '김동수':  [1,0,0],
+  '김영서':  [0,1,0],
+  '김조영':  [0,0,1],
+  '김현종':  [0,1,0],
+  '안경식':  [0,1,1],
+  '안치국':  [1,1,1],
+  '이상건':  [1,1,1],
+  '이진규':  [1,0,0],
+  '전인석':  [1,0,0],
+  '정헌모':  [1,1,1],
+  '정희남':  [1,1,1],
+  '김영란':  [0,1,0],
+  '이미진':  [1,1,1],
+  '정영아':  [1,1,1],
+  '김옥란':  [1,1,0],
+  '이봄희':  [1,1,1],
+  '조경숙':  [0,1,0],
+  '김덕기':  [1,1,1],
+  '이운희':  [0,0,1],
+};
+
+let currentAttQuarter = 1;
+
+function switchAttQuarter(q){
+  currentAttQuarter = q;
+  ['1','2'].forEach(id=>{
+    const btn = document.getElementById('atab-'+id);
+    if(!btn) return;
+    const active = String(q)===id;
+    btn.style.fontWeight = active?'700':'400';
+    btn.style.color = active?'#e94560':'#888';
+    btn.style.borderBottom = active?'2px solid #e94560':'2px solid transparent';
+  });
+  document.getElementById('att-q1').style.display = q===1?'block':'none';
+  document.getElementById('att-q2').style.display = q===2?'block':'none';
+  if(q===1) renderQ1Attendance();
+  if(q===2) renderAttendance();
+}
+
+function renderQ1Attendance(){
+  const members = MEMBERS.map(m=>m.name);
+  const thStyle = 'padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:55px;font-size:11px;';
+  const nameTh = 'background:#1a1a2e;color:white;padding:6px 10px;border:1px solid #555;text-align:left;min-width:80px;';
+  const totalTh = 'background:#fff9c4;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:50px;';
+
+  // 금요리그
+  document.getElementById('att-q1-league-head').innerHTML = `<tr>
+    <th style="${nameTh}">이름</th>
+    ${Q1_LEAGUE_DATES.map(d=>`<th style="background:#e3f2fd;color:#1a1a2e;${thStyle}">${d.slice(5)}</th>`).join('')}
+    <th style="${totalTh}">합계</th>
+  </tr>`;
+  document.getElementById('att-q1-league-body').innerHTML = members.map(name=>{
+    const row = Q1_LEAGUE_ATT[name]||[];
+    const total = row.filter(v=>v).length;
+    if(total===0) return '';
+    return `<tr>
+      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${name}</td>
+      ${Q1_LEAGUE_DATES.map((_,i)=>`<td style="border:1px solid #bbb;text-align:center;padding:4px;background:${row[i]?'#e8f5e9':'white'};">${row[i]?'●':''}</td>`).join('')}
+      <td style="border:1px solid #bbb;text-align:center;font-weight:700;background:#fff9c4;">${total}</td>
+    </tr>`;
+  }).join('');
+
+  // 교류전
+  document.getElementById('att-q1-exchange-head').innerHTML = `<tr>
+    <th style="${nameTh}">이름</th>
+    ${Q1_EXCHANGE_DATES.map(d=>`<th style="background:#fff3e0;color:#e65100;${thStyle}">${d.slice(5)}</th>`).join('')}
+    <th style="${totalTh}">합계</th>
+  </tr>`;
+  document.getElementById('att-q1-exchange-body').innerHTML = members.map(name=>{
+    const row = Q1_EXCHANGE_ATT[name]||[];
+    const total = row.filter(v=>v).length;
+    if(total===0) return '';
+    return `<tr>
+      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${name}</td>
+      ${Q1_EXCHANGE_DATES.map((_,i)=>`<td style="border:1px solid #bbb;text-align:center;padding:4px;background:${row[i]?'#fff3e0':'white'};">${row[i]?'●':''}</td>`).join('')}
+      <td style="border:1px solid #bbb;text-align:center;font-weight:700;background:#fff9c4;">${total}</td>
+    </tr>`;
+  }).join('');
+}
+
 function getAttendance(){
   try{ return JSON.parse(localStorage.getItem('ttgo_attendance')||'{"dates":[],"records":{}}'); }catch(e){ return {dates:[],records:{}}; }
 }
@@ -757,8 +905,6 @@ function renderAttendance(){
   const att = getAttendance();
   const dates = att.dates;
   const members = MEMBERS.map(m=>m.name);
-
-  // 헤더
   document.getElementById('att-head').innerHTML = `<tr>
     <th style="background:#1a1a2e;color:white;padding:6px 10px;border:1px solid #555;text-align:left;min-width:80px;">이름</th>
     ${dates.map(d=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:70px;font-size:11px;">
@@ -766,8 +912,6 @@ function renderAttendance(){
     </th>`).join('')}
     <th style="background:#fff9c4;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:50px;">합계</th>
   </tr>`;
-
-  // 바디
   document.getElementById('att-body').innerHTML = members.map(name=>{
     const rec = att.records[name]||{};
     const total = dates.filter(d=>rec[d]).length;
@@ -817,7 +961,7 @@ function switchTab(name,el){
   if(name==='members') renderMembers();
   if(name==='league') renderLeague();
   if(name==='tournament') renderTournamentTab();
-  if(name==='attendance') renderAttendance();
+  if(name==='attendance'){ currentAttQuarter===2 ? renderAttendance() : renderQ1Attendance(); switchAttQuarter(currentAttQuarter||1); }
 }
 
 function toggleStep(id){
