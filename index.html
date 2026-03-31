@@ -479,7 +479,10 @@ function loadTestDataDoubles(numGroups){
         ${teamNames.map((tn,ri)=>`
           <tr>
             <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;">${ri+1}</td>
-            <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:120px;font-weight:700;font-size:13px;">${tn}</td>
+            <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:120px;">
+              <span style="font-weight:700;font-size:13px;">${tn}</span>
+              <span style="font-size:11px;color:#888;margin-left:4px;">${(()=>{const p=grp[ri];const b1=memberBuMap[p[0]]||'';const b2=memberBuMap[p[1]]||'';return b1&&b2?p[0]+b1+'/'+p[1]+b2:'';})()}</span>
+            </td>
             ${teamNames.map((_,ci)=>ri===ci?
               `<td style="background:#ccc;border:1px solid #bbb;min-width:80px;"></td>`:
               `<td style="border:1px solid #bbb;padding:2px;text-align:center;min-width:80px;">
@@ -624,7 +627,7 @@ function loadTestData(numGroups){
             <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
             <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:100px;">
               <span style="font-weight:700;font-size:13px;">${p}</span>
-              <span style="font-size:11px;color:#888;margin-left:4px;">${memberBuMap2[p]?memberBuMap2[p]+'부':''}</span>
+              <span style="font-size:11px;color:#888;margin-left:4px;">${memberBuMap2[p]?memberBuMap2[p]:''}</span>
             </td>
             ${grp.map((_,ci)=>ri===ci?
               `<td style="background:#ccc;border:1px solid #bbb;min-width:54px;"></td>`:
@@ -1303,7 +1306,7 @@ function renderMatches(){
             <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
             <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:100px;">
               <span style="font-weight:700;font-size:13px;">${p}</span>
-              <span style="font-size:11px;color:#888;margin-left:4px;">${memberBuMap[p]?memberBuMap[p]+'부':''}</span>
+              <span style="font-size:11px;color:#888;margin-left:4px;">${memberBuMap[p]?memberBuMap[p]:''}</span>
             </td>
             ${grp.map((_,ci)=>ri===ci?
               `<td style="background:#ccc;border:1px solid #bbb;min-width:54px;"></td>`:
@@ -1345,7 +1348,7 @@ function renderMatchesDoubles(){
     const teamBu = grp.map(p=>{
       const b1 = memberBuMap[p[0]]||'';
       const b2 = memberBuMap[p[1]]||'';
-      return b1&&b2 ? b1+'부/'+b2+'부' : '';
+      return b1&&b2 ? p[0]+b1+'/'+p[1]+b2 : '';
     });
     html+=`<div style="margin-bottom:28px;">
       <div style="overflow-x:auto;">
@@ -1840,13 +1843,13 @@ function renderBracket(bracket, size){
   const memberBuMap = {};
   MEMBERS.forEach(function(m){ memberBuMap[m.name]=m.total; });
   getExternals().forEach(function(m){ memberBuMap[m.name]=m.total; });
-  // 복식 페어 부수 (팀명으로 조회)
+  // 복식 페어 부수 (팀명으로 조회) - 짧게 표시
   if(ST.doubles && ST.doubles.pairs){
     ST.doubles.pairs.forEach(function(pair){
       const tn = pair[0]+'/'+pair[1];
       const b1 = memberBuMap[pair[0]]||'';
       const b2 = memberBuMap[pair[1]]||'';
-      if(b1||b2) memberBuMap[tn] = (b1&&b2) ? b1+'부/'+b2+'부' : (b1||b2)+'부';
+      if(b1||b2) memberBuMap[tn] = b1&&b2 ? pair[0]+b1+'/'+pair[1]+b2 : (b1||b2);
     });
   }
 
@@ -1877,7 +1880,7 @@ function renderBracket(bracket, size){
         const border  = isWin?'1.5px solid #66bb6a':'1px solid #e0e0e0';
         const buRaw = (!isBye&&!isEmpty&&memberBuMap[p])?memberBuMap[p]:'';
         // 복식 팀명(슬래시 포함)은 이미 '6부/7부' 형태, 단식은 숫자
-        const bu = buRaw ? (String(buRaw).includes('부') ? buRaw : buRaw+'부') : '';
+        const bu = buRaw ? (String(buRaw).includes('/') ? buRaw : buRaw) : '';
         const gi      = (!isBye&&!isEmpty&&gInfo[p])?gInfo[p]:null;
         const nm      = isEmpty?'':isBye?'BYE':p;
         const chk     = isWin?' <span style="color:#43a047;">✓</span>':'';
@@ -1967,7 +1970,7 @@ function renderBracket(bracket, size){
         MEMBERS.forEach(function(m){ memberBuMap2[m.name]=m.total; });
         const gInfo2 = getPlayerGroupInfo();
         dispEl.innerHTML = losers.map(function(name){
-          const bu  = memberBuMap2[name] ? memberBuMap2[name]+'부' : '';
+          const bu  = memberBuMap2[name] ? memberBuMap2[name] : '';
           const gi  = gInfo2[name] ? gInfo2[name].g+'조 '+gInfo2[name].rank+'위' : '';
           const sub = [bu, gi].filter(Boolean).join(' · ');
           return '<div style="display:flex;flex-direction:column;padding:4px 12px;background:white;border-radius:6px;border:1px solid #e0e0e0;min-width:120px;">'
@@ -2001,7 +2004,7 @@ function fillResultInfo(inputId){
     const idx = g.players.findIndex(function(p){ return p.name===name; });
     return idx>=0 ? {g:g.g, rank:idx+1} : null;
   }, null);
-  const buStr  = person ? person.total+'부' : '';
+  const buStr  = person ? person.total : '';
   const giStr  = gi ? gi.g+'조 '+gi.rank+'위' : '';
   const extTag = ext ? ' [특별]' : '';
   const parts  = [buStr, giStr].filter(Boolean);
