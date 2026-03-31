@@ -658,7 +658,8 @@ function loadTestData(numGroups){
 
 function resetAll(){
   if(!confirm('이번주 선수 선택, 조 편성, 경기 결과, 토너먼트를 모두 초기화할까요?\n(누적 승점은 유지됩니다)')) return;
-  ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
+  const savedTemps = ST.week.tempPlayers||[];
+  ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[],tempPlayers:savedTemps};
   ST.doubles = {pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
   ST.final = {win:'',second:'',third:'',third2:'',lucky:''};
   ST.tournament = {};
@@ -751,7 +752,7 @@ function renderLeague(){
   }
 
   // 게스트 (게스트)
-  html += `<div style="font-size:11px;color:#5c6bc0;font-weight:700;margin:10px 0 6px;">🎫 게스트 <span style="font-weight:400;color:#888;">(승점 없음)</span></div>`;
+  html += `<div style="font-size:11px;color:#5c6bc0;font-weight:700;margin:10px 0 6px;">🎫 게스트</div>`;
   
   const maxGuests = 10;
   const guestSlots = Array.from({length:maxGuests}, (_,i)=>{
