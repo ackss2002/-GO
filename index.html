@@ -89,6 +89,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
   <button class="tab" onclick="switchTab('league',this)">이번주 리그</button>
   <button class="tab" onclick="switchTab('tournament',this)">토너먼트</button>
   <button class="tab" onclick="switchTab('ranking',this)">누적 순위</button>
+  <button class="tab" onclick="switchTab('attendance',this)">출석부</button>
   <button class="tab" onclick="switchTab('members',this)">회원 관리</button>
 </div>
 
@@ -113,6 +114,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
     <button class="btn btn-sm" onclick="loadTestData(3)" style="background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;">🧪 3조 테스트</button>
     <button class="btn btn-sm" onclick="loadTestData(4)" style="background:#fff3e0;color:#e65100;border-color:#ffcc80;">🧪 4조 테스트</button>
     <button class="btn btn-sm" onclick="loadTestDataDoubles(2)" style="background:#f3e5f5;color:#6a1b9a;border-color:#ce93d8;">🧪 복식 2조 테스트</button>
+    <button class="btn btn-sm" onclick="initScores()" style="background:#e8f5e9;color:#1b5e20;border-color:#a5d6a7;">📊 누적 승점 초기화</button>
     <button class="btn btn-sm" onclick="resetAll()" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;">🗑 이번주 초기화</button>
   </div>
 </div>
@@ -257,7 +259,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
 
 <!-- 누적 순위 -->
 <div id="ranking" class="section">
-  <div class="notice">승점: 우승 5점 / 준우승 3점 / 3위 1점 · 15점 초과 시 1부수 승급 (최대 2부수)</div>
+  <div class="notice">승점: 우승 5점 / 준우승 3점 / 3위 1점 · 10점 달성 시 1부수 승급 + 잔여 승점 소멸 (최대 2부수)</div>
   <div class="card" id="upgrade-card"></div>
   <div class="card">
     <div class="card-title">2026시즌 누적 승점 순위</div>
@@ -267,6 +269,25 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
       <tbody id="ranking-tbody"></tbody>
     </table>
     </div>
+  </div>
+</div>
+
+<!-- 출석부 -->
+<div id="attendance" class="section">
+  <div class="card">
+    <div class="card-title">2분기 출석부</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+      <span style="font-size:13px;color:#888;">날짜 추가:</span>
+      <input type="date" id="att-date" style="padding:5px 8px;font-size:13px;">
+      <button class="btn btn-primary btn-sm" onclick="addAttendanceDate()">+ 날짜 추가</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table id="attendance-table" style="border-collapse:collapse;font-size:12px;min-width:100%;">
+        <thead id="att-head"></thead>
+        <tbody id="att-body"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:#888;">● 출석 / 빈칸 결석 · 클릭으로 토글</div>
   </div>
 </div>
 
@@ -317,7 +338,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
 
 <script>
 const MEMBERS = [
-  {name:'곽동석',g:'남',bu:6,total:6},{name:'김덕기',g:'남',bu:5,total:5},
+  {name:'곽동석',g:'남',bu:6,total:6},{name:'김덕기',g:'남',bu:5,total:4},
   {name:'김동수',g:'남',bu:6,total:6},{name:'김영란',g:'여',bu:3,total:6},
   {name:'김영서',g:'남',bu:6,total:6},{name:'김옥란',g:'여',bu:6,total:9},
   {name:'김조영',g:'남',bu:6,total:6},{name:'김현종',g:'남',bu:6,total:6},
@@ -325,7 +346,7 @@ const MEMBERS = [
   {name:'안치국',g:'남',bu:6,total:6},
   {name:'양선한',g:'남',bu:6,total:6},{name:'이미진',g:'여',bu:5,total:8},
   {name:'이봄희',g:'여',bu:6,total:9},{name:'이상건',g:'남',bu:6,total:6},
-  {name:'이운희',g:'남',bu:7,total:7},{name:'이원호',g:'남',bu:5,total:5},
+  {name:'이운희',g:'남',bu:7,total:7},{name:'이원호',g:'남',bu:5,total:4},
   {name:'이진규',g:'남',bu:6,total:6},{name:'전인석',g:'남',bu:7,total:7},
   {name:'정영아',g:'여',bu:5,total:8},{name:'정헌모',g:'남',bu:7,total:7},
   {name:'정희남',g:'남',bu:7,total:7},{name:'조경숙',g:'여',bu:6,total:9},
@@ -351,7 +372,14 @@ let ST = loadST();
 function loadST(){
   try{ const s=localStorage.getItem('ttgo_v3');if(s)return JSON.parse(s); }catch(e){}
   return {
-    scores:{},
+    scores:{
+      '김영서':{w:0,s:0,t:0,pts:2},
+      '안치국':{w:1,s:0,t:0,pts:7},
+      '이상건':{w:0,s:0,t:2,pts:4},
+      '이진규':{w:0,s:0,t:1,pts:3},
+      '최양님':{w:1,s:0,t:0,pts:5},
+      '이미진':{w:1,s:0,t:0,pts:5},
+    },
     week:{date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]},
     doubles:{pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]},
     final:{win:'',second:'',third:'',third2:'',lucky:''},
@@ -658,7 +686,84 @@ function loadTestData(numGroups){
   document.getElementById('s3-status').textContent='계산 완료';
 }
 
-function resetAll(){
+// ── 출석부 ──
+function getAttendance(){
+  try{ return JSON.parse(localStorage.getItem('ttgo_attendance')||'{"dates":[],"records":{}}'); }catch(e){ return {dates:[],records:{}}; }
+}
+function saveAttendance(data){
+  localStorage.setItem('ttgo_attendance', JSON.stringify(data));
+  if(typeof db !== 'undefined') db.ref('ttgo_attendance').set(data);
+}
+
+function addAttendanceDate(){
+  const d = document.getElementById('att-date').value;
+  if(!d){ alert('날짜를 선택하세요.'); return; }
+  const att = getAttendance();
+  if(att.dates.includes(d)){ alert('이미 추가된 날짜입니다.'); return; }
+  att.dates.push(d);
+  att.dates.sort();
+  saveAttendance(att);
+  renderAttendance();
+}
+
+function toggleAttendance(name, date){
+  const att = getAttendance();
+  if(!att.records[name]) att.records[name]={};
+  att.records[name][date] = !att.records[name][date];
+  saveAttendance(att);
+  renderAttendance();
+}
+
+function removeAttendanceDate(date){
+  if(!confirm(date+' 날짜를 삭제할까요?')) return;
+  const att = getAttendance();
+  att.dates = att.dates.filter(d=>d!==date);
+  saveAttendance(att);
+  renderAttendance();
+}
+
+function renderAttendance(){
+  const att = getAttendance();
+  const dates = att.dates;
+  const members = MEMBERS.map(m=>m.name);
+
+  // 헤더
+  document.getElementById('att-head').innerHTML = `<tr>
+    <th style="background:#1a1a2e;color:white;padding:6px 10px;border:1px solid #555;text-align:left;min-width:80px;">이름</th>
+    ${dates.map(d=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:70px;font-size:11px;">
+      ${d.slice(5)}<br><small onclick="removeAttendanceDate('${d}')" style="color:#e94560;cursor:pointer;font-size:10px;">✕</small>
+    </th>`).join('')}
+    <th style="background:#fff9c4;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:50px;">합계</th>
+  </tr>`;
+
+  // 바디
+  document.getElementById('att-body').innerHTML = members.map(name=>{
+    const rec = att.records[name]||{};
+    const total = dates.filter(d=>rec[d]).length;
+    return `<tr>
+      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${name}</td>
+      ${dates.map(d=>`<td style="border:1px solid #bbb;text-align:center;cursor:pointer;padding:4px;background:${rec[d]?'#e8f5e9':'white'};"
+        onclick="toggleAttendance('${name}','${d}')">${rec[d]?'●':''}</td>`).join('')}
+      <td style="border:1px solid #bbb;text-align:center;font-weight:700;background:#fff9c4;">${total}</td>
+    </tr>`;
+  }).join('');
+}
+
+
+  if(!confirm('누적 승점을 1분기 데이터로 초기화할까요?\n(기존 승점이 덮어씌워집니다)')) return;
+  ST.scores = {
+    '김영서': {w:0, s:0, t:0, pts:2},
+    '안치국': {w:1, s:0, t:0, pts:7},
+    '이상건': {w:0, s:0, t:2, pts:4},
+    '이진규': {w:0, s:0, t:1, pts:3},
+    '최양님': {w:1, s:0, t:0, pts:5},
+    '이미진': {w:1, s:0, t:0, pts:5},
+  };
+  saveST();
+  renderDash();
+  renderRanking();
+  alert('누적 승점 초기화 완료!');
+}
   if(!confirm('이번주 선수 선택, 조 편성, 경기 결과, 토너먼트를 모두 초기화할까요?\n(누적 승점은 유지됩니다)')) return;
   const savedTemps = ST.week.tempPlayers||[];
   ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[],tempPlayers:savedTemps};
@@ -679,6 +784,7 @@ function switchTab(name,el){
   if(name==='members') renderMembers();
   if(name==='league') renderLeague();
   if(name==='tournament') renderTournamentTab();
+  if(name==='attendance') renderAttendance();
 }
 
 function toggleStep(id){
@@ -2080,8 +2186,11 @@ function saveResult(){
     if(i===0){ST.scores[name].w++;ST.scores[name].pts+=5;}
     else if(i===1){ST.scores[name].s++;ST.scores[name].pts+=3;}
     else{ST.scores[name].t++;ST.scores[name].pts+=1;}
-    // 승급은 정회원만
-    if(isMember && ST.scores[name].pts>15&&!ST.scores[name].up) ST.scores[name].up=true;
+    // 승급은 정회원만 - 10점 달성 시 승급 + 잔여 승점 소멸
+    if(isMember && ST.scores[name].pts>=10 && !ST.scores[name].up){
+      ST.scores[name].up = true;
+      ST.scores[name].pts = 0; // 잔여 승점 소멸
+    }
   });
   saveST();
   document.getElementById('t-result-display').innerHTML=`
@@ -2211,6 +2320,10 @@ function loadFromFirebase(){
       localStorage.setItem('ttgo_v3', JSON.stringify(ST));
     }
     if(data.externals) saveExternals(data.externals);
+    // 출석부 데이터 로드
+    db.ref('ttgo_attendance').once('value').then(function(snap){
+      if(snap.val()) localStorage.setItem('ttgo_attendance', JSON.stringify(snap.val()));
+    });
     renderDash();
     renderMembers();
     renderLeague();
