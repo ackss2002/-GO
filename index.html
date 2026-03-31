@@ -494,7 +494,7 @@ function loadTestDataDoubles(numGroups){
   document.getElementById('s4').style.display='block';
 
   const memberBuMap={};
-  MEMBERS.forEach(m=>{ memberBuMap[m.name]=m.total; });
+  MEMBERS.forEach(m=>{ memberBuMap[m.name]=m.bu!==m.total?m.bu+"("+m.total+")":m.total; });
 
   // 경기표 생성
   let matchHtml='';
@@ -1048,7 +1048,7 @@ function renderLeague(){
 
   // 정회원 칩
   let html = '<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원</div>';
-  html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')">${m.name}${m.total}</span>`).join('');
+  html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')">${m.name}${m.bu!==m.total?m.bu+'('+m.total+')':m.total}</span>`).join('');
 
   // 게스트 (게스트)
   html += `<div style="font-size:11px;color:#546e7a;font-weight:700;margin:10px 0 6px;">🎫 게스트</div>`;
@@ -1592,7 +1592,7 @@ function renderMatches(){
   if(isDoubles){ renderMatchesDoubles(); return; }
   const gs=ST.week.groups.filter(g=>g.length>0);
   const memberBuMap={};
-  MEMBERS.forEach(m=>{ memberBuMap[m.name]=m.total; });
+  MEMBERS.forEach(m=>{ memberBuMap[m.name]=m.bu!==m.total?m.bu+"("+m.total+")":m.total; });
   getExternals().forEach(m=>{ memberBuMap[m.name]=m.total; });
   (ST.week.tempPlayers||[]).forEach(m=>{ memberBuMap[m.name]=m.total; });
   let html='';
@@ -1650,7 +1650,7 @@ function renderMatchesDoubles(){
   const pairs = ST.doubles.pairs||[];
   const gs = ST.doubles.groups.map(g=>g.map(pi=>pairs[pi])).filter(g=>g.length>0);
   const memberBuMap={};
-  MEMBERS.forEach(m=>{ memberBuMap[m.name]=m.total; });
+  MEMBERS.forEach(m=>{ memberBuMap[m.name]=m.bu!==m.total?m.bu+"("+m.total+")":m.total; });
   getExternals().forEach(m=>{ memberBuMap[m.name]=m.total; });
 
   let html='';
@@ -2154,7 +2154,7 @@ function renderBracket(bracket, size){
 
   // 부수 맵 (정회원 + 특별회원 + 게스트 + 복식페어)
   const memberBuMap = {};
-  MEMBERS.forEach(function(m){ memberBuMap[m.name]=m.total; });
+  MEMBERS.forEach(function(m){ memberBuMap[m.name]=m.bu!==m.total?m.bu+"("+m.total+")":m.total; });
   getExternals().forEach(function(m){ memberBuMap[m.name]=m.total; });
   (ST.week.tempPlayers||[]).forEach(function(m){ memberBuMap[m.name]=m.total; });
   // 복식 페어 부수 (팀명으로 조회) - 짧게 표시
@@ -2488,10 +2488,9 @@ function renderRanking(){
 // 회원 관리
 function renderMembers(){
   document.getElementById('active-tbody').innerHTML=MEMBERS.map((m,i)=>`
-    <tr><td>${i+1}</td><td>${m.name}</td><td>${m.g}</td><td>${m.bu}</td><td>${m.total}</td></tr>`).join('');
+    <tr><td>${i+1}</td><td>${m.name}</td><td>${m.g}</td><td>${m.bu}</td><td>${m.bu!==m.total?m.bu+'('+m.total+')':m.total}</td></tr>`).join('');
   document.getElementById('dormant-tbody').innerHTML=DORMANT.map(m=>`
     <tr><td>${m.name}</td><td>${m.g}</td><td>${m.bu}</td><td>${m.total}</td></tr>`).join('');
-  renderExternalMembers();
 }
 
 function renderExternalMembers(){
