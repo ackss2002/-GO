@@ -480,8 +480,7 @@ function loadTestDataDoubles(numGroups){
           <tr>
             <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;">${ri+1}</td>
             <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:120px;">
-              <span style="font-weight:700;font-size:13px;">${tn}</span>
-              <span style="font-size:11px;color:#888;margin-left:4px;">${(()=>{const p=grp[ri];const b1=memberBuMap[p[0]]||'';const b2=memberBuMap[p[1]]||'';return b1&&b2?p[0]+b1+'/'+p[1]+b2:'';})()}</span>
+              <span style="font-weight:700;font-size:13px;">${(()=>{const p=grp[ri];const b1=memberBuMap[p[0]]||'';const b2=memberBuMap[p[1]]||'';return b1&&b2?p[0]+b1+'/'+p[1]+b2:tn;})()}</span>
             </td>
             ${teamNames.map((_,ci)=>ri===ci?
               `<td style="background:#ccc;border:1px solid #bbb;min-width:80px;"></td>`:
@@ -626,8 +625,7 @@ function loadTestData(numGroups){
           <tr>
             <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
             <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:100px;">
-              <span style="font-weight:700;font-size:13px;">${p}</span>
-              <span style="font-size:11px;color:#888;margin-left:4px;">${memberBuMap2[p]?memberBuMap2[p]:''}</span>
+              <span style="font-weight:700;font-size:13px;">${p}${memberBuMap2[p]?memberBuMap2[p]:''}</span>
             </td>
             ${grp.map((_,ci)=>ri===ci?
               `<td style="background:#ccc;border:1px solid #bbb;min-width:54px;"></td>`:
@@ -758,14 +756,32 @@ function renderLeague(){
       style="${ps.includes(m.name)?'background:#e65100;color:white;border-color:#e65100;':'background:#fff3e0;border-color:#ffcc80;color:#e65100;'}">${m.name} <small style="opacity:.8">${m.total}부</small></span>`).join('');
   }
 
-  // 일회성 참가자
-  html += '<div style="font-size:11px;color:#888;font-weight:700;margin:10px 0 6px;">👤 일회성 참가자 <span style="font-weight:400;">(승점 없음)</span></div>';
-  html += temps.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" onclick="toggleP('${m.name}')"
-    style="${ps.includes(m.name)?'background:#607d8b;color:white;border-color:#607d8b;':'background:#f5f5f5;border-color:#ddd;color:#888;'}">${m.name} <small>${m.total}부</small> <small onclick="removeTempPlayer('${m.name}');event.stopPropagation();" style="color:#e94560;margin-left:2px;cursor:pointer;">✕</small></span>`).join('');
-  html += `<div style="display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap;">
+  // 게스트 (게스트)
+  html += `<div style="font-size:11px;color:#5c6bc0;font-weight:700;margin:10px 0 6px;">🎫 게스트 <span style="font-weight:400;color:#888;">(승점 없음)</span></div>`;
+  
+  // 빈 슬롯 18개 (9명 x 2줄) + 추가된 게스트
+  const maxGuests = 18;
+  const guestSlots = Array.from({length:maxGuests}, (_,i)=>{
+    const guest = temps[i];
+    if(guest){
+      const sel = ps.includes(guest.name);
+      return `<span class="player-chip ${sel?'selected':''}" onclick="toggleP('${guest.name}')"
+        style="${sel?'background:#5c6bc0;color:white;border-color:#5c6bc0;':'background:#ede7f6;border-color:#b39ddb;color:#5c6bc0;'};min-width:80px;justify-content:space-between;">
+        <span>${guest.name}${guest.total}</span>
+        <small onclick="removeTempPlayer('${guest.name}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:4px;">✕</small>
+      </span>`;
+    } else {
+      return `<span class="player-chip" onclick="openGuestInput(${i})"
+        style="background:#fafafa;border:1px dashed #ddd;color:#ccc;min-width:80px;cursor:pointer;justify-content:center;">
+        <span id="guest-slot-${i}" style="font-size:11px;">+ 추가</span>
+      </span>`;
+    }
+  });
+  html += `<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-bottom:8px;">${guestSlots.join('')}</div>`;
+  html += `<div id="guest-input-area" style="display:none;display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;">
     <input type="text" id="temp-name" placeholder="이름" style="max-width:90px;padding:5px 8px;">
     <input type="number" id="temp-bu" placeholder="부수" min="1" max="10" style="max-width:55px;padding:5px 8px;">
-    <button class="btn btn-sm" onclick="addTempPlayer()" style="background:#f5f5f5;color:#555;">+ 추가</button>
+    <button class="btn btn-sm" onclick="addTempPlayer()" style="background:#ede7f6;color:#5c6bc0;border-color:#b39ddb;">+ 추가</button>
   </div>`;
 
   if(isDoubles && nms.length>0){
@@ -1305,8 +1321,7 @@ function renderMatches(){
           <tr>
             <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
             <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:100px;">
-              <span style="font-weight:700;font-size:13px;">${p}</span>
-              <span style="font-size:11px;color:#888;margin-left:4px;">${memberBuMap[p]?memberBuMap[p]:''}</span>
+              <span style="font-weight:700;font-size:13px;">${p}${memberBuMap[p]?memberBuMap[p]:''}</span>
             </td>
             ${grp.map((_,ci)=>ri===ci?
               `<td style="background:#ccc;border:1px solid #bbb;min-width:54px;"></td>`:
@@ -1348,7 +1363,7 @@ function renderMatchesDoubles(){
     const teamBu = grp.map(p=>{
       const b1 = memberBuMap[p[0]]||'';
       const b2 = memberBuMap[p[1]]||'';
-      return b1&&b2 ? p[0]+b1+'/'+p[1]+b2 : '';
+      return b1&&b2 ? b1+'/'+b2 : '';
     });
     html+=`<div style="margin-bottom:28px;">
       <div style="overflow-x:auto;">
@@ -1366,8 +1381,7 @@ function renderMatchesDoubles(){
           <tr>
             <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
             <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:130px;">
-              <span style="font-weight:700;font-size:13px;">${tn}</span>
-              <span style="font-size:11px;color:#888;margin-left:4px;">${teamBu[ri]}</span>
+              <span style="font-weight:700;font-size:13px;">${teamBu[ri]||tn}</span>
             </td>
             ${teamNames.map((_,ci)=>ri===ci?
               `<td style="background:#ccc;border:1px solid #bbb;min-width:80px;"></td>`:
@@ -1849,7 +1863,7 @@ function renderBracket(bracket, size){
       const tn = pair[0]+'/'+pair[1];
       const b1 = memberBuMap[pair[0]]||'';
       const b2 = memberBuMap[pair[1]]||'';
-      if(b1||b2) memberBuMap[tn] = b1&&b2 ? pair[0]+b1+'/'+pair[1]+b2 : (b1||b2);
+      if(b1||b2) memberBuMap[tn] = b1&&b2 ? pair[0]+b1+'/'+pair[1]+b2 : tn;
     });
   }
 
@@ -1898,11 +1912,11 @@ function renderBracket(bracket, size){
             +'background:white;box-sizing:border-box;outline:none;">'
           : '<div style="width:34px;"></div>';
 
-        // 이름줄: 이름(부수) ✓
+        // 이름줄: 복식이면 bu가 '곽동석6/김덕기5' 형태, 단식이면 이름+부수
+        const isDoublesPair = p && p.includes('/');
+        const displayName = isDoublesPair && bu ? bu : (bu ? nm+bu : nm);
         const nameLine = isEmpty ? '<span style="color:#ccc;font-size:12px;">-</span>'
-          : '<span style="font-size:12px;font-weight:'+fw+';color:'+fc+';">'+nm
-            +(bu?' <span style="font-size:10px;color:#888;font-weight:400;">('+bu+')</span>':'')
-            +chk+'</span>';
+          : '<span style="font-size:12px;font-weight:'+fw+';color:'+fc+';">'+displayName+chk+'</span>';
         // 조순위줄: 항상 표시 (없으면 빈 줄 유지)
         const subLine = gi
           ? '<span style="font-size:10px;color:#aaa;">'+gi.g+'조 '+gi.rank+'위</span>'
@@ -2008,7 +2022,7 @@ function fillResultInfo(inputId){
   const giStr  = gi ? gi.g+'조 '+gi.rank+'위' : '';
   const extTag = ext ? ' [특별]' : '';
   const parts  = [buStr, giStr].filter(Boolean);
-  info.textContent = parts.length ? parts.join(' · ')+extTag : (person?extTag:'일회성참가자');
+  info.textContent = parts.length ? parts.join(' · ')+extTag : (person?extTag:'게스트');
   info.style.color = m ? '#1565C0' : ext ? '#e65100' : '#888';
 }
 
@@ -2057,7 +2071,7 @@ function saveResult(){
     const isMember = MNAMES.includes(name);
     const isExt = extNames.includes(name);
     const isTemp = temps.includes(name);
-    if(!isMember && !isExt) return; // 일회성 참가자는 승점 없음
+    if(!isMember && !isExt) return; // 게스트는 승점 없음
     if(!ST.scores[name]) ST.scores[name]={w:0,s:0,t:0,pts:0};
     if(i===0){ST.scores[name].w++;ST.scores[name].pts+=5;}
     else if(i===1){ST.scores[name].s++;ST.scores[name].pts+=3;}
