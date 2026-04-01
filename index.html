@@ -541,6 +541,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
   <div class="grid3" style="margin-bottom:14px;">
     <div class="metric"><div class="metric-label">정회원</div><div class="metric-value" id="active-cnt">26명</div></div>
     <div class="metric"><div class="metric-label">휴면 회원</div><div class="metric-value" id="dormant-cnt">5명</div></div>
+    <div class="metric"><div class="metric-label">전체 회원</div><div class="metric-value">31명</div></div>
   </div>
   <div class="card">
     <div class="card-title">운영진</div>
@@ -558,7 +559,7 @@ input:focus, select:focus { outline: none; border-color: #1a1a2e; }
   </div>
   <div class="card">
     <div class="card-title">휴면 회원 명단 (5명)</div>
-    <table><thead><tr><th>이름</th><th>성별</th><th>부수</th><th>통합</th></tr></thead>
+    <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>통합</th></tr></thead>
     <tbody id="dormant-tbody"></tbody></table>
   </div>
 </div>
@@ -587,7 +588,7 @@ const DORMANT = [
   {name:'김성훈',g:'남',bu:7,total:7},
   {name:'오영준',g:'남',bu:4,total:4},
   {name:'이동규',g:'남',bu:5,total:5},
-  {name:'허순임',g:'여',bu:6,total:9},
+  {name:'허순임',g:'여',bu:9,total:9},
 ];
 // 특별 회원 (localStorage에서 관리)
 function getExternals(){ 
@@ -1376,7 +1377,8 @@ function resetAll(){
   ST.final = {win:'',second:'',third:'',third2:'',lucky:''};
   ST.tournament = {};
   saveST();
-  location.reload();
+  renderDash();
+  renderLeague();
 }
 
 function switchTab(name,el){
@@ -2901,8 +2903,8 @@ function renderRanking(){
 function renderMembers(){
   document.getElementById('active-tbody').innerHTML=MEMBERS.map((m,i)=>`
     <tr><td>${i+1}</td><td>${m.name}</td><td>${m.g}</td><td>${m.bu}</td><td>${m.bu!==m.total?m.bu+'('+m.total+')':m.total}</td></tr>`).join('');
-  document.getElementById('dormant-tbody').innerHTML=DORMANT.map(m=>`
-    <tr><td>${m.name}</td><td>${m.g}</td><td>${m.bu}</td><td>${m.total}</td></tr>`).join('');
+  document.getElementById('dormant-tbody').innerHTML=DORMANT.map((m,i)=>`
+    <tr><td>${i+1}</td><td>${m.name}</td><td>${m.g}</td><td>${m.bu}</td><td>${m.bu!==m.total?m.bu+'('+m.total+')':m.total}</td></tr>`).join('');
 }
 
 function renderExternalMembers(){
@@ -2985,6 +2987,17 @@ function loadFromFirebase(){
       if(!ST.doubles) ST.doubles={pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
       if(!ST.final) ST.final={win:'',second:'',third:'',third2:'',lucky:''};
       if(!ST.tournament) ST.tournament={};
+      // 2분기 이월 승점이 없으면 기본값 세팅
+      if(Object.keys(ST.scores).length===0){
+        ST.scores = {
+          '김영서': {w:0, s:0, t:1, pts:2},
+          '안치국': {w:1, s:0, t:1, pts:7},
+          '이상건': {w:0, s:0, t:2, pts:4},
+          '이진규': {w:0, s:1, t:1, pts:5},
+          '최양님': {w:1, s:0, t:0, pts:5},
+          '이미진': {w:1, s:0, t:0, pts:5},
+        };
+      }
       localStorage.setItem('ttgo_v3', JSON.stringify(ST));
     }
     if(data.externals) saveExternals(data.externals);
