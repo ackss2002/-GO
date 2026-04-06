@@ -226,6 +226,9 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
     </div>
     <div class="step-body" id="s4" style="display:none;">
       <div id="league-results"></div>
+      <div id="to-tournament-wrap" style="display:none;margin-top:14px;">
+        <button onclick="goToTournament()" style="width:100%;padding:13px;background:#1a1a2e;color:white;border:none;border-radius:10px;font-size:15px;font-weight:900;cursor:pointer;letter-spacing:1px;">➡️ 토너먼트 대진 반영</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2494,6 +2497,9 @@ function calcResults(){
   document.getElementById('janken-area').style.display='none';
   document.getElementById('s4').style.display='block';
   document.getElementById('s3-status').textContent='계산 완료'+(hasJk?' · ✂️ 가위바위보 필요':'');
+  // 가위바위보 없으면 토너먼트 버튼 표시, 있으면 숨김
+  const wrap = document.getElementById('to-tournament-wrap');
+  if(wrap) wrap.style.display = hasJk ? 'none' : 'block';
 }
 
 function jkConfirmInline(gi, g, names, startIdx){
@@ -2543,7 +2549,8 @@ function jkConfirmInline(gi, g, names, startIdx){
       const namesStr = JSON.stringify(names).replace(/"/g,'&quot;');
       b.innerHTML =
         `<span style="color:#2e7d32;font-weight:700;font-size:13px;">✅ ${g}조 ${startIdx+1}~${startIdx+names.length}위 확정 완료!</span>`+
-        `<button onclick="unconfirmGroup(${gi},${g},${JSON.stringify(names)},${startIdx})"
+        `<button id="unc-btn-${gi}" data-gi="${gi}" data-g="${g}" data-names='${JSON.stringify(names).replace(/'/g,"&#39;")}' data-start="${startIdx}"
+          onclick="var d=this.dataset;unconfirmGroup(parseInt(d.gi),parseInt(d.g),JSON.parse(d.names),parseInt(d.start))"
           style="padding:5px 12px;background:#fff8e1;color:#e65100;border:1px solid #ffcc80;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">✏️ 수정</button>`;
     }
   });
@@ -2561,6 +2568,10 @@ function jkConfirmInline(gi, g, names, startIdx){
       </tbody></table>
     </div>`).join('');
   document.getElementById('s3-status').textContent='계산 완료';
+
+  // 가위바위보 확정 완료 → 토너먼트 버튼 표시
+  const wrapJk = document.getElementById('to-tournament-wrap');
+  if(wrapJk) wrapJk.style.display = 'block';
 
   // 토너먼트 대진 자동 갱신 (이미 생성된 경우)
   if(ST.tournament && ST.tournament.bracket && ST.tournament.bracket.length > 0){
@@ -2581,6 +2592,59 @@ function jkConfirmInline(gi, g, names, startIdx){
     renderBracket(newBracket, size);
   }
   renderDash();
+}
+
+// ── 토너먼트 대진 반영 ──
+function goToTournament(){
+  const res = ST.week.results;
+  if(!res || res.length===0){ alert('조별 순위를 먼저 계산하세요.'); return; }
+
+  // 토너먼트 진행 중 경고
+  const hasRounds = ST.tournament && ST.tournament.rounds && Object.keys(ST.tournament.rounds).length > 0;
+  if(hasRounds){
+    if(!confirm('토너먼트 경기 결과가 초기화됩니다.\n계속하시겠습니까?')) return;
+  }
+
+  // 토너먼트 탭으로 이동
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tournament').classList.add('active');
+  const tTab = document.querySelector('.tab[onclick*="tournament"]');
+  if(tTab) tTab.classList.add('active');
+
+  // 대진 자동 생성
+  const size = parseInt(document.getElementById('t-size').value) || 8;
+  const grpNames = res.map(r=>r.players.map(p=>p.name));
+  const bracket = buildBracket(grpNames, res, size);
+  while(bracket.length < size) bracket.push('BYE');
+  bracket.splice(size);
+
+  ST.tournament = {seeds: bracket.filter(p=>p!=='BYE'), size, bracket, rounds:{}, scores:{}};
+  for(let i=0;i<size/2;i++){
+    if(bracket[i*2]==='BYE')   ST.tournament.rounds['r1m'+i]=bracket[i*2+1];
+    if(bracket[i*2+1]==='BYE') ST.tournament.rounds['r1m'+i]=bracket[i*2];
+  }
+  saveST();
+
+  const bracketLabel = size===4?'4강':size===8?'8강':'16강';
+  document.getElementById('t-seeds').innerHTML =
+    '<div style="font-size:12px;font-weight:700;margin-bottom:8px;color:#1a1a2e;">'+bracketLabel+' 토너먼트 대진</div>'+
+    res.map(r=>'<div style="margin-bottom:4px;"><span style="font-size:11px;font-weight:700;color:#1565C0;">'+r.g+'조:</span> '+
+      r.players.map((p,i)=>'<span class="pill pill-blue" style="margin:2px;">'+(i+1)+'위 '+p.name+'</span>').join('')+'</div>'
+    ).join('');
+
+  renderBracket(bracket, size);
+  document.getElementById('t2').style.display='block';
+
+  // 결과 입력칸 초기화
+  ['t-win','t-second','t-lucky','t-third','t-third2'].forEach(function(id){
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  ['t-win-info','t-second-info','t-lucky-info','t-result-display'].forEach(function(id){
+    const el=document.getElementById(id); if(el) el.textContent='';
+  });
+  const disp=document.getElementById('t-third-display');
+  if(disp) disp.innerHTML='<span style="font-size:12px;color:#bbb;">4강 결과 입력 후 자동 반영</span>';
 }
 
 // ── 일반 조 순위 수정 ──
@@ -2614,10 +2678,11 @@ function unconfirmGroup(gi, g, names, startIdx){
       ' style="width:36px;height:26px;text-align:center;font-size:13px;font-weight:900;'+
       'color:#e65100;border:2px solid #ffcc80;border-radius:5px;background:#fff8e1;padding:0;outline:none;">';
   });
-  const matchDivs = document.getElementById('league-matches') ?
-    document.getElementById('league-matches').querySelectorAll('div[style*="margin-bottom:28px"]') : [];
+  const leagueMatches = document.getElementById('league-matches');
+  if(!leagueMatches){ alert(gi+1+'조 경기표를 찾을 수 없습니다. 이번주 리그 탭에서 다시 시도하세요.'); return; }
+  const matchDivs = leagueMatches.querySelectorAll('div[style*="margin-bottom:28px"]');
   const matchDiv = matchDivs[gi];
-  if(!matchDiv) return;
+  if(!matchDiv){ alert(gi+1+'조 경기표를 찾을 수 없습니다. 순위 계산하기를 다시 눌러주세요.'); return; }
   const old = matchDiv.querySelector('.jk-banner');
   if(old) old.remove();
   const banner = document.createElement('div');
@@ -2818,6 +2883,10 @@ function buildBracket(grpNames, results, size){
 }
 
 function genTestTournament(){
+  // 리그 탭 DOM 접근을 위해 잠시 league 탭 활성화
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('league').classList.add('active');
+
   ['t-win','t-second','t-lucky','t-third','t-third2'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
@@ -2957,6 +3026,13 @@ function genTestTournament(){
   renderBracket(bracket, size);
   document.getElementById('t2').style.display='block';
   renderDash();
+
+  // tournament 탭으로 복귀
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tournament').classList.add('active');
+  const tTab = document.querySelector('.tab[onclick*="tournament"]');
+  if(tTab) tTab.classList.add('active');
 }
 
 function genTournament(){
