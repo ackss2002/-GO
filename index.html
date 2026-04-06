@@ -633,6 +633,7 @@ function getExternals(){
   try{ return JSON.parse(localStorage.getItem('ttgo_externals')||'[]'); }catch(e){ return []; }
 }
 function saveExternals(arr){ localStorage.setItem('ttgo_externals', JSON.stringify(arr)); }
+function saveST(){ localStorage.setItem('ttgo_v3', JSON.stringify(ST)); if(typeof db!=='undefined'){ try{ db.ref('ttgo').set(ST); }catch(e){} } }
 
 const MNAMES = MEMBERS.map(m=>m.name);
 const INIT_SCORES = {};
@@ -2478,11 +2479,7 @@ function calcResults(){
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n','rank-n','rank-n'];
   document.getElementById('league-results').innerHTML=all.map(r=>`
     <div style="margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div style="font-size:13px;font-weight:700;">${r.g}조 순위</div>
-        <button onclick="reEditGroup(${r.g})"
-          style="padding:4px 10px;background:#fff8e1;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">✏️ 수정</button>
-      </div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${r.g}조 순위</div>
       <table><thead><tr><th>순위</th><th>이름</th><th>승</th><th>패</th><th>승점</th><th>게임득실</th></tr></thead><tbody>
       ${r.players.map((p,i)=>`<tr>
         <td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>
@@ -2536,26 +2533,18 @@ function jkConfirmInline(gi, g, names, startIdx){
     }
   });
 
-  // 배너 확정 완료로 교체 (수정 버튼 포함)
+  // 배너 확정 완료로 교체
   document.querySelectorAll('.jk-banner').forEach(b=>{
     const btn = b.querySelector('button');
-    if(btn && parseInt(btn.dataset.gi)===gi){
-      b.innerHTML =
-        `<span style="color:#2e7d32;font-weight:700;font-size:13px;">✅ ${g}조 ${startIdx+1}~${startIdx+names.length}위 확정 완료!</span>`+
-        `<button onclick="unconfirmGroup(${gi},${g},${JSON.stringify(names)},${startIdx})"
-          style="padding:5px 12px;background:#fff8e1;color:#e65100;border:1px solid #ffcc80;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">✏️ 수정</button>`;
-    }
+    if(btn && parseInt(btn.dataset.gi)===gi)
+      b.innerHTML = `<span style="color:#2e7d32;font-weight:700;font-size:13px;">✅ ${g}조 ${startIdx+1}~${startIdx+names.length}위 확정 완료!</span>`;
   });
 
   // Step4 순위 갱신
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n','rank-n','rank-n'];
   document.getElementById('league-results').innerHTML=ST.week.results.map(r=>`
     <div style="margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div style="font-size:13px;font-weight:700;">${r.g}조 순위</div>
-        <button onclick="reEditGroup(${r.g})"
-          style="padding:4px 10px;background:#fff8e1;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">✏️ 수정</button>
-      </div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${r.g}조 순위</div>
       <table><thead><tr><th>순위</th><th>이름</th><th>승</th><th>패</th><th>승점</th><th>게임득실</th></tr></thead><tbody>
       ${r.players.map((p,i)=>`<tr>
         <td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>
@@ -2584,72 +2573,6 @@ function jkConfirmInline(gi, g, names, startIdx){
     renderBracket(newBracket, size);
   }
   renderDash();
-}
-
-// ── 일반 조 순위 수정 (점수 재입력 후 순위 계산하기 재실행) ──
-function reEditGroup(g){
-  // Step3 경기 결과 입력 섹션으로 스크롤
-  const s3 = document.getElementById('league-matches');
-  if(s3){ s3.scrollIntoView({behavior:'smooth', block:'start'}); }
-
-  // 안내 메시지 표시
-  const statusEl = document.getElementById('s3-status');
-  if(statusEl) statusEl.textContent = g+'조 점수 수정 후 [순위 계산하기] 다시 누르세요';
-
-  // 해당 조 경기표 강조 표시
-  const matchDivs = document.getElementById('league-matches') ?
-    document.getElementById('league-matches').querySelectorAll('div[style*="margin-bottom:28px"]') : [];
-  matchDivs.forEach((div, idx)=>{
-    div.style.outline = (idx===g-1) ? '2px solid #e65100' : '';
-  });
-
-  // 3초 후 강조 해제
-  setTimeout(()=>{ matchDivs.forEach(div=>{ div.style.outline=''; }); }, 3000);
-}
-
-// ── 조별 확정 취소 (수정 버튼) ──
-function unconfirmGroup(gi, g, names, startIdx){
-  if(!confirm(g+'조 순위를 다시 입력하시겠습니까?')) return;
-
-  // 순위 셀을 다시 input으로 복원
-  const grp = ST.week.groups.filter(gr=>gr.length>0)[gi];
-  const grpResult = ST.week.results.find(r=>r.g===g);
-
-  names.forEach(name=>{
-    const ri = grp.indexOf(name);
-    if(ri<0) return;
-    const rkEl = document.getElementById('g'+gi+'rk'+ri);
-    if(!rkEl) return;
-    const currentRank = grpResult ? grpResult.players.findIndex(p=>p.name===name)+1 : '';
-    rkEl.innerHTML = '<input type="number" id="g'+gi+'jk'+ri+'"'+
-      ' value="'+(currentRank||'')+'" min="'+(startIdx+1)+'" max="'+(startIdx+names.length)+'"'+
-      ' onfocus="this.select()"'+
-      ' style="width:36px;height:26px;text-align:center;font-size:13px;font-weight:900;'+
-      'color:#e65100;border:2px solid #ffcc80;border-radius:5px;background:#fff8e1;padding:0;outline:none;">';
-  });
-
-  // 배너를 다시 확정 버튼 상태로 복원
-  const matchDivs = document.getElementById('league-matches').querySelectorAll('div[style*="margin-bottom:28px"]');
-  const matchDiv = matchDivs[gi];
-  if(!matchDiv) return;
-  const old = matchDiv.querySelector('.jk-banner');
-  if(old) old.remove();
-  const banner = document.createElement('div');
-  banner.className = 'jk-banner';
-  banner.style.cssText = 'background:#fff3e0;border:1px solid #ffcc80;border-radius:8px;padding:10px 14px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:10px;';
-  const btn = document.createElement('button');
-  btn.textContent = '✅ '+g+'조 확정';
-  btn.style.cssText = 'padding:7px 16px;background:#e65100;color:white;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;';
-  btn.dataset.gi = gi;
-  btn.dataset.g  = g;
-  btn.dataset.names = JSON.stringify(names);
-  btn.dataset.startIdx = startIdx;
-  btn.addEventListener('click', function(){
-    jkConfirmInline(parseInt(this.dataset.gi), parseInt(this.dataset.g), JSON.parse(this.dataset.names), parseInt(this.dataset.startIdx));
-  });
-  banner.innerHTML = '<span style="font-size:12px;color:#e65100;font-weight:700;">✂️ '+g+'조 '+(startIdx+1)+'~'+(startIdx+names.length)+'위 순위칸에 다시 입력 후 확정</span>';
-  banner.appendChild(btn);
-  matchDiv.appendChild(banner);
 }
 
 function renderTournamentTab(){
