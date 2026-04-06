@@ -3577,17 +3577,8 @@ function loadFromFirebase(){
       if(!ST.doubles) ST.doubles={pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
       if(!ST.final) ST.final={win:'',second:'',third:'',third2:'',lucky:''};
       if(!ST.tournament) ST.tournament={};
-      // 2분기 이월 승점이 없으면 기본값 세팅
-      if(Object.keys(ST.scores).length===0){
-        ST.scores = {
-          '김영서': {w:0, s:0, t:1, pts:2},
-          '안치국': {w:1, s:0, t:1, pts:7},
-          '이상건': {w:0, s:0, t:2, pts:4},
-          '이진규': {w:0, s:1, t:1, pts:5},
-          '최양님': {w:1, s:0, t:0, pts:5},
-          '이미진': {w:1, s:0, t:0, pts:5},
-        };
-      }
+      // carryOver 없으면 세팅
+      ensureCarryOver();
       localStorage.setItem('ttgo_v3', JSON.stringify(ST));
     }
     if(data.externals) saveExternals(data.externals);
