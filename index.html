@@ -162,7 +162,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
         <span id="sel-count" style="font-size:13px;font-weight:700;color:#1a1a2e;"></span>
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:11px;color:#aaa;">💡 테스트는 토너먼트 탭에서 실행</span>
-          <button class="btn btn-primary btn-sm admin-only" onclick="confirmPlayers()">선수 확정 →</button>
+          <button class="btn btn-primary btn-sm" onclick="confirmPlayers()">선수 확정 →</button>
         </div>
       </div>
     </div>
@@ -179,7 +179,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
       <div id="pair-select" style="margin-bottom:12px;"></div>
       <div id="pair-list" style="margin-bottom:12px;"></div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary btn-sm admin-only" onclick="confirmPairs()">페어 확정 →</button>
+        <button class="btn btn-primary btn-sm" onclick="confirmPairs()">페어 확정 →</button>
         <button class="btn btn-sm admin-only" onclick="resetPairs()" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;">초기화</button>
       </div>
     </div>
@@ -195,7 +195,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
       <div id="group-assign"></div>
       <div id="group-summary" style="margin:10px 0;"></div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary btn-sm admin-only" onclick="confirmGroups()">조 편성 확정 →</button>
+        <button class="btn btn-primary btn-sm" onclick="confirmGroups()">조 편성 확정 →</button>
         <button class="btn btn-sm admin-only" onclick="resetGroups()" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;">초기화</button>
       </div>
     </div>
@@ -216,7 +216,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
       </div>
       <div id="league-matches"></div>
       <div id="janken-area" style="display:none;"></div>
-      <button class="btn btn-primary admin-only" style="margin-top:12px;width:100%;" onclick="calcResults()">순위 계산하기</button>
+      <button class="btn btn-primary" style="margin-top:12px;width:100%;" onclick="calcResults()">순위 계산하기</button>
     </div>
   </div>
 
@@ -244,7 +244,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
           <option value="8" selected>8강</option>
           <option value="16">16강</option>
         </select>
-        <button class="btn btn-primary btn-sm admin-only" onclick="genTournament()">대진 생성</button>
+        <button class="btn btn-primary btn-sm" onclick="genTournament()">대진 생성</button>
         <span style="border-left:1px solid #eee;margin:0 4px;height:20px;display:inline-block;"></span>
         <label style="font-size:12px;color:#e65100;font-weight:600;">🧪 테스트</label>
         <select id="test-players" style="display:none;"></select>
@@ -1543,7 +1543,7 @@ function renderLeague(){
   // 정회원 칩
   let html = '<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원</div>';
   html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" 
-    onclick="${isAdmin?`toggleP('${m.name}')`:'showLockMsg()'}" 
+    onclick="toggleP('${m.name}')" 
     style="${!isAdmin&&ps.includes(m.name)?'opacity:0.5;cursor:default;':''}">${m.name}${m.bu!==m.total?m.bu+'('+m.total+')':m.total}</span>`).join('');
 
   // 게스트 (게스트)
@@ -1554,7 +1554,7 @@ function renderLeague(){
     const guest = temps[i];
     if(guest){
       const sel = ps.includes(guest.name);
-      return `<span class="player-chip ${sel?'selected':''}" onclick="${isAdmin?`toggleP('${guest.name}')`:'showLockMsg()'}"
+      return `<span class="player-chip ${sel?'selected':''}" onclick="toggleP('${guest.name}')"
         style="${sel?'background:#546e7a;color:white;border-color:#546e7a;':'background:#eceff1;border-color:#90a4ae;color:#546e7a;'}${!isAdmin&&sel?'opacity:0.5;cursor:default;':''}">${guest.name}${guest.total}${isAdmin?` <small onclick="removeTempPlayer('${guest.name}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small>`:''}</span>`;
     } else {
       return `<span class="player-chip" style="background:#eceff1;border:1px dashed #90a4ae;color:#b0bec5;cursor:${isAdmin?'pointer':'default'};" ${isAdmin?`onclick="document.getElementById('temp-name').focus()"`:''}>+ 추가</span>`;
@@ -1564,7 +1564,7 @@ function renderLeague(){
   html += `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;">
     <input type="text" id="temp-name" placeholder="이름" style="max-width:90px;padding:5px 8px;">
     <input type="number" id="temp-bu" placeholder="부수" min="1" max="10" style="max-width:55px;padding:5px 8px;">
-    <button class="btn btn-sm admin-only" onclick="addTempPlayer()" style="background:#ede7f6;color:#5c6bc0;border-color:#b39ddb;">+ 추가</button>
+    <button class="btn btn-sm" onclick="addTempPlayer()" style="background:#ede7f6;color:#5c6bc0;border-color:#b39ddb;">+ 추가</button>
   </div>`;
 
   document.getElementById('player-select').innerHTML = html;
@@ -2273,7 +2273,10 @@ function calcResultsDoubles(){
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n','rank-n','rank-n'];
   document.getElementById('league-results').innerHTML=all.map(r=>`
     <div style="margin-bottom:14px;">
-      <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${r.g}조 순위</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:700;">${r.g}조 순위</div>
+        <button onclick="reEditGroup(${r.g})" style="padding:4px 10px;background:#fff8e1;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">✏️ 수정</button>
+      </div>
       <table><thead><tr><th>순위</th><th>팀</th><th>승</th><th>패</th><th>승점</th><th>게임득실</th></tr></thead><tbody>
       ${r.players.map((p,i)=>`<tr><td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>
         <td>${p.name}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td></tr>`).join('')}
@@ -2533,11 +2536,16 @@ function jkConfirmInline(gi, g, names, startIdx){
     }
   });
 
-  // 배너 확정 완료로 교체
+  // 배너 확정 완료로 교체 (수정 버튼 포함)
   document.querySelectorAll('.jk-banner').forEach(b=>{
     const btn = b.querySelector('button');
-    if(btn && parseInt(btn.dataset.gi)===gi)
-      b.innerHTML = `<span style="color:#2e7d32;font-weight:700;font-size:13px;">✅ ${g}조 ${startIdx+1}~${startIdx+names.length}위 확정 완료!</span>`;
+    if(btn && parseInt(btn.dataset.gi)===gi){
+      const namesStr = JSON.stringify(names).replace(/"/g,'&quot;');
+      b.innerHTML =
+        `<span style="color:#2e7d32;font-weight:700;font-size:13px;">✅ ${g}조 ${startIdx+1}~${startIdx+names.length}위 확정 완료!</span>`+
+        `<button onclick="unconfirmGroup(${gi},${g},${JSON.stringify(names)},${startIdx})"
+          style="padding:5px 12px;background:#fff8e1;color:#e65100;border:1px solid #ffcc80;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">✏️ 수정</button>`;
+    }
   });
 
   // Step4 순위 갱신
@@ -2573,6 +2581,59 @@ function jkConfirmInline(gi, g, names, startIdx){
     renderBracket(newBracket, size);
   }
   renderDash();
+}
+
+// ── 일반 조 순위 수정 ──
+function reEditGroup(g){
+  const s3 = document.getElementById('league-matches');
+  if(s3) s3.scrollIntoView({behavior:'smooth', block:'start'});
+  const statusEl = document.getElementById('s3-status');
+  if(statusEl) statusEl.textContent = g+'조 점수 수정 후 [순위 계산하기] 다시 누르세요';
+  const matchDivs = document.getElementById('league-matches') ?
+    document.getElementById('league-matches').querySelectorAll('div[style*="margin-bottom:28px"]') : [];
+  matchDivs.forEach(function(div, idx){
+    div.style.outline = (idx===g-1) ? '2px solid #e65100' : '';
+  });
+  setTimeout(function(){ matchDivs.forEach(function(div){ div.style.outline=''; }); }, 3000);
+}
+
+// ── 가위바위보 조 확정 취소 ──
+function unconfirmGroup(gi, g, names, startIdx){
+  if(!confirm(g+'조 순위를 다시 입력하시겠습니까?')) return;
+  const grp = ST.week.groups.filter(gr=>gr.length>0)[gi];
+  const grpResult = ST.week.results ? ST.week.results.find(r=>r.g===g) : null;
+  names.forEach(function(name){
+    const ri = grp.indexOf(name);
+    if(ri<0) return;
+    const rkEl = document.getElementById('g'+gi+'rk'+ri);
+    if(!rkEl) return;
+    const currentRank = grpResult ? grpResult.players.findIndex(function(p){ return p.name===name; })+1 : '';
+    rkEl.innerHTML = '<input type="number" id="g'+gi+'jk'+ri+'"'+
+      ' value="'+(currentRank||'')+'" min="'+(startIdx+1)+'" max="'+(startIdx+names.length)+'"'+
+      ' onfocus="this.select()"'+
+      ' style="width:36px;height:26px;text-align:center;font-size:13px;font-weight:900;'+
+      'color:#e65100;border:2px solid #ffcc80;border-radius:5px;background:#fff8e1;padding:0;outline:none;">';
+  });
+  const matchDivs = document.getElementById('league-matches') ?
+    document.getElementById('league-matches').querySelectorAll('div[style*="margin-bottom:28px"]') : [];
+  const matchDiv = matchDivs[gi];
+  if(!matchDiv) return;
+  const old = matchDiv.querySelector('.jk-banner');
+  if(old) old.remove();
+  const banner = document.createElement('div');
+  banner.className = 'jk-banner';
+  banner.style.cssText = 'background:#fff3e0;border:1px solid #ffcc80;border-radius:8px;padding:10px 14px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:10px;';
+  const btn = document.createElement('button');
+  btn.textContent = '✅ '+g+'조 확정';
+  btn.style.cssText = 'padding:7px 16px;background:#e65100;color:white;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;';
+  btn.dataset.gi = gi; btn.dataset.g = g;
+  btn.dataset.names = JSON.stringify(names); btn.dataset.startIdx = startIdx;
+  btn.addEventListener('click', function(){
+    jkConfirmInline(parseInt(this.dataset.gi), parseInt(this.dataset.g), JSON.parse(this.dataset.names), parseInt(this.dataset.startIdx));
+  });
+  banner.innerHTML = '<span style="font-size:12px;color:#e65100;font-weight:700;">✂️ '+g+'조 '+(startIdx+1)+'~'+(startIdx+names.length)+'위 순위칸에 다시 입력 후 확정</span>';
+  banner.appendChild(btn);
+  matchDiv.appendChild(banner);
 }
 
 function renderTournamentTab(){
