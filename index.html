@@ -135,7 +135,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div style="text-align:right;margin-top:8px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
     <button class="btn btn-sm admin-only" onclick="resetAll()" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;">🗑 이번주 초기화</button>
-        <button class="btn btn-sm admin-only" onclick="if(confirm('모든 데이터를 초기화합니다.\n이월 승점만 남고 테스트 데이터는 삭제됩니다.\n계속할까요?')){localStorage.removeItem('ttgo_v3');location.reload();}" style="background:#fce4ec;color:#880e4f;border-color:#f48fb1;">🔄 전체 초기화</button>
+        <button class="btn btn-sm admin-only" onclick="if(confirm('테스트 데이터를 삭제합니다.\n이월 승점만 남고 나머지는 초기화됩니다.\n계속할까요?')){localStorage.removeItem('ttgo_v3');location.reload();}" style="background:#fce4ec;color:#880e4f;border-color:#f48fb1;">🧹 테스트 데이터 삭제</button>
   </div>
 </div>
 
