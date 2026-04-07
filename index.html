@@ -135,7 +135,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   </div>
   <div style="text-align:right;margin-top:8px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
     <button class="btn btn-sm admin-only" onclick="resetAll()" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;">🗑 이번주 초기화</button>
-        <button class="btn btn-sm admin-only" onclick="if(confirm('테스트 데이터를 삭제합니다.\n이월 승점만 남고 나머지는 초기화됩니다.\n계속할까요?')){localStorage.removeItem('ttgo_v3');location.reload();}" style="background:#fce4ec;color:#880e4f;border-color:#f48fb1;">🧹 테스트 데이터 삭제</button>
   </div>
 </div>
 
@@ -161,7 +160,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
         <span id="sel-count" style="font-size:13px;font-weight:700;color:#1a1a2e;"></span>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:11px;color:#aaa;">💡 테스트는 토너먼트 탭에서 실행</span>
+          
           <button class="btn btn-primary btn-sm" onclick="confirmPlayers()">선수 확정 →</button>
         </div>
       </div>
@@ -248,29 +247,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
           <option value="16">16강</option>
         </select>
         <button class="btn btn-primary btn-sm" onclick="genTournament()">대진 생성</button>
-        <span style="border-left:1px solid #eee;margin:0 4px;height:20px;display:inline-block;"></span>
-        <label style="font-size:12px;color:#e65100;font-weight:600;">🧪 테스트</label>
-        <select id="test-players" style="display:none;"></select>
-        <input type="number" id="test-players-input" value="20" min="4" max="28"
-          style="width:60px;font-size:12px;padding:5px 8px;border:1px solid #ffcc80;border-radius:8px;text-align:center;color:#e65100;font-weight:700;">
-        <span style="font-size:12px;color:#e65100;">명</span>
-        <select id="test-groups" style="width:auto;font-size:12px;padding:5px 8px;">
-          <option value="1">1조</option>
-          <option value="2">2조</option>
-          <option value="3">3조</option>
-          <option value="4" selected>4조</option>
-          <option value="5">5조</option>
-          <option value="6">6조</option>
-          <option value="7">7조</option>
-          <option value="8">8조</option>
-          <option value="9">9조</option>
-          <option value="10">10조</option>
-        </select>
-        <button class="btn btn-sm" onclick="genTestTournament()" style="background:#fff3e0;color:#e65100;border-color:#ffcc80;">전체 테스트 실행</button>
-        <label style="font-size:11px;color:#888;display:flex;align-items:center;gap:4px;cursor:pointer;">
-          <input type="checkbox" id="test-janken" style="width:auto;">
-          ✂️ 가위바위보 테스트
-        </label>
+
       </div>
       <div id="t-seeds"></div>
       <div id="t-bracket" style="overflow-x:auto;margin-top:14px;"></div>
@@ -1197,8 +1174,8 @@ function updateAdminUI(){
   renderLeague();
 }
 
-function showLockMsg(){
-  alert('운영자 모드에서만 수정할 수 있습니다.\n🔒 버튼을 클릭하여 PIN을 입력하세요.');
+function showLockMsg(msg){
+  alert(msg || '운영자 모드에서만 수정할 수 있습니다.\n🔒 버튼을 클릭하여 PIN을 입력하세요.');
 }
 
 
@@ -1853,6 +1830,7 @@ function getMaxScore(){
 }
 
 function validateScore(gi, ri, ci){
+  if(isTournamentInProgress()){ alert('토너먼트 진행 중에는 경기 점수를 수정할 수 없습니다.'); return; }
   const max = getMaxScore();
   const aEl = document.getElementById(`g${gi}r${ri}c${ci}`);
   const bEl = document.getElementById(`g${gi}r${ci}c${ri}`);
@@ -2047,6 +2025,7 @@ function styleScoreCell(gi, ri, ci){
 }
 
 function realtimeCalc(gi){
+  if(isTournamentInProgress()) return;
   const grp = ST.week.groups.filter(g=>g.length>0)[gi];
   if(!grp) return;
   const n = grp.length;
@@ -2214,6 +2193,7 @@ function renderMatchesDoubles(){
 }
 
 function realtimeCalcDoubles(gi){
+  if(isTournamentInProgress()) return;
   if(!ST.doubles) return;
   const pairs = ST.doubles.pairs||[];
   const grpPairs = ST.doubles.groups.map(g=>g.map(pi=>pairs[pi])).filter(g=>g.length>0)[gi];
@@ -2239,6 +2219,7 @@ function realtimeCalcDoubles(gi){
 }
 
 function calcResultsDoubles(){
+  if(blockIfTournamentInProgress()) return;
   if(!ST.doubles) return;
   const pairs = ST.doubles.pairs||[];
   const gsPairs = ST.doubles.groups.map(g=>g.map(pi=>pairs[pi])).filter(g=>g.length>0);
@@ -2289,6 +2270,7 @@ function calcResultsDoubles(){
   document.getElementById('s3-status').textContent='계산 완료';
 }
 function calcResults(){
+  if(blockIfTournamentInProgress()) return;
   const isDoubles = ST.week.type==='복식';
   if(isDoubles){ calcResultsDoubles(); return; }
   const gs=ST.week.groups.filter(g=>g.length>0);
@@ -2427,6 +2409,13 @@ function calcResults(){
     });
   });
   const hasJk = Object.keys(jkByGroup).length > 0;
+  // jkGroups: 어느 조가 가위바위보 필요한지 저장
+  ST.week.jkGroups = hasJk ? jkByGroup : {};
+  ST.week.jkConfirmed = {};
+  // 새로 계산 시 모든 조 미확정으로 리셋
+  Object.keys(ST.week.jkGroups).forEach(function(g){ ST.week.jkConfirmed[g] = false; });
+  ST.week.hasJanken = hasJk;
+  saveST();
 
   // ── 경기표 가위바위보 처리: 순위 셀을 input으로 교체 ──
   gs.forEach((grp, gi)=>{
@@ -2568,6 +2557,15 @@ function jkConfirmInline(gi, g, names, startIdx){
       </tbody></table>
     </div>`).join('');
   document.getElementById('s3-status').textContent='계산 완료';
+  // 해당 조 확정 완료 표시
+  if(!ST.week.jkConfirmed) ST.week.jkConfirmed = {};
+  ST.week.jkConfirmed[String(g)] = true;
+  // 모든 가위바위보 조가 확정됐으면 hasJanken=false
+  const allConfirmed = Object.keys(ST.week.jkGroups||{}).every(function(gk){
+    return ST.week.jkConfirmed[gk] === true;
+  });
+  ST.week.hasJanken = !allConfirmed;
+  saveST();
 
   // 가위바위보 확정 완료 → 토너먼트 버튼 표시
   const wrapJk = document.getElementById('to-tournament-wrap');
@@ -2594,10 +2592,37 @@ function jkConfirmInline(gi, g, names, startIdx){
   renderDash();
 }
 
+// ── 가위바위보 미확정 여부 판단 (ST 데이터 기반) ──
+function isJankenPending(){
+  if(!ST.week || !ST.week.jkGroups) return false;
+  const groups = ST.week.jkGroups;
+  if(Object.keys(groups).length === 0) return false;
+  const confirmed = ST.week.jkConfirmed || {};
+  return Object.keys(groups).some(function(g){ return confirmed[g] !== true; });
+}
+
+// ── 토너먼트 진행 중 여부 판단 ──
+function isTournamentInProgress(){
+  if(!ST.tournament || !ST.tournament.rounds) return false;
+  return Object.keys(ST.tournament.rounds).length > 0;
+}
+
+function blockIfTournamentInProgress(){
+  if(isTournamentInProgress()){
+    alert('토너먼트가 진행 중입니다.\n조별 리그 수정은 토너먼트 완료 후 가능합니다.');
+    return true;
+  }
+  return false;
+}
+
 // ── 토너먼트 대진 반영 ──
 function goToTournament(){
   const res = ST.week.results;
   if(!res || res.length===0){ alert('조별 순위를 먼저 계산하세요.'); return; }
+  if(isJankenPending()){
+    alert('가위바위보 순위가 확정되지 않은 조가 있습니다.\n이번주 리그 탭에서 가위바위보를 먼저 확정하세요.');
+    return;
+  }
 
   // 토너먼트 진행 중 경고
   const hasRounds = ST.tournament && ST.tournament.rounds && Object.keys(ST.tournament.rounds).length > 0;
@@ -2649,6 +2674,7 @@ function goToTournament(){
 
 // ── 일반 조 순위 수정 ──
 function reEditGroup(g){
+  if(blockIfTournamentInProgress()) return;
   const s3 = document.getElementById('league-matches');
   if(s3) s3.scrollIntoView({behavior:'smooth', block:'start'});
   const statusEl = document.getElementById('s3-status');
@@ -2663,6 +2689,7 @@ function reEditGroup(g){
 
 // ── 가위바위보 조 확정 취소 ──
 function unconfirmGroup(gi, g, names, startIdx){
+  if(blockIfTournamentInProgress()) return;
   if(!confirm(g+'조 순위를 다시 입력하시겠습니까?')) return;
   const grp = ST.week.groups.filter(gr=>gr.length>0)[gi];
   const grpResult = ST.week.results ? ST.week.results.find(r=>r.g===g) : null;
@@ -2702,6 +2729,15 @@ function unconfirmGroup(gi, g, names, startIdx){
 }
 
 function renderTournamentTab(){
+  // 가위바위보 미확정 여부: ST.week.jankenGroups에 미확정 조 있는지 확인
+  if(isJankenPending()){
+    document.getElementById('t-bracket').innerHTML =
+      '<div style="padding:20px;text-align:center;color:#e65100;font-size:13px;font-weight:700;background:#fff8e1;border-radius:8px;">'+
+      '⚠️ 이번주 리그 탭에서 가위바위보 순위를 먼저 확정하세요.</div>';
+    document.getElementById('t-seeds').innerHTML = '';
+    document.getElementById('t2').style.display = 'none';
+    return;
+  }
   // 이미 생성된 토너먼트가 있으면 복원
   if(ST.tournament && ST.tournament.bracket && ST.tournament.bracket.length > 0){
     const seeds = ST.tournament.seeds;
@@ -2823,7 +2859,7 @@ function buildBracket(grpNames, results, size){
   const numG = grpNames.length;
   const get  = (arr, i) => (arr && arr[i]) ? arr[i] : 'BYE';
 
-  // ── 1. 시드 풀 생성 (라운드로빈: 조1위→조2위→...순) ──
+  // 시드 풀 생성: 조1위전원→조2위전원→조3위전원 순
   const seeds = [];
   for(let rank=0; rank<20; rank++){
     for(let g=0; g<numG; g++){
@@ -2835,53 +2871,23 @@ function buildBracket(grpNames, results, size){
   }
   while(seeds.length < size) seeds.push('BYE');
 
-  // ── 2. 표준 시드 브라켓 배치 ──
-  // 시드 1~size를 토너먼트 브라켓에 배치
-  // 같은 조끼리 최대한 늦게 만나게: 1번 시드 반대편에 2번, 그 사이에 3,4번 등
-  // 표준 방식: [1,size,size/2+1,size/2, size/4+1,...] 패턴
-  function placeSeed(n, total){
-    // n번 시드가 배치될 브라켓 슬롯 인덱스 반환 (0-based)
-    // 1→0, 2→total-1, 3→total/2, 4→total/2-1, 5→total/4, ...
-    if(n===1) return 0;
-    if(n===2) return total-1;
-    // 나머지는 재귀적으로 분할
-    const half = total/2;
-    if(n<=total/2){
-      return placeSeed(n-1, half) * 2; // 상위 절반
-    } else {
-      return placeSeed(n-total/2, half) * 2 + 1; // 하위 절반... 단순화
-    }
+  // ITTF 규정: 같은 조 선수는 결승 전까지 만나지 않음
+  // 시드인덱스(0-based) → 슬롯 매핑
+  function getSeedSlot(si, sz){
+    if(sz===4)  return [0,2,3,1][si];
+    if(sz===8)  return [0,2,4,6,7,5,3,1][si];
+    if(sz===16) return [0,2,8,10,4,6,12,14,7,5,15,13,3,1,11,9][si];
+    return si;
   }
 
-  // 단순하고 검증된 방식: 같은 조 선수를 브라켓 4분면에 분산
   const bracket = new Array(size).fill('BYE');
-
-  // 슬롯 순서: 표준 토너먼트 시드 배치
-  // 4강: [0,3,2,1] → 1vs4, 2vs3
-  // 8강: [0,7,4,3,2,5,6,1] → 1vs8, 4vs5, 3vs6, 2vs7
-  // 16강: [0,15,8,7,4,11,12,3,2,13,10,5,6,9,14,1]
-  const slotOrder4  = [0,3,2,1];
-  const slotOrder8  = [0,7,4,3,2,5,6,1];
-  const slotOrder16 = [0,15,8,7,4,11,12,3,2,13,10,5,6,9,14,1];
-  const slotOrder = size===4 ? slotOrder4 : size===8 ? slotOrder8 : slotOrder16;
-
-  // 시드 순서대로 같은 조 분산 체크하며 배치
-  // 시드 풀에서 조 정보 추출
-  const seedGroup = {}; // name → groupIndex
-  results.forEach(function(g, gi){ g.players.forEach(function(p){ seedGroup[p.name]=gi; }); });
-
-  // 슬롯에 시드 배치: 같은 조가 같은 절반에 안 들어가도록 그리디 배치
-  const placed = [];
   seeds.forEach(function(name, si){
     if(si >= size) return;
-    const slot = slotOrder[si] !== undefined ? slotOrder[si] : si;
-    bracket[slot] = name;
-    placed.push({name, slot});
+    const slot = getSeedSlot(si, size);
+    if(slot !== undefined) bracket[slot] = name;
   });
-
   return bracket;
 }
-
 function genTestTournament(){
   // 리그 탭 DOM 접근을 위해 잠시 league 탭 활성화
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -3047,6 +3053,10 @@ function genTournament(){
   if(disp) disp.innerHTML='<span style="font-size:12px;color:#bbb;">4강 결과 입력 후 자동 반영</span>';
   const res=ST.week.results;
   if(!res||res.length===0){alert('리그 순위를 먼저 계산하세요.\n이번주 리그 탭 → 경기 결과 입력 → 순위 계산하기');return;}
+  if(ST.week && ST.week.hasJanken){
+    alert('가위바위보로 결정되지 않은 순위가 있습니다.\n이번주 리그 탭에서 가위바위보를 먼저 확정하세요.');
+    return;
+  }
   const totalWins = res.reduce((sum,g)=>sum+g.players.reduce((s,p)=>s+p.w,0),0);
   if(totalWins===0){alert('경기 결과를 먼저 입력하세요.\n이번주 리그 탭 → 경기 결과 입력 → 순위 계산하기');return;}
   const size=parseInt(document.getElementById('t-size').value);
@@ -3449,16 +3459,19 @@ function showPlayerPopup(e, name){
 
   popup.innerHTML = html;
   popup.style.display = 'block';
-  // 브라켓 컨테이너 기준 왼쪽 상단 고정
-  const bracket_el = document.getElementById('t-bracket');
-  if(bracket_el){
-    const rect = bracket_el.getBoundingClientRect();
-    popup.style.left = (rect.left + window.scrollX) + 'px';
-    popup.style.top  = (rect.top  + window.scrollY - (popup.offsetHeight||160) - 8) + 'px';
-  } else {
-    popup.style.left = '20px';
-    popup.style.top  = '80px';
-  }
+  // 마우스 커서 위쪽에 표시
+  const popH = popup.offsetHeight || 200;
+  const popW = popup.offsetWidth  || 260;
+  let px = e.pageX - popW/2;
+  let py = e.pageY - popH - 60;
+  // 화면 왼쪽 벗어남 방지
+  if(px < 8) px = 8;
+  // 화면 오른쪽 벗어남 방지
+  if(px + popW > window.innerWidth - 8) px = window.innerWidth - popW - 8;
+  // 위쪽 벗어나면 커서 아래로
+  if(py < window.scrollY + 8) py = e.pageY + 16;
+  popup.style.left = px + 'px';
+  popup.style.top  = py + 'px';
 }
 
 function hidePlayerPopup(){
