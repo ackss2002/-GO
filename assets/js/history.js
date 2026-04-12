@@ -63,7 +63,8 @@ function renderHistory(){
         </div>
       </div>
       <span style="color:#bbb;font-size:18px;">›</span>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function showHistoryDetail(idx){

@@ -226,14 +226,14 @@ function loadTestDataDoubles(numGroups){
       <div style="margin-top:8px;">${ord.map(m=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;">${m[0]}:${m[1]}</span>`).join('')}</div>
     </div>`;
   });
-  document.getElementById('league-matches').textContent=matchHtml;
+  document.getElementById('league-matches').innerHTML=matchHtml;
 
   // 실시간 순위 계산
   groups.forEach((_,gi)=>realtimeCalcDoubles(gi));
 
   // 조별 순위 표시
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n'];
-      document.getElementById('league-results').textContent=results.map(r=>`
+      document.getElementById('league-results').innerHTML=results.map(r=>`
     <div style="margin-bottom:14px;">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${r.g}조 순위</div>
       <table><thead><tr><th>순위</th><th>팀</th><th>승</th><th>패</th><th>승점</th><th>게임득실</th></tr></thead><tbody>
@@ -373,14 +373,14 @@ function loadTestData(numGroups){
       <div style="margin-top:8px;">${ord.map(m=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;">${m[0]}:${m[1]}</span>`).join('')}</div>
     </div>`;
   });
-  document.getElementById('league-matches').textContent=matchHtml;
+  document.getElementById('league-matches').innerHTML=matchHtml;
 
   // 실시간 순위 계산
   groups.forEach((_,gi)=>realtimeCalc(gi));
 
   // 조별 순위 표시
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n'];
-  document.getElementById('league-results').textContent=results.map(r=>{
+  document.getElementById('league-results').innerHTML=results.map(r=>{
     const rows = r.players.map((p,i)=>{
       return `<tr><td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>`+
              `<td>${escapeHtml(p.name)}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td></tr>`;
