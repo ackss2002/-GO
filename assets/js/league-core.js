@@ -698,15 +698,15 @@ function renderMatches(){
     const ord=getOrder(n);
     html+=`<div style="margin-bottom:28px;">
       <div style="overflow-x:auto;">
-      <table style="border-collapse:collapse;font-size:13px;">
+      <table style="border-collapse:collapse;font-size:11px;">
         <thead>
           <tr>
-            <th colspan="2" style="background:#e8f5e9;color:#1a1a2e;padding:8px 14px;border:2px solid #aaa;font-size:15px;font-weight:900;text-align:left;min-width:120px;">${gi+1}조</th>
-            ${grp.map(name=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:54px;font-weight:700;font-size:13px;">${escapeHtml(name)}</th>`).join('')}
-            <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">승</th>
-            <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">패</th>
-            <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:46px;font-weight:700;">승점</th>
-            <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:44px;font-weight:700;">순위</th>
+            <th colspan="2" style="background:#e8f5e9;color:#1a1a2e;padding:4px 8px;border:2px solid #aaa;font-size:12px;font-weight:900;text-align:left;">${gi+1}조</th>
+            ${grp.map(name=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:4px 3px;border:1px solid #bbb;text-align:center;font-weight:700;font-size:11px;max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(name)}</th>`).join('')}
+            <th style="background:#fff9c4;padding:4px 3px;border:1px solid #bbb;text-align:center;font-weight:700;font-size:10px;">승</th>
+            <th style="background:#fff9c4;padding:4px 3px;border:1px solid #bbb;text-align:center;font-weight:700;font-size:10px;">패</th>
+            <th style="background:#fff9c4;padding:4px 3px;border:1px solid #bbb;text-align:center;font-weight:700;font-size:10px;">승점</th>
+            <th style="background:#fff9c4;padding:4px 3px;border:1px solid #bbb;text-align:center;font-weight:700;font-size:10px;">순위</th>
           </tr>
         </thead>
         <tbody>
@@ -715,22 +715,22 @@ function renderMatches(){
             const nameStyle = isGuest ? 'color:#546e7a;' : '';
             return `
           <tr>
-            <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
-            <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:100px;">
-              <span style="font-weight:700;font-size:13px;${nameStyle}">${escapeHtml(p)}${escapeHtml(memberBuMap[p]?memberBuMap[p]: '')}</span>
+            <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:3px 4px;border:1px solid #bbb;font-size:10px;">${ri+1}</td>
+            <td style="padding:3px 6px;border:1px solid #bbb;white-space:nowrap;">
+              <span style="font-weight:600;font-size:11px;${nameStyle}">${escapeHtml(p)}${escapeHtml(memberBuMap[p]?memberBuMap[p]:'')}</span>
             </td>
             ${grp.map((_,ci)=>ri===ci?
-              `<td style="background:#ccc;border:1px solid #bbb;min-width:54px;"></td>`:
-              `<td style="border:1px solid #bbb;padding:2px;text-align:center;min-width:54px;">
+              `<td style="background:#e0e0e0;border:1px solid #bbb;width:40px;"></td>`:
+              `<td style="border:1px solid #bbb;padding:1px;text-align:center;width:40px;">
                 <input type="number" id="g${gi}r${ri}c${ci}" min="0" max="${getMaxScore()}" placeholder=""
                   oninput="validateScore(${gi},${ri},${ci}); realtimeCalc(${gi}); styleScoreCell(${gi},${ri},${ci})"
-                  style="width:44px;text-align:center;border:none;background:transparent;font-size:15px;font-weight:700;padding:2px;color:#1a1a2e;">
+                  style="width:34px;text-align:center;border:none;background:transparent;font-size:13px;font-weight:700;padding:1px;color:#1a1a2e;">
               </td>`
             ).join('')}
-            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;" id="g${gi}w${ri}">-</td>
-            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;" id="g${gi}l${ri}">-</td>
-            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:900;font-size:14px;" id="g${gi}wp${ri}">-</td>
-            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:900;font-size:15px;" id="g${gi}rk${ri}">-</td>
+            <td style="text-align:center;padding:3px;border:1px solid #bbb;font-weight:700;font-size:11px;" id="g${gi}w${ri}">-</td>
+            <td style="text-align:center;padding:3px;border:1px solid #bbb;font-weight:700;font-size:11px;" id="g${gi}l${ri}">-</td>
+            <td style="text-align:center;padding:3px;border:1px solid #bbb;font-weight:900;font-size:11px;" id="g${gi}wp${ri}">-</td>
+            <td style="text-align:center;padding:3px;border:1px solid #bbb;font-weight:900;font-size:12px;" id="g${gi}rk${ri}">-</td>
           </tr>`;}).join('')}
         </tbody>
       </table>
@@ -763,34 +763,34 @@ function renderMatchesDoubles(){
     });
     html+=`<div style="margin-bottom:28px;">
       <div style="overflow-x:auto;">
-      <table style="border-collapse:collapse;font-size:13px;">
+      <table style="border-collapse:collapse;font-size:11px;">
         <thead><tr>
-          <th colspan="2" style="background:#e8f5e9;color:#1a1a2e;padding:8px 14px;border:2px solid #aaa;font-size:15px;font-weight:900;text-align:left;min-width:140px;">${gi+1}조</th>
-          ${teamNames.map(tn=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:80px;font-weight:700;font-size:12px;">${escapeHtml(tn)}</th>`).join('')}
-          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">승</th>
-          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">패</th>
-          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:46px;font-weight:700;">승점</th>
-          <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:44px;font-weight:700;">순위</th>
+          <th colspan="2" style="background:#e8f5e9;color:#1a1a2e;padding:4px 8px;border:2px solid #aaa;font-size:12px;font-weight:900;text-align:left;">${gi+1}조</th>
+          ${teamNames.map(tn=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:4px 3px;border:1px solid #bbb;text-align:center;max-width:70px;font-weight:700;font-size:10px;">${escapeHtml(tn)}</th>`).join('')}
+          <th style="background:#fff9c4;padding:4px 3px;border:1px solid #bbb;text-align:center;font-weight:700;font-size:10px;">승</th>
+          <th style="background:#fff9c4;padding:4px 3px;border:1px solid #bbb;text-align:center;font-weight:700;font-size:10px;">패</th>
+          <th style="background:#fff9c4;padding:4px 3px;border:1px solid #bbb;text-align:center;font-weight:700;font-size:10px;">승점</th>
+          <th style="background:#fff9c4;padding:4px 3px;border:1px solid #bbb;text-align:center;font-weight:700;font-size:10px;">순위</th>
         </tr></thead>
         <tbody>
           ${teamNames.map((tn,ri)=>`
           <tr>
-            <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
-            <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:130px;">
-              <span style="font-weight:700;font-size:13px;">${escapeHtml(teamBu[ri]||tn)}</span>
+            <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:3px 4px;border:1px solid #bbb;font-size:10px;">${ri+1}</td>
+            <td style="padding:3px 6px;border:1px solid #bbb;white-space:nowrap;">
+              <span style="font-weight:600;font-size:10px;">${escapeHtml(teamBu[ri]||tn)}</span>
             </td>
             ${teamNames.map((_,ci)=>ri===ci?
-              `<td style="background:#ccc;border:1px solid #bbb;min-width:80px;"></td>`:
-              `<td style="border:1px solid #bbb;padding:2px;text-align:center;min-width:80px;">
+              `<td style="background:#ccc;border:1px solid #bbb;width:50px;"></td>`:
+              `<td style="border:1px solid #bbb;padding:1px;text-align:center;width:50px;">
                 <input type="number" id="dg${gi}r${ri}c${ci}" min="0" max="${getMaxScore()}" placeholder=""
                   oninput="realtimeCalcDoubles(${gi})"
-                  style="width:50px;text-align:center;border:none;background:transparent;font-size:15px;font-weight:700;padding:2px;color:#1a1a2e;">
+                  style="width:40px;text-align:center;border:none;background:transparent;font-size:13px;font-weight:700;padding:2px;color:#1a1a2e;">
               </td>`
             ).join('')}
-            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;" id="dg${gi}w${ri}">-</td>
-            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;" id="dg${gi}l${ri}">-</td>
-            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:900;font-size:14px;" id="dg${gi}wp${ri}">-</td>
-            <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:900;font-size:15px;" id="dg${gi}rk${ri}">-</td>
+            <td style="text-align:center;padding:3px;border:1px solid #bbb;font-weight:700;font-size:11px;" id="dg${gi}w${ri}">-</td>
+            <td style="text-align:center;padding:3px;border:1px solid #bbb;font-weight:700;font-size:11px;" id="dg${gi}l${ri}">-</td>
+            <td style="text-align:center;padding:3px;border:1px solid #bbb;font-weight:900;font-size:11px;" id="dg${gi}wp${ri}">-</td>
+            <td style="text-align:center;padding:3px;border:1px solid #bbb;font-weight:900;font-size:12px;" id="dg${gi}rk${ri}">-</td>
           </tr>`).join('')}
         </tbody>
       </table></div>
