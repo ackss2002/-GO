@@ -118,8 +118,8 @@ function renderLeague(){
   const exts = getExternals();
   const temps = ST.week.tempPlayers||[];
 
-  // 정회원 칩 (안전하게 이스케이프)
-  let html = '<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원</div>';
+  // 정회원 칩 + 인원수
+  let html = `<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원 (${MEMBERS.length}명)</div>`;
   html += MEMBERS.map(function(m){
     const sel = ps.includes(m.name) ? 'selected' : '';
     const style = (!isAdmin && ps.includes(m.name)) ? 'opacity:0.5;cursor:default;' : '';
@@ -127,9 +127,8 @@ function renderLeague(){
     return `<span class="player-chip ${sel}" onclick="toggleP('${jsEscape(m.name)}')" style="${style}">${label}</span>`;
   }).join('');
 
-  // 게스트 (게스트)
-  html += `<div style="font-size:11px;color:#546e7a;font-weight:700;margin:10px 0 6px;">🎫 게스트</div>`;
-  
+  // 게스트 + 인원수
+  html += `<div style="font-size:11px;color:#546e7a;font-weight:700;margin:10px 0 6px;">🎫 게스트 (${temps.length}명)</div>`;
   const maxGuests = 10;
   const guestSlots = Array.from({length:maxGuests}, (_,i)=>{
     const guest = temps[i];
