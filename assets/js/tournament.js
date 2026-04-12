@@ -107,6 +107,14 @@ function unconfirmGroup(gi, g, names, startIdx){
 }
 
 function renderTournamentTab(){
+  // 안전 보호: 조별 리그 결과가 비어있는 경우 저장된 토너먼트를 표시하지 않음
+  if(!ST || !ST.week || !ST.week.results || ST.week.results.length === 0){
+    const tb = document.getElementById('t-bracket'); if(tb) tb.textContent = '대진 정보는 조별 리그 결과가 반영된 경우에만 표시됩니다.';
+    const ts = document.getElementById('t-seeds'); if(ts) ts.textContent = '';
+    const t2 = document.getElementById('t2'); if(t2) t2.style.display = 'none';
+    return;
+  }
+
   // 가위바위보 미확정 여부: ST.week.jankenGroups에 미확정 조 있는지 확인
   if(isJankenPending()){
     document.getElementById('t-bracket').textContent =
