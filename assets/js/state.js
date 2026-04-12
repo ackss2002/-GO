@@ -39,6 +39,11 @@ if (ST.week && ST.week.groups) {
 var INIT_SCORES = {};
 
 var ST = loadST();
+// [방어코드] ST.week가 undefined면 항상 기본값으로 초기화
+if (!ST.week) {
+  ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
+  saveST();
+}
 // [자동 패치] 최양님 2분기 점수 0점으로 강제 초기화 (승급 이후 실적 없음, localStorage+Firebase 동기화)
 if (ST.scores) {
   ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
