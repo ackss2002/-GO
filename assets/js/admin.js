@@ -108,7 +108,7 @@ function showLockMsg(msg){
 
 const Q1_SCORES = {
   '이원호':  {w:2, s:1, t:0, pts:13, up:true},  // 13점 달성 → 4부 승급
-  '김덕기':  {w:1, s:0, t:1, pts:12, up:true},  // 12점 달성 → 4부 승급
+  '김덕기':  {w:2, s:0, t:1, pts:12, up:true},  // 12점 달성 → 4부 승급
   '안치국':  {w:1, s:0, t:1, pts:7,  up:false},
   '이미진':  {w:1, s:0, t:0, pts:5,  up:false},
   '최양님':  {w:1, s:0, t:0, pts:5,  up:false},
