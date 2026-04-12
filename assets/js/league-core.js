@@ -90,6 +90,24 @@ function getSorted(){
     .filter(p=>p.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
 }
 
+// 페이지 로드 시 리그 UI 자동 복원
+function restoreLeagueUI(){
+  var hasGroups = ST.week && ST.week.groups && ST.week.groups.some(function(g){return g.length>0;});
+  var hasPlayers = ST.week && ST.week.players && ST.week.players.length>0;
+  if(hasPlayers){
+    // 선수 확정 상태 복원 — 조편성 섹션 표시
+    var s2=document.getElementById('s2');
+    if(s2) s2.style.display='block';
+    renderGroupAssign();
+  }
+  if(hasGroups){
+    // 조편성 확정 상태 복원 — 경기표 섹션 표시
+    var s3=document.getElementById('s3');
+    if(s3) s3.style.display='block';
+    renderMatches();
+  }
+}
+
 // 리그
 function renderLeague(){
   if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
@@ -622,6 +640,16 @@ function realtimeCalc(gi){
   const grp = ST.week.groups.filter(g=>g.length>0)[gi];
   if(!grp) return;
   const n = grp.length;
+  // 점수 자동 저장
+  if(!ST.week.inputScores) ST.week.inputScores={};
+  var sc={};
+  for(var ri=0;ri<n;ri++) for(var ci=0;ci<n;ci++){
+    if(ri===ci) continue;
+    var el=document.getElementById('g'+gi+'r'+ri+'c'+ci);
+    if(el&&el.value!=='') sc[ri+'_'+ci]=el.value;
+  }
+  ST.week.inputScores[gi]=sc;
+  saveST();
   const matchResults = buildMatchResults(grp, `g${gi}`, false);
   const stats = getPlayerStats(grp, matchResults);
   const ranked = ittfRank(grp, matchResults);
@@ -740,6 +768,19 @@ function renderMatches(){
   });
   document.getElementById('league-matches').innerHTML=html;
   document.getElementById('s3-status').textContent='입력 대기 중';
+  // 저장된 점수 복원
+  if(ST.week.inputScores){
+    gs.forEach(function(grp,gi){
+      var sc=ST.week.inputScores[gi];
+      if(!sc) return;
+      Object.keys(sc).forEach(function(k){
+        var p=k.split('_');
+        var el=document.getElementById('g'+gi+'r'+p[0]+'c'+p[1]);
+        if(el) el.value=sc[k];
+      });
+      realtimeCalc(gi);
+    });
+  }
 }
 
 function renderMatchesDoubles(){
@@ -799,6 +840,19 @@ function renderMatchesDoubles(){
   });
   document.getElementById('league-matches').innerHTML=html;
   document.getElementById('s3-status').textContent='입력 대기 중';
+  // 저장된 점수 복원
+  if(ST.doubles&&ST.doubles.inputScores){
+    gs.forEach(function(grp,gi){
+      var sc=ST.doubles.inputScores[gi];
+      if(!sc) return;
+      Object.keys(sc).forEach(function(k){
+        var p=k.split('_');
+        var el=document.getElementById('dg'+gi+'r'+p[0]+'c'+p[1]);
+        if(el) el.value=sc[k];
+      });
+      realtimeCalcDoubles(gi);
+    });
+  }
 }
 
 function realtimeCalcDoubles(gi){
@@ -808,6 +862,16 @@ function realtimeCalcDoubles(gi){
   const grpPairs = ST.doubles.groups.map(g=>g.map(pi=>pairs[pi])).filter(g=>g.length>0)[gi];
   if(!grpPairs) return;
   const teamNames = grpPairs.map(p=>p[0]+'/'+p[1]);
+  // 점수 자동 저장
+  if(!ST.doubles.inputScores) ST.doubles.inputScores={};
+  var n=teamNames.length, sc={};
+  for(var ri=0;ri<n;ri++) for(var ci=0;ci<n;ci++){
+    if(ri===ci) continue;
+    var el=document.getElementById('dg'+gi+'r'+ri+'c'+ci);
+    if(el&&el.value!=='') sc[ri+'_'+ci]=el.value;
+  }
+  ST.doubles.inputScores[gi]=sc;
+  saveST();
   const matchResults = buildMatchResults(teamNames, `dg${gi}`, false);
   const stats = getPlayerStats(teamNames, matchResults);
   const ranked = ittfRank(teamNames, matchResults);

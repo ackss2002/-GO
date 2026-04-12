@@ -3,6 +3,7 @@ renderDash();
 renderMembers();
 renderLeague();
 updateAdminUI();
+restoreLeagueUI();
 
 // ── Firebase 연동 함수 ──
 function saveToFirebase(){
@@ -45,6 +46,8 @@ function loadFromFirebase(){
     renderDash();
     renderMembers();
     renderLeague();
+    // 조편성 데이터가 있으면 자동 복원
+    restoreLeagueUI();
   }).catch(function(e){ console.error('Firebase 로드 오류:', e); });
 }
 
