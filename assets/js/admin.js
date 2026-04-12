@@ -29,7 +29,7 @@ async function checkPin(){
   const val = document.getElementById('pin-input').value;
   if(!val || val.length < 4) return;
 
-  if(!window.db){
+  if(typeof db === 'undefined'){
     alert('데이터베이스에 연결되지 않았습니다. 잠시 후 다시 시도하세요.');
     return;
   }
