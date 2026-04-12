@@ -43,7 +43,7 @@ function renderHistory(){
     return;
   }
 
-  listEl.textContent = history.map((h,i)=>{
+  listEl.innerHTML = history.map((h,i)=>{
     const date = escapeHtml(h.date);
     const week = escapeHtml(h.week||'');
     const type = escapeHtml(h.type||'');

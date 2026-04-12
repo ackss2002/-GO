@@ -109,7 +109,7 @@ function unconfirmGroup(gi, g, names, startIdx){
 function renderTournamentTab(){
   // 가위바위보 미확정 여부: ST.week.jankenGroups에 미확정 조 있는지 확인
   if(isJankenPending()){
-    document.getElementById('t-bracket').textContent =
+    document.getElementById('t-bracket').innerHTML =
       '<div style="padding:20px;text-align:center;color:#e65100;font-size:13px;font-weight:700;background:#fff8e1;border-radius:8px;">'+
       '⚠️ 이번주 리그 탭에서 가위바위보 순위를 먼저 확정하세요.</div>';
     document.getElementById('t-seeds').textContent = '';
@@ -120,9 +120,9 @@ function renderTournamentTab(){
   if(ST.tournament && ST.tournament.bracket && ST.tournament.bracket.length > 0){
     const seeds = ST.tournament.seeds;
     const size = ST.tournament.size;
-    document.getElementById('t-seeds').textContent =
-      '<div style="font-size:12px;font-weight:700;margin-bottom:8px;color:#e65100;'>🧪 테스트: '+numGrps+'조 편성 → '+bracketLabel+' 토너먼트</div>'+
-      results.map(g=>'<div style="margin-bottom:4px;"><span style="font-size:11px;font-weight:700;color:#1565C0;">'+g.g+'조:</span> '+
+    document.getElementById('t-seeds').innerHTML =
+      '<div style="font-size:12px;font-weight:700;margin-bottom:8px;color:#e65100;">현재 토너먼트 대진</div>'+
+      ST.week.results.map(g=>'<div style="margin-bottom:4px;"><span style="font-size:11px;font-weight:700;color:#1565C0;">'+g.g+'조:</span> '+
         g.players.map((p,i)=>'<span class="pill pill-blue" style="margin:2px;">'+(i+1)+'위 '+escapeHtml(p.name)+'</span>').join('')+'</div>'
       ).join('');
   }

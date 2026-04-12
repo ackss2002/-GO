@@ -208,7 +208,7 @@ function renderPairSelect(){
   getExternals().forEach(m=>{ buMap[m.name]=m.total; });
   temps.forEach(m=>{ buMap[m.name]=m.total; });
 
-  document.getElementById('pair-select').textContent =
+  document.getElementById('pair-select').innerHTML =
     `<div style="font-size:12px;color:#888;margin-bottom:6px;">미배정 선수 (클릭해서 페어 구성)</div>`+
     unpaired.map(name=>{
       const isSel = pairTemp.includes(name);
@@ -217,9 +217,9 @@ function renderPairSelect(){
       const chipStyle = isSel ? '' : isTemp ? 'background:#eceff1;border-color:#90a4ae;color:#546e7a;' : '';
       return `<span class="player-chip ${isSel?'selected':''}" onclick="selectForPair('${jsEscape(name)}')" style="${chipStyle}">${escapeHtml(name)}${escapeHtml(String(bu))}</span>`;
     }).join('')+
-    (unpaired.length===0?'<span style="font-size:12px;color:#888;'>모두 배정 완료</span>':'');
+    (unpaired.length===0?'<span style="font-size:12px;color:#888;">모두 배정 완료</span>':'');
 
-  document.getElementById('pair-list').textContent =
+  document.getElementById('pair-list').innerHTML =
     `<div style="font-size:12px;color:#888;margin-bottom:6px;">구성된 페어 (${pairs.length}팀)</div>`+
     pairs.map((pair,i)=>{
       const b1=buMap[pair[0]]||''; const b2=buMap[pair[1]]||'';
