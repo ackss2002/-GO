@@ -76,7 +76,8 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .bar { flex: 1; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 4px; background: #e94560; }
 .result-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #f8f8f8; border-radius: 8px; margin-bottom: 8px; }
-.game-tag { padding: 4px 10px; background: #e3f2fd; color: #1565C0; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin: 2px; }
+.game-tag { padding: 4px 10px; background: #e3f2fd; color: #1565C0; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin: 2px; cursor: pointer; transition: all 0.15s; }
+.game-tag.done { background: #c8e6c9; color: #2e7d32; text-decoration: line-through; opacity: 0.7; }
 .upgrade-box { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #fff8e1; border-radius: 8px; border-left: 3px solid #FFA000; margin-bottom: 8px; }
 .footer-note { text-align: center; font-size: 11px; color: #bbb; padding: 16px 0 8px; }
 </style>
