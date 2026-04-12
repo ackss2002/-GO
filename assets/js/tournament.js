@@ -696,7 +696,7 @@ function renderBracket(bracket, size){
    +cardsHtml
    +'</div></div>';
 
-  document.getElementById('t-bracket').textContent = html;
+  document.getElementById('t-bracket').innerHTML = html;
 
   const lastRound = rounds.length;
   const finWinner = r['r'+lastRound+'m0']||'';
@@ -895,7 +895,7 @@ function showPlayerPopup(e, name){
     });
   }
 
-  popup.textContent = html;
+  popup.innerHTML = html;
   popup.style.display = 'block';
   // 마우스 커서 위쪽에 표시
   const popH = popup.offsetHeight || 200;

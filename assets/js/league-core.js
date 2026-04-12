@@ -124,7 +124,7 @@ function renderLeague(){
     <button class="btn btn-sm" onclick="addTempPlayer()" style="background:#ede7f6;color:#5c6bc0;border-color:#b39ddb;">+ 추가</button>
   </div>`;
 
-  document.getElementById('player-select').textContent = html;
+  document.getElementById('player-select').innerHTML = html;
   const total = ps.length;
   document.getElementById('sel-count').textContent=`선택: ${total}명`;
   document.getElementById('s1-status').textContent=`${total}명 선택`;

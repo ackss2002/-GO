@@ -144,7 +144,7 @@ function showHistoryDetail(idx){
       </div>
     </div>`;
 
-  document.getElementById('history-detail-content').textContent = html;
+  document.getElementById('history-detail-content').innerHTML = html;
 }
 
 function closeHistoryDetail(){
