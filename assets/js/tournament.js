@@ -23,7 +23,8 @@ function goToTournament(){
   // 대진 자동 생성
   const size = parseInt(document.getElementById('t-size').value) || 8;
   const grpNames = res.map(r=>r.players.map(p=>p.name));
-  const bracket = buildBracket(grpNames, res, size);
+  const strict = !!document.getElementById('t-ittf-strict') && document.getElementById('t-ittf-strict').checked;
+  const bracket = buildBracket(grpNames, res, size, strict);
   while(bracket.length < size) bracket.push('BYE');
   bracket.splice(size);
 
@@ -34,12 +35,10 @@ function goToTournament(){
   }
   saveST();
 
-  const bracketLabel = size===4?'4강':size===8?'8강':'16강';
-  document.getElementById('t-seeds').innerHTML =
-    '<div style="font-size:12px;font-weight:700;margin-bottom:8px;color:#1a1a2e;">'+bracketLabel+' 토너먼트 대진</div>'+
-    res.map(r=>'<div style="margin-bottom:4px;"><span style="font-size:11px;font-weight:700;color:#1565C0;">'+r.g+'조:</span> '+
-      r.players.map((p,i)=>'<span class="pill pill-blue" style="margin:2px;">'+(i+1)+'위 '+p.name+'</span>').join('')+'</div>'
-    ).join('');
+  const bracketLabel = size===4?'4강':size===8?'8강':size===16?'16강':'32강';
+  document.getElementById('t-seeds').textContent =
+    bracketLabel + ' 토너먼트 대진\n' +
+    res.map(r=> (r.g+'조: '+ r.players.map((p,i)=>(i+1)+'위 '+escapeHtml(p.name)).join(', '))).join('\n');
 
   renderBracket(bracket, size);
   document.getElementById('t2').style.display='block';
@@ -52,7 +51,7 @@ function goToTournament(){
     const el=document.getElementById(id); if(el) el.textContent='';
   });
   const disp=document.getElementById('t-third-display');
-  if(disp) disp.innerHTML='<span style="font-size:12px;color:#bbb;">4강 결과 입력 후 자동 반영</span>';
+  if(disp) disp.textContent='4강 결과 입력 후 자동 반영';
 }
 
 // ── 일반 조 순위 수정 ──
@@ -82,11 +81,7 @@ function unconfirmGroup(gi, g, names, startIdx){
     const rkEl = document.getElementById('g'+gi+'rk'+ri);
     if(!rkEl) return;
     const currentRank = grpResult ? grpResult.players.findIndex(function(p){ return p.name===name; })+1 : '';
-    rkEl.innerHTML = '<input type="number" id="g'+gi+'jk'+ri+'"'+
-      ' value="'+(currentRank||'')+'" min="'+(startIdx+1)+'" max="'+(startIdx+names.length)+'"'+
-      ' onfocus="this.select()"'+
-      ' style="width:36px;height:26px;text-align:center;font-size:13px;font-weight:900;'+
-      'color:#e65100;border:2px solid #ffcc80;border-radius:5px;background:#fff8e1;padding:0;outline:none;">';
+      rkEl.textContent = currentRank;
   });
   const leagueMatches = document.getElementById('league-matches');
   if(!leagueMatches){ alert(gi+1+'조 경기표를 찾을 수 없습니다. 이번주 리그 탭에서 다시 시도하세요.'); return; }
@@ -106,7 +101,7 @@ function unconfirmGroup(gi, g, names, startIdx){
   btn.addEventListener('click', function(){
     jkConfirmInline(parseInt(this.dataset.gi), parseInt(this.dataset.g), JSON.parse(this.dataset.names), parseInt(this.dataset.startIdx));
   });
-  banner.innerHTML = '<span style="font-size:12px;color:#e65100;font-weight:700;">✂️ '+g+'조 '+(startIdx+1)+'~'+(startIdx+names.length)+'위 순위칸에 다시 입력 후 확정</span>';
+  banner.textContent = '✂️ '+g+'조 '+(startIdx+1)+'~'+(startIdx+names.length)+'위 순위칸에 다시 입력 후 확정';
   banner.appendChild(btn);
   matchDiv.appendChild(banner);
 }
@@ -114,10 +109,10 @@ function unconfirmGroup(gi, g, names, startIdx){
 function renderTournamentTab(){
   // 가위바위보 미확정 여부: ST.week.jankenGroups에 미확정 조 있는지 확인
   if(isJankenPending()){
-    document.getElementById('t-bracket').innerHTML =
+    document.getElementById('t-bracket').textContent =
       '<div style="padding:20px;text-align:center;color:#e65100;font-size:13px;font-weight:700;background:#fff8e1;border-radius:8px;">'+
       '⚠️ 이번주 리그 탭에서 가위바위보 순위를 먼저 확정하세요.</div>';
-    document.getElementById('t-seeds').innerHTML = '';
+    document.getElementById('t-seeds').textContent = '';
     document.getElementById('t2').style.display = 'none';
     return;
   }
@@ -125,11 +120,11 @@ function renderTournamentTab(){
   if(ST.tournament && ST.tournament.bracket && ST.tournament.bracket.length > 0){
     const seeds = ST.tournament.seeds;
     const size = ST.tournament.size;
-    document.getElementById('t-seeds').innerHTML=
-      `<div style="font-size:12px;font-weight:700;margin-bottom:6px;color:#1a1a2e;">시드 배정 (조별 순위 기준)</div>`+
-      seeds.filter(s=>s!=='BYE').map((s,i)=>`<span class="pill pill-blue" style="margin:2px;">${i+1}번: ${s}</span>`).join('');
-    renderBracket(ST.tournament.bracket, size);
-    document.getElementById('t2').style.display='block';
+    document.getElementById('t-seeds').textContent =
+      '<div style="font-size:12px;font-weight:700;margin-bottom:8px;color:#e65100;'>🧪 테스트: '+numGrps+'조 편성 → '+bracketLabel+' 토너먼트</div>'+
+      results.map(g=>'<div style="margin-bottom:4px;"><span style="font-size:11px;font-weight:700;color:#1565C0;">'+g.g+'조:</span> '+
+        g.players.map((p,i)=>'<span class="pill pill-blue" style="margin:2px;">'+(i+1)+'위 '+escapeHtml(p.name)+'</span>').join('')+'</div>'
+      ).join('');
   }
 }
 
@@ -238,7 +233,7 @@ function runLeagueTest(){
 // 시드 풀 구성: 조별 순위 순서로 round-robin 방식 추출
 // 예) 4조: 1순위=A1,B1,C1,D1 / 2순위=A2,B2,C2,D2 / ...
 // 브라켓 배치: 시드1은 시드(size)와 대결, 시드2는 시드(size-1)와 대결 (표준 시드 배치)
-function buildBracket(grpNames, results, size){
+function buildBracket(grpNames, results, size, strict){
   const numG = grpNames.length;
   const get  = (arr, i) => (arr && arr[i]) ? arr[i] : 'BYE';
 
@@ -254,12 +249,17 @@ function buildBracket(grpNames, results, size){
   }
   while(seeds.length < size) seeds.push('BYE');
 
-  // ITTF 규정: 같은 조 선수는 결승 전까지 만나지 않음
-  // 시드인덱스(0-based) → 슬롯 매핑
+  // ITTF 규정: 시드 배치
+  // 4강:  S1vS4, S2vS3  → 결승에서 S1vS2 가능
+  // 8강:  S1vS8, S4vS5 (상반) / S3vS6, S2vS7 (하반) → 준결승 S1vS4, S3vS2 / 결승 S1vS2
+  // 16강: S1vS16,S8vS9 / S4vS13,S5vS12 / S3vS14,S6vS11 / S2vS15,S7vS10
+  //       → QF S1vS8,S4vS5 / S3vS6,S2vS7 → SF S1vS4, S3vS2 → 결승 S1vS2
+  // 시드인덱스(0-based) → 브라켓 슬롯 매핑
   function getSeedSlot(si, sz){
     if(sz===4)  return [0,2,3,1][si];
-    if(sz===8)  return [0,2,4,6,7,5,3,1][si];
-    if(sz===16) return [0,2,8,10,4,6,12,14,7,5,15,13,3,1,11,9][si];
+    if(sz===8)  return [0,6,4,2,3,5,7,1][si];
+    if(sz===16) return [0,12,8,4,6,10,14,2,3,15,11,7,5,9,13,1][si];
+    if(sz===32) return [0,28,16,12,8,20,24,4,6,26,22,10,14,18,30,2,3,31,19,15,11,23,27,7,5,25,21,9,13,17,29,1][si];
     return si;
   }
 
@@ -269,6 +269,62 @@ function buildBracket(grpNames, results, size){
     const slot = getSeedSlot(si, size);
     if(slot !== undefined) bracket[slot] = name;
   });
+
+  // 1라운드(첫 매치)에서 같은 조끼리 만나지 않도록 가능한 경우 교환
+  try{
+    const grpMap = {};
+    if(results && Array.isArray(results)){
+      results.forEach(function(r, idx){
+        (r.players||[]).forEach(function(p){ if(p && p.name) grpMap[p.name]=r.g; });
+      });
+    }
+    const pairs = size/2;
+    for(let i=0;i<pairs;i++){
+      const aIdx = i*2, bIdx = i*2+1;
+      const a = bracket[aIdx], b = bracket[bIdx];
+      if(!a || !b || a==='BYE' || b==='BYE') continue;
+      if(grpMap[a] && grpMap[b] && grpMap[a]===grpMap[b]){
+        // 같은 조 충돌: 뒤쪽 페어에서 교환할 슬롯 찾기
+        for(let j=i+1;j<pairs;j++){
+          const cIdx = j*2, dIdx = j*2+1;
+          const c = bracket[cIdx], d = bracket[dIdx];
+          // 시도: b<->c
+          const ok1 = c && c!=='BYE' && (!grpMap[a] || !grpMap[c] || grpMap[a]!==grpMap[c]);
+          const ok1b = (!grpMap[b] || !grpMap[d] || grpMap[b]!==grpMap[d]);
+          if(ok1 && ok1b){ bracket[bIdx]=c; bracket[cIdx]=b; break; }
+          // 시도: b<->d
+          const ok2 = d && d!=='BYE' && (!grpMap[a] || !grpMap[d] || grpMap[a]!==grpMap[d]);
+          const ok2b = (!grpMap[b] || !grpMap[c] || grpMap[b]!==grpMap[c]);
+          if(ok2 && ok2b){ bracket[bIdx]=d; bracket[dIdx]=b; break; }
+        }
+      }
+    }
+    // 엄격 모드: 가능하면 같은 조원이 같은 절반에 들어가지 않도록 교환 시도
+    if(strict){
+      const half = size/2;
+      // map slot->group
+      const slotGroup = function(idx){ const name=bracket[idx]; return (name && grpMap[name])?grpMap[name]:null; };
+      for(let i=0;i<size;i++){
+        const g1 = slotGroup(i); if(!g1) continue;
+        for(let j=i+1;j<size;j++){
+          if(Math.floor(i/half)!==Math.floor(j/half)) continue; // only check same half
+          const g2 = slotGroup(j); if(!g2) continue;
+          if(g1===g2){
+            // try swap j with some slot in other half
+            for(let k=0;k<size;k++){
+              if(Math.floor(k/half)===Math.floor(i/half)) continue; // need opposite half
+              const gk = slotGroup(k);
+              // ensure swapping j<->k does not create new same-half conflict
+              if(gk && gk===g1) continue;
+              // perform swap
+              const tmp = bracket[j]; bracket[j]=bracket[k]; bracket[k]=tmp;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }catch(e){ /* 안전하게 무시 */ }
   return bracket;
 }
 function genTestTournament(){
@@ -283,7 +339,7 @@ function genTestTournament(){
     const el=document.getElementById(id); if(el) el.textContent='';
   });
   const disp=document.getElementById('t-third-display');
-  if(disp) disp.innerHTML='<span style="font-size:12px;color:#bbb;">4강 결과 입력 후 자동 반영</span>';
+  if(disp) disp.textContent='4강 결과 입력 후 자동 반영';
   const size    = parseInt(document.getElementById('t-size').value);
   const numGrps = parseInt(document.getElementById('test-groups').value) || 4;
   const numPlay = parseInt(document.getElementById('test-players-input').value) || 20;
@@ -361,7 +417,8 @@ function genTestTournament(){
 
   // ── 4. 토너먼트 대진 생성 ──
   const grpNames = results.map(g=>g.players.map(p=>p.name));
-  const bracket = buildBracket(grpNames, results, size);
+  const strict = !!document.getElementById('t-ittf-strict') && document.getElementById('t-ittf-strict').checked;
+  const bracket = buildBracket(grpNames, results, size, strict);
 
   while(bracket.length < size) bracket.push('BYE');
   bracket.splice(size);
@@ -405,12 +462,10 @@ function genTestTournament(){
   // Step4 순위
   calcResults();
 
-  const bracketLabel = size===4?'4강':size===8?'8강':'16강';
-  document.getElementById('t-seeds').innerHTML =
-    '<div style="font-size:12px;font-weight:700;margin-bottom:8px;color:#e65100;">🧪 테스트: '+numGrps+'조 편성 → '+bracketLabel+' 토너먼트</div>'+
-    results.map(g=>'<div style="margin-bottom:4px;"><span style="font-size:11px;font-weight:700;color:#1565C0;">'+g.g+'조:</span> '+
-      g.players.map((p,i)=>'<span class="pill pill-blue" style="margin:2px;">'+(i+1)+'위 '+p.name+'</span>').join('')+'</div>'
-    ).join('');
+  const bracketLabel = size===4?'4강':size===8?'8강':size===16?'16강':'32강';
+  document.getElementById('t-seeds').textContent =
+    '테스트: '+numGrps+'조 편성 → '+bracketLabel+' 토너먼트\n' +
+    results.map(g=> (g.g+'조: '+ g.players.map((p,i)=>(i+1)+'위 '+p.name).join(', '))).join('\n');
 
   renderBracket(bracket, size);
   document.getElementById('t2').style.display='block';
@@ -433,7 +488,7 @@ function genTournament(){
     const el=document.getElementById(id); if(el) el.textContent='';
   });
   const disp=document.getElementById('t-third-display');
-  if(disp) disp.innerHTML='<span style="font-size:12px;color:#bbb;">4강 결과 입력 후 자동 반영</span>';
+  if(disp) disp.textContent='4강 결과 입력 후 자동 반영';
   const res=ST.week.results;
   if(!res||res.length===0){alert('리그 순위를 먼저 계산하세요.\n이번주 리그 탭 → 경기 결과 입력 → 순위 계산하기');return;}
   if(ST.week && ST.week.hasJanken){
@@ -446,7 +501,8 @@ function genTournament(){
 
   // 조별 선수 목록
   const groups = res.map(g=>g.players.map(p=>p.name));
-  const bracket = buildBracket(groups, res, size);
+  const strict = !!document.getElementById('t-ittf-strict') && document.getElementById('t-ittf-strict').checked;
+  const bracket = buildBracket(groups, res, size, strict);
   while(bracket.length < size) bracket.push('BYE');
   bracket.splice(size);
 
@@ -473,11 +529,9 @@ function genTournament(){
   const matchLabels = [];
   for(let i=0;i<size/2;i++){
     const p1=bracket[i*2], p2=bracket[i*2+1];
-    matchLabels.push(`<span class="pill pill-blue" style="margin:2px;">${i+1}경기: ${p1} vs ${p2}</span>`);
+    matchLabels.push(`<span class="pill pill-blue" style="margin:2px;">${i+1}경기: ${escapeHtml(p1)} vs ${escapeHtml(p2)}</span>`);
   }
-  document.getElementById('t-seeds').innerHTML=
-    `<div style="font-size:12px;font-weight:700;margin-bottom:6px;color:#1a1a2e;">${bracketLabel}</div>`+
-    matchLabels.join('');
+  document.getElementById('t-seeds').textContent = bracketLabel + '\n' + matchLabels.join('\n');
 
   renderBracket(bracket, size);
   document.getElementById('t2').style.display='block';
@@ -530,7 +584,8 @@ function renderBracket(bracket, size){
   const totalH = HEADER_H + (size/2) * SLOT_H - MATCH_GAP + 24;
   const totalW = rounds.length * (CARD_W + COL_GAP) - COL_GAP;
 
-  const roundLabels = size===16 ? ['ROUND OF 16','QUARTERFINAL','SEMIFINAL','FINAL']
+  const roundLabels = size===32 ? ['ROUND OF 32','ROUND OF 16','QUARTERFINAL','SEMIFINAL','FINAL']
+                    : size===16 ? ['ROUND OF 16','QUARTERFINAL','SEMIFINAL','FINAL']
                     : size===8  ? ['QUARTERFINAL','SEMIFINAL','FINAL']
                     : size===4  ? ['SEMIFINAL','FINAL'] : [];
 
@@ -641,7 +696,7 @@ function renderBracket(bracket, size){
    +cardsHtml
    +'</div></div>';
 
-  document.getElementById('t-bracket').innerHTML = html;
+  document.getElementById('t-bracket').textContent = html;
 
   const lastRound = rounds.length;
   const finWinner = r['r'+lastRound+'m0']||'';
@@ -671,7 +726,7 @@ function renderBracket(bracket, size){
       if(dispEl && losers.length>0){
         const bm2={}; MEMBERS.forEach(function(m){ bm2[m.name]=m.total; });
         const gi2=getPlayerGroupInfo();
-        dispEl.innerHTML=losers.map(function(name){
+        dispEl.textContent=losers.map(function(name){
           const bu=bm2[name]?bm2[name]:'';
           const gi=gi2[name]?gi2[name].g+'조 '+gi2[name].rank+'위':'';
           const sub=[bu,gi].filter(Boolean).join(' · ');
@@ -840,7 +895,7 @@ function showPlayerPopup(e, name){
     });
   }
 
-  popup.innerHTML = html;
+  popup.textContent = html;
   popup.style.display = 'block';
   // 마우스 커서 위쪽에 표시
   const popH = popup.offsetHeight || 200;
@@ -944,9 +999,6 @@ function saveResult(){
   });
   saveST();
   saveHistory(); // 히스토리 자동 저장
-  document.getElementById('t-result-display').innerHTML=`
-    <div style="background:#e8f5e9;border-radius:8px;padding:12px;font-size:13px;">
-      저장 완료! 🥇 ${win}(+5점) · 🥈 ${sec}(+3점)${trd?' · 🥉 '+[trd,trd2].filter(Boolean).join(', ')+'(+2점)':''}
-    </div>`;
+  document.getElementById('t-result-display').textContent = '저장 완료! 우승: ' + win + ' (+5점) · 준우승: ' + sec + (trd ? ' · 공동3위: '+ [trd,trd2].filter(Boolean).join(', ') : '');
   alert('승점 반영 완료! 경기 기록에 저장되었습니다.');
 }

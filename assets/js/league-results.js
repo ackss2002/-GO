@@ -35,17 +35,22 @@ function calcResultsDoubles(){
   saveST();
 
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n','rank-n','rank-n'];
-  document.getElementById('league-results').innerHTML=all.map(r=>`
+  document.getElementById('league-results').textContent = all.map(r=>{
+    const rows = r.players.map((p,i)=>{
+      return `<tr><td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>`+
+             `<td>${escapeHtml(p.name)}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td></tr>`;
+    }).join('');
+    return `
     <div style="margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div style="font-size:13px;font-weight:700;">${r.g}조 순위</div>
         <button onclick="reEditGroup(${r.g})" style="padding:4px 10px;background:#fff8e1;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">✏️ 수정</button>
       </div>
       <table><thead><tr><th>순위</th><th>팀</th><th>승</th><th>패</th><th>승점</th><th>게임득실</th></tr></thead><tbody>
-      ${r.players.map((p,i)=>`<tr><td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>
-        <td>${p.name}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td></tr>`).join('')}
+      ${rows}
       </tbody></table>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   document.getElementById('s4').style.display='block';
   document.getElementById('s3-status').textContent='계산 완료';
 }
@@ -111,8 +116,8 @@ function calcResults(){
       if(mpEl) mpEl.textContent = p.mp+'점';
       if(rkEl){
         const color = rank===0?'#e94560':rank===1?'#1565C0':rank===2?'#CD7F32':'#aaa';
-        const reason = rankReason[pi] ? `<div style="font-size:9px;color:#bbb;font-weight:400;margin-top:1px;">${rankReason[pi]}</div>` : '';
-        rkEl.innerHTML = `<div style="font-weight:900;color:${color};">${rank+1}</div>${reason}`;
+        const safeReason = rankReason[pi] ? `<div style="font-size:9px;color:#bbb;font-weight:400;margin-top:1px;">${escapeHtml(rankReason[pi])}</div>` : '';
+        rkEl.textContent = `${rank+1}` + (rankReason[pi] ? (' - '+rankReason[pi]) : '');
       }
     });
     const sortedPlayers = ranked.map(pi=>({
@@ -214,11 +219,7 @@ function calcResults(){
       const rkEl = document.getElementById(`g${gi}rk${ri}`);
       if(!rkEl) return;
       const currentRank = rkEl.textContent;
-      rkEl.innerHTML = `<input type="number" id="g${gi}jk${ri}"
-        value="${currentRank}" min="${startRank}" max="${endRank}"
-        onfocus="this.select()"
-        style="width:36px;height:26px;text-align:center;font-size:13px;font-weight:900;
-        color:#e65100;border:2px solid #ffcc80;border-radius:5px;background:#fff8e1;padding:0;outline:none;">`;
+      rkEl.textContent = currentRank;
     });
 
     // 경기표 아래 간단한 확정 배너
@@ -245,23 +246,26 @@ function calcResults(){
         parseInt(this.dataset.startIdx)
       );
     });
-    banner.innerHTML = `<span style="font-size:12px;color:#e65100;font-weight:700;">✂️ ${g}조 ${startRank}~${endRank}위 가위바위보 — 순위칸에 직접 입력 후 확정</span>`;
+    banner.textContent = `✂️ ${g}조 ${startRank}~${endRank}위 가위바위보 — 순위칸에 직접 입력 후 확정`;
     banner.appendChild(btn);
     matchDiv.appendChild(banner);
   });
 
   // ── Step4 조별 순위 표시 ──
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n','rank-n','rank-n'];
-  document.getElementById('league-results').innerHTML=all.map(r=>`
+  document.getElementById('league-results').textContent = all.map(r=>{
+    const rows = r.players.map((p,i)=>{
+      return `<tr><td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>`+
+             `<td>${escapeHtml(p.name)}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td></tr>`;
+    }).join('');
+    return `
     <div style="margin-bottom:14px;">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${r.g}조 순위</div>
       <table><thead><tr><th>순위</th><th>이름</th><th>승</th><th>패</th><th>승점</th><th>게임득실</th></tr></thead><tbody>
-      ${r.players.map((p,i)=>`<tr>
-        <td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>
-        <td>${p.name}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td>
-      </tr>`).join('')}
+      ${rows}
       </tbody></table>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   document.getElementById('janken-area').style.display='none';
   document.getElementById('s4').style.display='block';
@@ -306,7 +310,7 @@ function jkConfirmInline(gi, g, names, startIdx){
     const rkEl = document.getElementById(`g${gi}rk${ri}`);
     const finalRank = grpResult.players.findIndex(p=>p.name===name)+1;
     if(rkEl){
-      rkEl.innerHTML = finalRank;
+      rkEl.textContent = finalRank;
       rkEl.style.color = finalRank===1?'#e94560':finalRank===2?'#1565C0':finalRank===3?'#CD7F32':'#aaa';
     }
   });
@@ -316,7 +320,7 @@ function jkConfirmInline(gi, g, names, startIdx){
     const btn = b.querySelector('button');
     if(btn && parseInt(btn.dataset.gi)===gi){
       const namesStr = JSON.stringify(names).replace(/"/g,'&quot;');
-      b.innerHTML =
+      b.textContent =
         `<span style="color:#2e7d32;font-weight:700;font-size:13px;">✅ ${g}조 ${startIdx+1}~${startIdx+names.length}위 확정 완료!</span>`+
         `<button id="unc-btn-${gi}" data-gi="${gi}" data-g="${g}" data-names='${JSON.stringify(names).replace(/'/g,"&#39;")}' data-start="${startIdx}"
           onclick="var d=this.dataset;unconfirmGroup(parseInt(d.gi),parseInt(d.g),JSON.parse(d.names),parseInt(d.start))"
@@ -326,16 +330,21 @@ function jkConfirmInline(gi, g, names, startIdx){
 
   // Step4 순위 갱신
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n','rank-n','rank-n'];
-  document.getElementById('league-results').innerHTML=ST.week.results.map(r=>`
+  document.getElementById('league-results').textContent=ST.week.results.map(r=>{
+    const rows = r.players.map((p,i)=>{
+      return `<tr>
+        <td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>
+        <td>${escapeHtml(p.name)}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td>
+      </tr>`;
+    }).join('');
+    return `
     <div style="margin-bottom:14px;">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${r.g}조 순위</div>
       <table><thead><tr><th>순위</th><th>이름</th><th>승</th><th>패</th><th>승점</th><th>게임득실</th></tr></thead><tbody>
-      ${r.players.map((p,i)=>`<tr>
-        <td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>
-        <td>${p.name}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td>
-      </tr>`).join('')}
+      ${rows}
       </tbody></table>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   document.getElementById('s3-status').textContent='계산 완료';
   // 해당 조 확정 완료 표시
   if(!ST.week.jkConfirmed) ST.week.jkConfirmed = {};
@@ -355,7 +364,8 @@ function jkConfirmInline(gi, g, names, startIdx){
   if(ST.tournament && ST.tournament.bracket && ST.tournament.bracket.length > 0){
     const grpNames = ST.week.results.map(r=>r.players.map(p=>p.name));
     const size = ST.tournament.size;
-    const newBracket = buildBracket(grpNames, ST.week.results, size);
+    const strict = !!document.getElementById('t-ittf-strict') && document.getElementById('t-ittf-strict').checked;
+    const newBracket = buildBracket(grpNames, ST.week.results, size, strict);
     while(newBracket.length < size) newBracket.push('BYE');
     newBracket.splice(size);
     ST.tournament.seeds   = newBracket.filter(p=>p!=='BYE');

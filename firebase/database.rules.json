@@ -1,0 +1,49 @@
+{
+  "rules": {
+    
+    // 기본적으로 모든 접근 금지
+    ".read": false,
+    ".write": false,
+
+    // 공용(읽기) 데이터: 공개적으로 보여도 되는 정회원 목록 등
+    "public": {
+      ".read": true,
+      ".write": false
+    },
+
+    // 멤버(회원) 목록: 읽기는 공개 가능, 쓰기는 관리자만
+    "ttgo_members": {
+      ".read": true,
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+
+    // 히스토리: 읽기/쓰기 모두 인증 사용자만 허용(기본은 관리자만 쓰도록 권장)
+    "ttgo_history": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+
+    // 출석 데이터: 읽기 인증 필요, 쓰기는 관리자 권한 권장
+    "ttgo_attendance": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+
+    // 애플리케이션 상태(ST) / 토너먼트: 민감하므로 읽기/쓰기 모두 인증+관리자
+    "ttgo_state": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+
+    "ttgo_tournament": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+
+    // 관리자 UID 목록: 보안상 읽기 금지, 쓰기는 오직 이미 등록된 관리자만
+    "admins": {
+      ".read": false,
+      ".write": "root.child('admins').child(auth.uid).val() === true"
+    }
+  }
+}

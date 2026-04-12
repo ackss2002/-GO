@@ -96,7 +96,7 @@ function renderQ1Attendance(){
   ];
 
   // 헤더
-  document.getElementById('att-q1-head').innerHTML = `<tr>
+  document.getElementById('att-q1-head').textContent = `<tr>
     <th style="background:#1a1a2e;color:white;padding:6px 8px;border:1px solid #555;text-align:center;min-width:36px;">순위</th>
     <th style="${nameTh}">이름</th>
     ${allDates.map(({d,type,team})=>{
@@ -123,12 +123,12 @@ function renderQ1Attendance(){
   }).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
 
   let rank=1;
-  document.getElementById('att-q1-body').innerHTML = rows.map((r,i)=>{
+  document.getElementById('att-q1-body').textContent = rows.map((r,i)=>{
     if(i>0 && r.total<rows[i-1].total) rank=i+1;
     const rankBg = rank===1?'background:#ffd700;color:#1a1a2e;font-size:15px;':(rank===2?'background:#aaa;color:white;':(rank===3?'background:#cd7f32;color:white;':'background:#f5f5f5;'));
     return `<tr>
       <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;${rankBg}">${rank}</td>
-      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${r.name}</td>
+      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${escapeHtml(r.name)}</td>
       ${allDates.map(({d,type})=>{
         const v = r.attMap[d];
         const bg = v?(type==='l'?'#e8f5e9':'#fff3e0'):'white';
@@ -178,11 +178,11 @@ function renderAttendance(){
   const att = getAttendance();
   const dates = att.dates;
   const members = MEMBERS.map(m=>m.name);
-  document.getElementById('att-head').innerHTML = `<tr>
+  document.getElementById('att-head').textContent = `<tr>
     <th style="background:#1a1a2e;color:white;padding:6px 8px;border:1px solid #555;text-align:center;min-width:36px;">순위</th>
     <th style="background:#1a1a2e;color:white;padding:6px 10px;border:1px solid #555;text-align:left;min-width:80px;">이름</th>
     ${dates.map(d=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:70px;font-size:11px;">
-      ${d.slice(5)}<br><small onclick="removeAttendanceDate('${d}')" style="color:#e94560;cursor:pointer;font-size:10px;">✕</small>
+      ${d.slice(5)}<br><small onclick="removeAttendanceDate('${jsEscape(d)}')" style="color:#e94560;cursor:pointer;font-size:10px;">✕</small>
     </th>`).join('')}
     <th style="background:#fff9c4;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:50px;">합계</th>
   </tr>`;
@@ -194,14 +194,14 @@ function renderAttendance(){
   }).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
 
   let rank=1;
-  document.getElementById('att-body').innerHTML = rows.map((r,i)=>{
+  document.getElementById('att-body').textContent = rows.map((r,i)=>{
     if(i>0 && r.total<rows[i-1].total) rank=i+1;
     const rankBg = rank===1?'background:#ffd700;':(rank===2?'background:#c0c0c0;':(rank===3?'background:#cd7f32;color:white;':''));
     return `<tr>
       <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;${rankBg}">${rank}</td>
-      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${r.name}</td>
+      <td style="padding:6px 10px;border:1px solid #bbb;font-weight:700;">${escapeHtml(r.name)}</td>
       ${dates.map(d=>`<td style="border:1px solid #bbb;text-align:center;cursor:pointer;padding:4px;background:${r.rec[d]?'#e8f5e9':'white'};"
-        onclick="toggleAttendance('${r.name}','${d}')">${r.rec[d]?'●':''}</td>`).join('')}
+        onclick="toggleAttendance('${jsEscape(r.name)}','${jsEscape(d)}')">${r.rec[d]?'●':''}</td>`).join('')}
       <td style="border:1px solid #bbb;text-align:center;font-weight:900;font-size:14px;background:#fff9c4;">${r.total}</td>
     </tr>`;
   }).join('');

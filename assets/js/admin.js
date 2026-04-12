@@ -1,22 +1,36 @@
-const ADMIN_PIN = '1234'; // ← 이 번호를 원하는 4자리로 바꾸세요
+// ADMIN PIN intentionally left blank for security. Do not hardcode sensitive PINs in client-side code.
+// For production, use server-side authentication (Firebase Auth / Cloud Functions).
+const ADMIN_PIN = '';
+if(!ADMIN_PIN) console.warn('ADMIN_PIN is not set. Admin actions require proper server-side auth.');
 let isAdmin = false;
 
 function toggleAdmin(){
   if(isAdmin){
-    // 잠금
+    // 로그아웃(관리자 모드 해제)
     isAdmin = false;
     updateAdminUI();
-  } else {
-    // PIN 입력 오버레이 열기
-    document.getElementById('pin-overlay').style.display='flex';
-    document.getElementById('pin-input').value='';
-    document.getElementById('pin-error').style.display='none';
-    setTimeout(()=>document.getElementById('pin-input').focus(), 100);
+    return;
   }
+  // Firebase Auth가 있으면 로그인 흐름으로 위임
+  if(window.signIn){
+    window.signIn();
+    return;
+  }
+  // 폴백: 기존 PIN 오버레이 표시
+  document.getElementById('pin-overlay').style.display='flex';
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-error').style.display='none';
+  setTimeout(()=>document.getElementById('pin-input').focus(), 100);
 }
 
 function checkPin(){
   const val = document.getElementById('pin-input').value;
+  if(!ADMIN_PIN){
+    // PIN not configured — inform operator and close overlay
+    alert('관리자 PIN이 설정되어 있지 않습니다. 운영자 기능은 서버 인증으로 대체하세요.');
+    document.getElementById('pin-overlay').style.display='none';
+    return;
+  }
   if(val === ADMIN_PIN){
     isAdmin = true;
     document.getElementById('pin-overlay').style.display='none';

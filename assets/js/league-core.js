@@ -52,33 +52,25 @@ function renderDash(){
   document.getElementById('dash-notice').textContent=
     w.date?`${w.date} · ${w.type} · ${w.set||'3판2승'} · 출전 ${w.players.length}명`:'이번주 리그 탭에서 경기를 등록하세요.';
   const top=getSorted()[0];
-  document.getElementById('dash-metrics').innerHTML=`
-    <div class="metric"><div class="metric-label">출전 인원</div><div class="metric-value">${w.players.length||0}명</div></div>
-    <div class="metric"><div class="metric-label">운영 조</div><div class="metric-value">${w.groups.filter(g=>g.length>0).length||0}조</div></div>
-    <div class="metric"><div class="metric-label">이번주 우승</div><div class="metric-value" style="font-size:15px;margin-top:2px;">${f.win||'-'}</div></div>
-    <div class="metric"><div class="metric-label">시즌 1위</div><div class="metric-value" style="font-size:15px;margin-top:2px;">${top?top.name:'-'}</div></div>`;
+  document.getElementById('dash-metrics').textContent =
+    '출전 인원: ' + (w.players.length||0) + '명\n' +
+    '운영 조: ' + (w.groups.filter(g=>g.length>0).length||0) + '조\n' +
+    '이번주 우승: ' + (escapeHtml(f.win||'-')) + '\n' +
+    '시즌 1위: ' + (top?escapeHtml(top.name):'-');
   const weekDate = ST.week.date || '2026-03-27';
   const dateParts = weekDate.split('-');
   const days=['일','월','화','수','목','금','토'];
   const d = new Date(weekDate);
   const dayStr = days[d.getDay()];
   const dateStr = dateParts.length===3 ? dateParts[0]+'년 '+dateParts[1]+'월 '+dateParts[2]+'일 ('+dayStr+')' : weekDate;
-  document.getElementById('dash-results').innerHTML=f.win?`
-    <div style="font-size:12px;color:#888;font-weight:600;margin-bottom:10px;">📅 ${dateStr}</div>`+`
-    <div style="font-size:12px;color:#888;margin-bottom:10px;">${ST.week.date?ST.week.date.replace(/-/g,'년 ').replace(/-/,'월 ')+'일':'날짜 미입력'}</div>
-    <div class="result-item"><span>🥇 우승</span><span style="font-weight:700;">${f.win} <span class="pill pill-blue">+5점</span></span></div>
-    <div class="result-item"><span>🥈 준우승</span><span style="font-weight:700;">${f.second} <span class="pill pill-green">+3점</span></span></div>
-    ${f.third?`<div class="result-item"><span>🥉 공동3위</span><span style="font-weight:700;">${[f.third,f.third2].filter(Boolean).join(', ')} <span class="pill" style="background:#ffebee;color:#c62828;">+1점</span></span></div>`:''}
-    ${f.lucky?`<div class="result-item"><span>🎁 행운상</span><span style="font-weight:700;">${f.lucky}</span></div>`:''}
-  `:'<div style="color:#888;font-size:13px;">토너먼트 결과 없음</div>';
+  document.getElementById('dash-results').textContent = f.win ? (
+    '📅 '+dateStr + '\n' + (ST.week.date?ST.week.date.replace(/-/g,'년 ').replace(/-/,'월 ')+'일':'날짜 미입력') + '\n' +
+    '우승: ' + escapeHtml(f.win) + ' (+5점)\n' +
+    '준우승: ' + escapeHtml(f.second) + ' (+3점)' + (f.third?('\n공동3위: '+escapeHtml([f.third,f.third2].filter(Boolean).join(', '))):'') + (f.lucky?('\n행운상: '+escapeHtml(f.lucky)):'')
+  ) : '토너먼트 결과 없음';
   const sorted=getSorted().slice(0,5);
   const mx=sorted[0]?sorted[0].pts:1;
-  document.getElementById('dash-top5').innerHTML=sorted.map(p=>`
-    <div class="bar-wrap">
-      <span class="bar-label">${p.name}</span>
-      <div class="bar"><div class="bar-fill" style="width:${Math.max(5,(p.pts/mx)*100)}%"></div></div>
-      <span class="bar-score">${p.pts}점</span>
-    </div>`).join('')||'<div style="color:#888;font-size:13px;">데이터 없음</div>';
+  document.getElementById('dash-top5').textContent = sorted.map(p=>escapeHtml(p.name)+' '+p.pts+'점').join('\n') || '데이터 없음';
 }
 
 function getSorted(){
@@ -102,11 +94,14 @@ function renderLeague(){
   const exts = getExternals();
   const temps = ST.week.tempPlayers||[];
 
-  // 정회원 칩
+  // 정회원 칩 (안전하게 이스케이프)
   let html = '<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원</div>';
-  html += MEMBERS.map(m=>`<span class="player-chip ${ps.includes(m.name)?'selected':''}" 
-    onclick="toggleP('${m.name}')" 
-    style="${!isAdmin&&ps.includes(m.name)?'opacity:0.5;cursor:default;':''}">${m.name}${m.bu!==m.total?m.bu+'('+m.total+')':m.total}</span>`).join('');
+  html += MEMBERS.map(function(m){
+    const sel = ps.includes(m.name) ? 'selected' : '';
+    const style = (!isAdmin && ps.includes(m.name)) ? 'opacity:0.5;cursor:default;' : '';
+    const label = escapeHtml(m.name) + (m.bu!==m.total ? escapeHtml(m.bu+'('+m.total+')') : escapeHtml(m.total));
+    return `<span class="player-chip ${sel}" onclick="toggleP('${jsEscape(m.name)}')" style="${style}">${label}</span>`;
+  }).join('');
 
   // 게스트 (게스트)
   html += `<div style="font-size:11px;color:#546e7a;font-weight:700;margin:10px 0 6px;">🎫 게스트</div>`;
@@ -116,8 +111,8 @@ function renderLeague(){
     const guest = temps[i];
     if(guest){
       const sel = ps.includes(guest.name);
-      return `<span class="player-chip ${sel?'selected':''}" onclick="toggleP('${guest.name}')"
-        style="${sel?'background:#546e7a;color:white;border-color:#546e7a;':'background:#eceff1;border-color:#90a4ae;color:#546e7a;'}${!isAdmin&&sel?'opacity:0.5;cursor:default;':''}">${guest.name}${guest.total}${isAdmin?` <small onclick="removeTempPlayer('${guest.name}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small>`:''}</span>`;
+      return `<span class="player-chip ${sel?'selected':''}" onclick="toggleP('${jsEscape(guest.name)}')"
+        style="${sel?'background:#546e7a;color:white;border-color:#546e7a;':'background:#eceff1;border-color:#90a4ae;color:#546e7a;'}${!isAdmin&&sel?'opacity:0.5;cursor:default;':''}">${escapeHtml(guest.name)}${escapeHtml(guest.total)}${isAdmin?` <small onclick="removeTempPlayer('${jsEscape(guest.name)}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small>`:''}</span>`;
     } else {
       return `<span class="player-chip" style="background:#eceff1;border:1px dashed #90a4ae;color:#b0bec5;cursor:${isAdmin?'pointer':'default'};" ${isAdmin?`onclick="document.getElementById('temp-name').focus()"`:''}>+ 추가</span>`;
     }
@@ -129,7 +124,7 @@ function renderLeague(){
     <button class="btn btn-sm" onclick="addTempPlayer()" style="background:#ede7f6;color:#5c6bc0;border-color:#b39ddb;">+ 추가</button>
   </div>`;
 
-  document.getElementById('player-select').innerHTML = html;
+  document.getElementById('player-select').textContent = html;
   const total = ps.length;
   document.getElementById('sel-count').textContent=`선택: ${total}명`;
   document.getElementById('s1-status').textContent=`${total}명 선택`;
@@ -181,9 +176,9 @@ function addNonMember(){
 
 function renderNonMemberList(){
   const nms = (ST.doubles&&ST.doubles.nonMembers)||[];
-  document.getElementById('nonmember-list').innerHTML = nms.map(n=>
-    `<span class="player-chip" onclick="removeNonMember('${n}')">${n} <small style="color:#e94560;">✕</small></span>`
-  ).join('');
+  document.getElementById('nonmember-list').textContent = nms.map(n=>
+    `${escapeHtml(n)} ✕`
+  ).join(', ');
 }
 
 function removeNonMember(name){
@@ -213,23 +208,23 @@ function renderPairSelect(){
   getExternals().forEach(m=>{ buMap[m.name]=m.total; });
   temps.forEach(m=>{ buMap[m.name]=m.total; });
 
-  document.getElementById('pair-select').innerHTML =
+  document.getElementById('pair-select').textContent =
     `<div style="font-size:12px;color:#888;margin-bottom:6px;">미배정 선수 (클릭해서 페어 구성)</div>`+
     unpaired.map(name=>{
       const isSel = pairTemp.includes(name);
       const bu = buMap[name]||'';
       const isTemp = temps.find(t=>t.name===name);
       const chipStyle = isSel ? '' : isTemp ? 'background:#eceff1;border-color:#90a4ae;color:#546e7a;' : '';
-      return `<span class="player-chip ${isSel?'selected':''}" onclick="selectForPair('${name}')" style="${chipStyle}">${name}${bu}</span>`;
+      return `<span class="player-chip ${isSel?'selected':''}" onclick="selectForPair('${jsEscape(name)}')" style="${chipStyle}">${escapeHtml(name)}${escapeHtml(String(bu))}</span>`;
     }).join('')+
-    (unpaired.length===0?'<span style="font-size:12px;color:#888;">모두 배정 완료</span>':'');
+    (unpaired.length===0?'<span style="font-size:12px;color:#888;'>모두 배정 완료</span>':'');
 
-  document.getElementById('pair-list').innerHTML =
+  document.getElementById('pair-list').textContent =
     `<div style="font-size:12px;color:#888;margin-bottom:6px;">구성된 페어 (${pairs.length}팀)</div>`+
     pairs.map((pair,i)=>{
       const b1=buMap[pair[0]]||''; const b2=buMap[pair[1]]||'';
       return `<div style="display:inline-flex;align-items:center;gap:6px;margin:3px;padding:5px 10px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:20px;font-size:12px;">
-        <strong>${pair[0]}${b1}/${pair[1]}${b2}</strong>
+        <strong>${escapeHtml(pair[0])}${escapeHtml(String(b1))}/${escapeHtml(pair[1])}${escapeHtml(String(b2))}</strong>
         <span onclick="removePair(${i})" style="cursor:pointer;color:#e94560;font-size:11px;">✕</span>
       </div>`;
     }).join('')||'<span style="font-size:12px;color:#bbb;">아직 없음</span>';
@@ -283,16 +278,16 @@ function renderGroupAssignDoubles(){
   const lbl=['1조','2조','3조','4조'];
 
   document.getElementById('s2-notice').textContent='팀 클릭 시 1조→2조→3조→4조→미배정 순으로 변경됩니다.';
-  document.getElementById('group-assign').innerHTML = pairs.map((pair,pi)=>{
+  document.getElementById('group-assign').textContent = pairs.map((pair,pi)=>{
     const teamName = pair[0]+'/'+pair[1];
     const gi = gs.findIndex(g=>g.includes(pi));
-    return `<span class="player-chip ${gi>=0?cls[gi]:''}" onclick="cycleGDoubles(${pi})">${teamName} <small>${gi>=0?lbl[gi]:'미배정'}</small></span>`;
+    return `<span class="player-chip ${gi>=0?cls[gi]:''}" onclick="cycleGDoubles(${pi})">${escapeHtml(teamName)} <small>${gi>=0?lbl[gi]:'미배정'}</small></span>`;
   }).join('');
 
   const sm=lbl.map((l,i)=>gs[i]&&gs[i].length>0?
-    `<span class="pill pill-blue" style="margin:2px;">${l}: ${gs[i].map(pi=>pairs[pi][0]+'/'+pairs[pi][1]).join(', ')}</span>`:''
+    `<span class="pill pill-blue" style="margin:2px;">${l}: ${gs[i].map(pi=>escapeHtml(pairs[pi][0]+'/'+pairs[pi][1])).join(', ')}</span>`:''
   ).join('');
-  document.getElementById('group-summary').innerHTML=sm||'<span style="font-size:12px;color:#888;">조 배정을 시작하세요</span>';
+  document.getElementById('group-summary').textContent= (sm ? sm : '조 배정을 시작하세요');
   document.getElementById('s2-status').textContent=gs.filter(g=>g.length>0).length+'조 구성 중';
 }
 
@@ -367,12 +362,12 @@ function renderGroupAssign(){
   const ps=ST.week.players, gs=ST.week.groups;
   const cls=['g1','g2','g3','g4'];
   const lbl=['1조','2조','3조','4조'];
-  document.getElementById('group-assign').innerHTML=ps.map(name=>{
+  document.getElementById('group-assign').textContent=ps.map(name=>{
     const gi=gs.findIndex(g=>g.includes(name));
-    return `<span class="player-chip ${gi>=0?cls[gi]:''}" onclick="cycleG('${name}')">${name} <small>${gi>=0?lbl[gi]:'미배정'}</small></span>`;
+    return `<span class="player-chip ${gi>=0?cls[gi]:''}" onclick="cycleG('${jsEscape(name)}')">${escapeHtml(name)} <small>${gi>=0?lbl[gi]:'미배정'}</small></span>`;
   }).join('');
-  const sm=lbl.map((l,i)=>gs[i]&&gs[i].length>0?`<span class="pill pill-blue" style="margin:2px;">${l}: ${gs[i].join(', ')}</span>`:'').join('');
-  document.getElementById('group-summary').innerHTML=sm||'<span style="font-size:12px;color:#888;">조 배정을 시작하세요</span>';
+  const sm=lbl.map((l,i)=>gs[i]&&gs[i].length>0?`<span class="pill pill-blue" style="margin:2px;">${l}: ${gs[i].map(escapeHtml).join(', ')}</span>`:'').join('');
+  document.getElementById('group-summary').textContent= (sm ? sm : '조 배정을 시작하세요');
   document.getElementById('s2-status').textContent=gs.filter(g=>g.length>0).length+'조 구성 중';
 }
 
@@ -391,8 +386,8 @@ function resetGroups(){
   renderGroupAssign();
   document.getElementById('s3').style.display='none';
   document.getElementById('s4').style.display='none';
-  document.getElementById('league-matches').innerHTML='';
-  document.getElementById('league-results').innerHTML='';
+  document.getElementById('league-matches').textContent='';
+  document.getElementById('league-results').textContent='';
 }
 
 function confirmGroups(){
@@ -675,7 +670,7 @@ function renderMatches(){
         <thead>
           <tr>
             <th colspan="2" style="background:#e8f5e9;color:#1a1a2e;padding:8px 14px;border:2px solid #aaa;font-size:15px;font-weight:900;text-align:left;min-width:120px;">${gi+1}조</th>
-            ${grp.map(name=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:54px;font-weight:700;font-size:13px;">${name}</th>`).join('')}
+            ${grp.map(name=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:54px;font-weight:700;font-size:13px;">${escapeHtml(name)}</th>`).join('')}
             <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">승</th>
             <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">패</th>
             <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:46px;font-weight:700;">승점</th>
@@ -690,7 +685,7 @@ function renderMatches(){
           <tr>
             <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
             <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:100px;">
-              <span style="font-weight:700;font-size:13px;${nameStyle}">${p}${memberBuMap[p]?memberBuMap[p]:''}</span>
+              <span style="font-weight:700;font-size:13px;${nameStyle}">${escapeHtml(p)}${escapeHtml(memberBuMap[p]?memberBuMap[p]: '')}</span>
             </td>
             ${grp.map((_,ci)=>ri===ci?
               `<td style="background:#ccc;border:1px solid #bbb;min-width:54px;"></td>`:
@@ -711,7 +706,7 @@ function renderMatches(){
       <div style="margin-top:8px;">${ord.map(m=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;">${m[0]}:${m[1]}</span>`).join('')}</div>
     </div>`;
   });
-  document.getElementById('league-matches').innerHTML=html;
+  document.getElementById('league-matches').textContent=html;
   document.getElementById('s3-status').textContent='입력 대기 중';
 }
 
@@ -739,7 +734,7 @@ function renderMatchesDoubles(){
       <table style="border-collapse:collapse;font-size:13px;">
         <thead><tr>
           <th colspan="2" style="background:#e8f5e9;color:#1a1a2e;padding:8px 14px;border:2px solid #aaa;font-size:15px;font-weight:900;text-align:left;min-width:140px;">${gi+1}조</th>
-          ${teamNames.map(tn=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:80px;font-weight:700;font-size:12px;">${tn}</th>`).join('')}
+          ${teamNames.map(tn=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:80px;font-weight:700;font-size:12px;">${escapeHtml(tn)}</th>`).join('')}
           <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">승</th>
           <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:36px;font-weight:700;">패</th>
           <th style="background:#fff9c4;padding:8px 6px;border:1px solid #bbb;text-align:center;min-width:46px;font-weight:700;">승점</th>
@@ -750,7 +745,7 @@ function renderMatchesDoubles(){
           <tr>
             <td style="background:#e3f2fd;color:#1a1a2e;font-weight:700;text-align:center;padding:6px 8px;border:1px solid #bbb;min-width:28px;">${ri+1}</td>
             <td style="padding:6px 10px;border:1px solid #bbb;white-space:nowrap;min-width:130px;">
-              <span style="font-weight:700;font-size:13px;">${teamBu[ri]||tn}</span>
+              <span style="font-weight:700;font-size:13px;">${escapeHtml(teamBu[ri]||tn)}</span>
             </td>
             ${teamNames.map((_,ci)=>ri===ci?
               `<td style="background:#ccc;border:1px solid #bbb;min-width:80px;"></td>`:
@@ -770,7 +765,7 @@ function renderMatchesDoubles(){
       <div style="margin-top:8px;">${ord.map(m=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;">${m[0]}:${m[1]}</span>`).join('')}</div>
     </div>`;
   });
-  document.getElementById('league-matches').innerHTML=html;
+  document.getElementById('league-matches').textContent=html;
   document.getElementById('s3-status').textContent='입력 대기 중';
 }
 

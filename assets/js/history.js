@@ -39,20 +39,27 @@ function renderHistory(){
   detailEl.style.display = 'none';
 
   if(history.length===0){
-    listEl.innerHTML = '<div style="text-align:center;color:#888;padding:20px;font-size:13px;">아직 기록이 없습니다</div>';
+    listEl.textContent = '아직 기록이 없습니다';
     return;
   }
 
-  listEl.innerHTML = history.map((h,i)=>`
+  listEl.textContent = history.map((h,i)=>{
+    const date = escapeHtml(h.date);
+    const week = escapeHtml(h.week||'');
+    const type = escapeHtml(h.type||'');
+    const set = escapeHtml(h.set||'');
+    const win = escapeHtml((h.final&&h.final.win)||'');
+    const second = escapeHtml((h.final&&h.final.second)||'');
+    return `
     <div onclick="showHistoryDetail(${i})" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid #e8e8e8;border-radius:10px;margin-bottom:8px;cursor:pointer;background:white;transition:all 0.15s;"
       onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
       <div>
-        <div style="font-weight:700;font-size:14px;">${h.date} <span style="font-size:12px;color:#888;font-weight:400;">${h.week||''} · ${h.type} · ${h.set}</span></div>
+        <div style="font-weight:700;font-size:14px;">${date} <span style="font-size:12px;color:#888;font-weight:400;">${week} · ${type} · ${set}</span></div>
         <div style="font-size:12px;color:#555;margin-top:3px;">
           출전 ${h.players.length}명 &nbsp;·&nbsp;
-          🥇 ${h.final.win||'-'} &nbsp;·&nbsp;
-          🥈 ${h.final.second||'-'}
-          ${h.final.third?' &nbsp;·&nbsp; 🥉 '+h.final.third:''}
+          🥇 ${win||'-'} &nbsp;·&nbsp;
+          🥈 ${second||'-'}
+          ${h.final && h.final.third ? ' &nbsp;·&nbsp; 🥉 '+escapeHtml(h.final.third) : ''}
         </div>
       </div>
       <span style="color:#bbb;font-size:18px;">›</span>
@@ -74,30 +81,30 @@ function showHistoryDetail(idx){
 
   let html = `
     <div class="card">
-      <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${h.date}</div>
-      <div style="font-size:12px;color:#888;margin-bottom:14px;">${h.week||''} · ${h.type} · ${h.set} · 출전 ${h.players.length}명</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${escapeHtml(h.date)}</div>
+      <div style="font-size:12px;color:#888;margin-bottom:14px;">${escapeHtml(h.week||'')} · ${escapeHtml(h.type||'')} · ${escapeHtml(h.set||'')} · 출전 ${h.players.length}명</div>
 
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
         <div style="padding:10px 16px;background:#fff9c4;border-radius:8px;text-align:center;min-width:90px;">
           <div style="font-size:18px;">🥇</div>
-          <div style="font-weight:700;font-size:14px;">${h.final.win||'-'}</div>
+          <div style="font-weight:700;font-size:14px;">${escapeHtml((h.final&&h.final.win)||'-')}</div>
           <div style="font-size:11px;color:#888;">우승 +5점</div>
         </div>
         <div style="padding:10px 16px;background:#f5f5f5;border-radius:8px;text-align:center;min-width:90px;">
           <div style="font-size:18px;">🥈</div>
-          <div style="font-weight:700;font-size:14px;">${h.final.second||'-'}</div>
+          <div style="font-weight:700;font-size:14px;">${escapeHtml((h.final&&h.final.second)||'-')}</div>
           <div style="font-size:11px;color:#888;">준우승 +3점</div>
         </div>
         ${h.final.third?`
         <div style="padding:10px 16px;background:#fff3e0;border-radius:8px;text-align:center;min-width:90px;">
           <div style="font-size:18px;">🥉</div>
-          <div style="font-weight:700;font-size:14px;">${[h.final.third,h.final.third2].filter(Boolean).join(', ')}</div>
+          <div style="font-weight:700;font-size:14px;">${escapeHtml([h.final&&h.final.third,h.final&&h.final.third2].filter(Boolean).join(', '))}</div>
           <div style="font-size:11px;color:#888;">공동3위 +2점</div>
         </div>`:''}
         ${h.final.lucky?`
         <div style="padding:10px 16px;background:#e8f5e9;border-radius:8px;text-align:center;min-width:90px;">
           <div style="font-size:18px;">🎁</div>
-          <div style="font-weight:700;font-size:14px;">${h.final.lucky}</div>
+          <div style="font-weight:700;font-size:14px;">${escapeHtml(h.final.lucky||'')}</div>
           <div style="font-size:11px;color:#888;">행운상</div>
         </div>`:''}
       </div>
@@ -120,7 +127,7 @@ function showHistoryDetail(idx){
             <tbody>
               ${r.players.map((p,i)=>`<tr>
                 <td style="padding:4px 8px;border:1px solid #ddd;text-align:center;">${i+1}</td>
-                <td style="padding:4px 8px;border:1px solid #ddd;font-weight:700;">${p.name}${buMap[p.name]||''}</td>
+                <td style="padding:4px 8px;border:1px solid #ddd;font-weight:700;">${escapeHtml(p.name)}${escapeHtml(buMap[p.name]||'')}</td>
                 <td style="padding:4px 8px;border:1px solid #ddd;text-align:center;">${p.w}</td>
                 <td style="padding:4px 8px;border:1px solid #ddd;text-align:center;">${p.l}</td>
                 <td style="padding:4px 8px;border:1px solid #ddd;text-align:center;font-weight:700;">${p.mp}점</td>
@@ -133,11 +140,11 @@ function showHistoryDetail(idx){
     <div class="card">
       <div class="card-title">출전 선수 (${h.players.length}명)</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">
-        ${h.players.map(name=>`<span class="player-chip selected" style="pointer-events:none;">${name}${buMap[name]?buMap[name]:''}</span>`).join('')}
+        ${h.players.map(name=>`<span class="player-chip selected" style="pointer-events:none;">${escapeHtml(name)}${escapeHtml(buMap[name]?buMap[name]:'' )}</span>`).join('')}
       </div>
     </div>`;
 
-  document.getElementById('history-detail-content').innerHTML = html;
+  document.getElementById('history-detail-content').textContent = html;
 }
 
 function closeHistoryDetail(){

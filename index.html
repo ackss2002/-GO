@@ -67,7 +67,7 @@
 <div id="league" class="section">
   <div class="step">
     <div class="step-header" onclick="toggleStep('s1')">
-      <h4><span class="step-num">1</span> 출전 선수 등록</h4>
+      <h4><span class="step-num">1</span> 출전 선수 등록 <span id="s1-member-count" style="font-size:12px;color:#888;margin-left:8px;">정회원(0명)</span></h4>
       <span id="s1-status" style="font-size:12px;color:#888;"></span>
     </div>
     <div class="step-body" id="s1">
@@ -170,7 +170,11 @@
           <option value="4">4강</option>
           <option value="8" selected>8강</option>
           <option value="16">16강</option>
+          <option value="32">32강</option>
         </select>
+        <label style="margin-left:12px;font-size:13px;display:inline-flex;align-items:center;gap:6px;">
+          <input type="checkbox" id="t-ittf-strict" checked style="transform:scale(0.95);"> ITTF Strict
+        </label>
         <button class="btn btn-primary btn-sm" onclick="genTournament()">대진 생성</button>
 
       </div>
@@ -427,8 +431,6 @@
             · 행운상 → 승점 없음 (별도 시상)
           </div>
         </div>
-        
-
       </div>
     </div>
 
@@ -511,6 +513,7 @@
 </div>
 <div class="footer-note">탁구치GO 금요리그 · 2026시즌</div>
 
+<script src="assets/js/safe.js"></script>
 <script src="assets/js/state.js"></script>
 <script src="assets/js/history.js"></script>
 <script src="assets/js/admin.js"></script>
@@ -518,13 +521,50 @@
 <script src="assets/js/league-core.js"></script>
 <script src="assets/js/league-results.js"></script>
 <script src="assets/js/tournament.js"></script>
+<script src="assets/js/tournament-helper.js"></script>
 <script src="assets/js/ranking-members.js"></script>
 <script src="assets/js/bootstrap.js"></script>
 
 <!-- Firebase SDK - 맨 마지막에 로드 -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="assets/js/firebase-init.js"></script>
+<script src="assets/js/firebase-auth.js"></script>
+<script>
+// 화면에 정회원 수를 표시: 비동기 MEMBERS 로드와 DOM 업데이트를 모두 감지
+(function(){
+  function parseNum(text){
+    if(!text) return 0;
+    const m = (''+text).match(/\d+/);
+    return m ? parseInt(m[0],10) : 0;
+  }
+  function update(){
+    try{
+      var cnt = 0;
+      if(Array.isArray(window.MEMBERS)) cnt = MEMBERS.length;
+      else{
+        var el = document.getElementById('active-cnt');
+        if(el) cnt = parseNum(el.textContent);
+        else if(window.ST && Array.isArray(ST.players)) cnt = ST.players.length;
+      }
+      var target = document.getElementById('s1-member-count');
+      if(target) target.textContent = '정회원('+cnt+'명)';
+    }catch(e){ console.error(e); }
+  }
+  // 즉시 시도
+  update();
+  // 폴링: MEMBERS가 로드될 때까지 체크
+  var pollId = setInterval(function(){ if(Array.isArray(window.MEMBERS)){ update(); clearInterval(pollId); } }, 300);
+  // active-cnt 변경 관찰
+  var ac = document.getElementById('active-cnt');
+  if(ac){
+    new MutationObserver(function(){ update(); }).observe(ac, {childList:true,characterData:true,subtree:true});
+  }
+  document.addEventListener('DOMContentLoaded', update);
+  window.refreshMemberCount = update;
+})();
+</script>
 <div id="score-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
   background:rgba(0,0,0,0.45);z-index:10000;align-items:center;justify-content:center;">
   <div style="background:white;border-radius:16px;padding:28px 24px;width:320px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);">

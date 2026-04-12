@@ -53,13 +53,13 @@ function renderRanking(){
 
   const bgs=['rank-1','rank-2','rank-3'];
   let rank=1;
-  document.getElementById('ranking-tbody').innerHTML=all.map((p,i)=>{
+  document.getElementById('ranking-tbody').textContent=all.map((p,i)=>{
     if(i>0&&p.pts<all[i-1].pts) rank=i+1;
     if(p.pts===0 && !p.up) return '';
     const bg=rank<=3?bgs[rank-1]:'rank-n';
     const upTag = p.up?'<span class="pill pill-amber" style="margin-left:4px;">↑승급</span>':'';
     return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
-      <td><strong>${p.name}</strong></td><td>${p.gender}</td><td>${p.bu}</td>
+      <td><strong>${escapeHtml(p.name)}</strong></td><td>${escapeHtml(p.gender)}</td><td>${escapeHtml(String(p.bu))}</td>
       <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td><td><strong>${p.pts}점</strong>${upTag}</td>
       <td></td></tr>`;
   }).join('')||'<tr><td colspan="9" style="color:#888;text-align:center;">데이터 없음</td></tr>';
@@ -68,11 +68,11 @@ function renderRanking(){
   if(q!==1){
     const ups = all.filter(p=>p.up);
     const near = all.filter(p=>!p.up&&p.pts>=7);
-    document.getElementById('upgrade-card').innerHTML=`<div class="card-title">승급 현황</div>`+
-      (ups.length?ups.map(p=>`<div class="upgrade-box"><div><div style="font-weight:700;color:#e65100;">${p.name}</div><div style="font-size:12px;color:#f57f17;">${p.bu}부 승급 완료</div></div><span class="pill pill-amber">승급완료</span></div>`).join(''):'<div style="font-size:13px;color:#888;">승급자 없음</div>')+
-      (near.length?`<div style="font-size:12px;color:#888;margin-top:8px;">승급 후보: ${near.map(p=>p.name+' '+p.pts+'점').join(' · ')}</div>`:'');
+    document.getElementById('upgrade-card').textContent=`승급 현황`+
+      (ups.length?ups.map(p=>`${escapeHtml(p.name)} 승급완료`).join(', '):'승급자 없음')+
+      (near.length?` 승급 후보: ${near.map(p=>escapeHtml(p.name)+' '+p.pts+'점').join(' · ')}`:'');
   } else {
-    document.getElementById('upgrade-card').innerHTML='';
+    document.getElementById('upgrade-card').textContent='';
   }
 
   // 게스트 순위
@@ -82,12 +82,12 @@ function renderRanking(){
     return {name, bu:s.bu||'?', w:s.w||0, s:s.s||0, t:s.t||0, pts:s.pts||0};
   }).filter(g=>g.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
   let grank=1;
-  document.getElementById('guest-ranking-tbody').innerHTML = guests.length ?
+  document.getElementById('guest-ranking-tbody').textContent = guests.length ?
     guests.map((g,i)=>{
       if(i>0&&g.pts<guests[i-1].pts) grank=i+1;
       const bg=grank<=3?bgs[grank-1]:'rank-n';
       return `<tr><td><span class="rank-badge ${bg}">${grank}</span></td>
-        <td><strong>${g.name}</strong></td><td>${g.bu}부</td>
+        <td><strong>${escapeHtml(g.name)}</strong></td><td>${escapeHtml(String(g.bu))}부</td>
         <td>${g.w}</td><td>${g.s}</td><td>${g.t}</td><td><strong>${g.pts}점</strong></td></tr>`;
     }).join('')
     : '<tr><td colspan="7" style="color:#888;text-align:center;">게스트 승점 없음</td></tr>';
@@ -95,10 +95,16 @@ function renderRanking(){
 
 // 회원 관리
 function renderMembers(){
-  document.getElementById('active-tbody').innerHTML=MEMBERS.map((m,i)=>`
-    <tr><td>${i+1}</td><td>${m.name}</td><td>${m.g}</td><td>${m.bu}</td><td>${m.bu!==m.total?m.bu+'('+m.total+')':m.total}</td></tr>`).join('');
-  document.getElementById('dormant-tbody').innerHTML=DORMANT.map((m,i)=>`
-    <tr><td>${i+1}</td><td>${m.name}</td><td>${m.g}</td><td>${m.bu}</td><td>${m.bu!==m.total?m.bu+'('+m.total+')':m.total}</td></tr>`).join('');
+  // 가나다(한글) 순 정렬 후 출력
+  const sorted = (MEMBERS||[]).slice().sort((a,b)=>{
+    return (a.name||'').localeCompare(b.name||'', 'ko');
+  });
+  document.getElementById('active-tbody').textContent=sorted.map((m,i)=>{
+    return `<tr><td>${i+1}</td><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.g)}</td><td>${escapeHtml(m.bu)}</td><td>${escapeHtml(m.bu!==m.total?m.bu+'('+m.total+')':m.total)}</td></tr>`;
+  }).join('');
+  document.getElementById('dormant-tbody').textContent=DORMANT.map((m,i)=>{
+    return `<tr><td>${i+1}</td><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.g)}</td><td>${escapeHtml(m.bu)}</td><td>${escapeHtml(m.bu!==m.total?m.bu+'('+m.total+')':m.total)}</td></tr>`;
+  }).join('');
 }
 
 function renderExternalMembers(){
@@ -108,19 +114,19 @@ function renderExternalMembers(){
   const cnt = document.getElementById('external-cnt');
   if(cnt) cnt.textContent = exts.length+'명';
   if(!exts.length){
-    if(el) el.innerHTML='';
+    if(el) el.textContent='';
     if(empty) empty.style.display='block';
     return;
   }
   if(empty) empty.style.display='none';
-  if(el) el.innerHTML=exts.map((m,i)=>{
+  if(el) el.textContent=exts.map((m,i)=>{
     const s = ST.scores[m.name]||{pts:0};
     return `<tr>
       <td>${i+1}</td>
-      <td><strong>${m.name}</strong> <span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;">특별</span></td>
-      <td>${m.g}</td><td>${m.total}부</td>
+      <td><strong>${escapeHtml(m.name)}</strong> <span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;">특별</span></td>
+      <td>${escapeHtml(m.g)}</td><td>${escapeHtml(String(m.total))}부</td>
       <td>${s.pts||0}점</td>
-      <td><button class="btn btn-sm" onclick="removeExternal('${m.name}')" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;padding:2px 8px;">삭제</button></td>
+      <td><button class="btn btn-sm" onclick="removeExternal('${jsEscape(m.name)}')" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;padding:2px 8px;">삭제</button></td>
     </tr>`;
   }).join('');
 }
