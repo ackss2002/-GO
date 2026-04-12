@@ -35,7 +35,7 @@ function calcResultsDoubles(){
   saveST();
 
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n','rank-n','rank-n'];
-  document.getElementById('league-results').textContent = all.map(r=>{
+  document.getElementById('league-results').innerHTML = all.map(r=>{
     const rows = r.players.map((p,i)=>{
       return `<tr><td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>`+
              `<td>${escapeHtml(p.name)}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td></tr>`;
@@ -253,7 +253,7 @@ function calcResults(){
 
   // ── Step4 조별 순위 표시 ──
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n','rank-n','rank-n'];
-  document.getElementById('league-results').textContent = all.map(r=>{
+  document.getElementById('league-results').innerHTML = all.map(r=>{
     const rows = r.players.map((p,i)=>{
       return `<tr><td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>`+
              `<td>${escapeHtml(p.name)}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td></tr>`;
@@ -320,7 +320,7 @@ function jkConfirmInline(gi, g, names, startIdx){
     const btn = b.querySelector('button');
     if(btn && parseInt(btn.dataset.gi)===gi){
       const namesStr = JSON.stringify(names).replace(/"/g,'&quot;');
-      b.textContent =
+      b.innerHTML =
         `<span style="color:#2e7d32;font-weight:700;font-size:13px;">✅ ${g}조 ${startIdx+1}~${startIdx+names.length}위 확정 완료!</span>`+
         `<button id="unc-btn-${gi}" data-gi="${gi}" data-g="${g}" data-names='${JSON.stringify(names).replace(/'/g,"&#39;")}' data-start="${startIdx}"
           onclick="var d=this.dataset;unconfirmGroup(parseInt(d.gi),parseInt(d.g),JSON.parse(d.names),parseInt(d.start))"
@@ -330,7 +330,7 @@ function jkConfirmInline(gi, g, names, startIdx){
 
   // Step4 순위 갱신
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n','rank-n','rank-n'];
-  document.getElementById('league-results').textContent=ST.week.results.map(r=>{
+  document.getElementById('league-results').innerHTML=ST.week.results.map(r=>{
     const rows = r.players.map((p,i)=>{
       return `<tr>
         <td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>

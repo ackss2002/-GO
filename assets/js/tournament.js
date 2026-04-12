@@ -531,7 +531,7 @@ function genTournament(){
     const p1=bracket[i*2], p2=bracket[i*2+1];
     matchLabels.push(`<span class="pill pill-blue" style="margin:2px;">${i+1}경기: ${escapeHtml(p1)} vs ${escapeHtml(p2)}</span>`);
   }
-  document.getElementById('t-seeds').textContent = bracketLabel + '\n' + matchLabels.join('\n');
+  document.getElementById('t-seeds').innerHTML = bracketLabel + '<br>' + matchLabels.join('<br>');
 
   renderBracket(bracket, size);
   document.getElementById('t2').style.display='block';
@@ -726,7 +726,7 @@ function renderBracket(bracket, size){
       if(dispEl && losers.length>0){
         const bm2={}; MEMBERS.forEach(function(m){ bm2[m.name]=m.total; });
         const gi2=getPlayerGroupInfo();
-        dispEl.textContent=losers.map(function(name){
+        dispEl.innerHTML=losers.map(function(name){
           const bu=bm2[name]?bm2[name]:'';
           const gi=gi2[name]?gi2[name].g+'조 '+gi2[name].rank+'위':'';
           const sub=[bu,gi].filter(Boolean).join(' · ');

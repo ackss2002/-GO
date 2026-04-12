@@ -53,7 +53,7 @@ function renderRanking(){
 
   const bgs=['rank-1','rank-2','rank-3'];
   let rank=1;
-  document.getElementById('ranking-tbody').textContent=all.map((p,i)=>{
+  document.getElementById('ranking-tbody').innerHTML=all.map((p,i)=>{
     if(i>0&&p.pts<all[i-1].pts) rank=i+1;
     if(p.pts===0 && !p.up) return '';
     const bg=rank<=3?bgs[rank-1]:'rank-n';
@@ -68,11 +68,12 @@ function renderRanking(){
   if(q!==1){
     const ups = all.filter(p=>p.up);
     const near = all.filter(p=>!p.up&&p.pts>=7);
-    document.getElementById('upgrade-card').textContent=`승급 현황`+
-      (ups.length?ups.map(p=>`${escapeHtml(p.name)} 승급완료`).join(', '):'승급자 없음')+
-      (near.length?` 승급 후보: ${near.map(p=>escapeHtml(p.name)+' '+p.pts+'점').join(' · ')}`:'');
+    document.getElementById('upgrade-card').innerHTML=
+      `<strong>승급 현황</strong> `+
+      (ups.length?ups.map(p=>`<span class="pill pill-amber">${escapeHtml(p.name)} 승급완료</span>`).join(' '):'승급자 없음')+
+      (near.length?` &nbsp;·&nbsp; 승급 후보: ${near.map(p=>escapeHtml(p.name)+' '+p.pts+'점').join(' · ')}`:'');
   } else {
-    document.getElementById('upgrade-card').textContent='';
+    document.getElementById('upgrade-card').innerHTML='';
   }
 
   // 게스트 순위
@@ -82,7 +83,7 @@ function renderRanking(){
     return {name, bu:s.bu||'?', w:s.w||0, s:s.s||0, t:s.t||0, pts:s.pts||0};
   }).filter(g=>g.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
   let grank=1;
-  document.getElementById('guest-ranking-tbody').textContent = guests.length ?
+  document.getElementById('guest-ranking-tbody').innerHTML = guests.length ?
     guests.map((g,i)=>{
       if(i>0&&g.pts<guests[i-1].pts) grank=i+1;
       const bg=grank<=3?bgs[grank-1]:'rank-n';
@@ -99,10 +100,10 @@ function renderMembers(){
   const sorted = (MEMBERS||[]).slice().sort((a,b)=>{
     return (a.name||'').localeCompare(b.name||'', 'ko');
   });
-  document.getElementById('active-tbody').textContent=sorted.map((m,i)=>{
+  document.getElementById('active-tbody').innerHTML=sorted.map((m,i)=>{
     return `<tr><td>${i+1}</td><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.g)}</td><td>${escapeHtml(m.bu)}</td><td>${escapeHtml(m.bu!==m.total?m.bu+'('+m.total+')':m.total)}</td></tr>`;
   }).join('');
-  document.getElementById('dormant-tbody').textContent=DORMANT.map((m,i)=>{
+  document.getElementById('dormant-tbody').innerHTML=DORMANT.map((m,i)=>{
     return `<tr><td>${i+1}</td><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.g)}</td><td>${escapeHtml(m.bu)}</td><td>${escapeHtml(m.bu!==m.total?m.bu+'('+m.total+')':m.total)}</td></tr>`;
   }).join('');
 }
@@ -119,7 +120,7 @@ function renderExternalMembers(){
     return;
   }
   if(empty) empty.style.display='none';
-  if(el) el.textContent=exts.map((m,i)=>{
+  if(el) el.innerHTML=exts.map((m,i)=>{
     const s = ST.scores[m.name]||{pts:0};
     return `<tr>
       <td>${i+1}</td>
