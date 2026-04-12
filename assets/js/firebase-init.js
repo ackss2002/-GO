@@ -8,7 +8,5 @@ firebase.initializeApp({
   appId: "1:928846732074:web:26baa81874ca8374595c53"
 });
 var db = firebase.database();
-// Firebase 초기화 후 데이터 로드 + 저장 테스트
+// Firebase 초기화 후 데이터 로드 (저장은 로드 완료 후에만 실행)
 loadFromFirebase();
-// 현재 ST 데이터 즉시 저장
-saveToFirebase();
