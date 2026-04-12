@@ -5,6 +5,37 @@ renderLeague();
 updateAdminUI();
 restoreLeagueUI();
 
+// 4월 10일 경기 결과 1회성 마이그레이션
+(function migrate0410(){
+  if(localStorage.getItem('ttgo_m0410')) return;
+  // 승점 누적
+  if(!ST.scores) ST.scores={};
+  function addScore(name,w,s,t,pts){
+    if(!ST.scores[name]) ST.scores[name]={w:0,s:0,t:0,pts:0};
+    ST.scores[name].w+=w; ST.scores[name].s+=s; ST.scores[name].t+=t; ST.scores[name].pts+=pts;
+  }
+  addScore('최양님',1,0,0,5);  // 우승
+  addScore('이현구',0,1,0,3);  // 준우승
+  addScore('이원호',0,0,1,2);  // 3위
+  // 히스토리 추가
+  var record={
+    date:'2026-04-10', week:'', type:'단식', set:'3판2승',
+    players:['양정모','곽동석','이상건','이효준','최양님','김문숙','한상미',
+             '이원호','김현종','이현구','정헌모','김옥희','변현진','김옥란','이봄희','전아현'],
+    groups:[['양정모','곽동석','이상건','이효준','최양님','김문숙','한상미'],
+            ['이원호','김현종','이현구','정헌모','김옥희','변현진','김옥란','이봄희','전아현']],
+    results:[],
+    final:{win:'최양님',second:'이현구',third:'이원호',third2:'',lucky:'김문숙'},
+    savedAt:Date.now()
+  };
+  var history=[];
+  try{ history=JSON.parse(localStorage.getItem('ttgo_history')||'[]'); }catch(e){}
+  if(!history.find(function(h){return h.date==='2026-04-10';})) history.unshift(record);
+  localStorage.setItem('ttgo_history', JSON.stringify(history));
+  saveST();
+  localStorage.setItem('ttgo_m0410','done');
+})();
+
 // ── Firebase 연동 함수 ──
 function saveToFirebase(){
   if(typeof db === 'undefined') return;
