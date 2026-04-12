@@ -1,43 +1,67 @@
-// ADMIN PIN intentionally left blank for security. Do not hardcode sensitive PINs in client-side code.
-// For production, use server-side authentication (Firebase Auth / Cloud Functions).
-const ADMIN_PIN = '';
-if(!ADMIN_PIN) console.warn('ADMIN_PIN is not set. Admin actions require proper server-side auth.');
+// PIN은 소스코드에 저장하지 않음 — Firebase DB에 해시로 저장
 let isAdmin = false;
+
+// SHA-256 해시 생성 (Web Crypto API)
+async function hashPin(pin){
+  const encoded = new TextEncoder().encode(pin);
+  const buf = await crypto.subtle.digest('SHA-256', encoded);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
 function toggleAdmin(){
   if(isAdmin){
-    // 로그아웃(관리자 모드 해제)
+    // 관리자 모드 해제
     isAdmin = false;
+    window.isAdmin = false;
     updateAdminUI();
     return;
   }
-  // Firebase Auth가 있으면 로그인 흐름으로 위임
-  if(window.signIn){
-    window.signIn();
-    return;
-  }
-  // 폴백: 기존 PIN 오버레이 표시
+  // PIN 오버레이 표시
   document.getElementById('pin-overlay').style.display='flex';
   document.getElementById('pin-input').value='';
   document.getElementById('pin-error').style.display='none';
+  const hint = document.getElementById('pin-hint');
+  if(hint) hint.style.display='none';
   setTimeout(()=>document.getElementById('pin-input').focus(), 100);
 }
 
-function checkPin(){
+async function checkPin(){
   const val = document.getElementById('pin-input').value;
-  if(!ADMIN_PIN){
-    // PIN not configured — inform operator and close overlay
-    alert('관리자 PIN이 설정되어 있지 않습니다. 운영자 기능은 서버 인증으로 대체하세요.');
-    document.getElementById('pin-overlay').style.display='none';
+  if(!val || val.length < 4) return;
+
+  if(!window.db){
+    alert('데이터베이스에 연결되지 않았습니다. 잠시 후 다시 시도하세요.');
     return;
   }
-  if(val === ADMIN_PIN){
-    isAdmin = true;
-    document.getElementById('pin-overlay').style.display='none';
-    updateAdminUI();
-  } else if(val.length===4){
-    document.getElementById('pin-error').style.display='block';
-    document.getElementById('pin-input').value='';
+
+  try{
+    const snap = await db.ref('adminPin').once('value');
+    const storedHash = snap.val();
+    const inputHash = await hashPin(val);
+
+    if(!storedHash){
+      // 최초 설정: 입력한 PIN을 해시로 저장
+      await db.ref('adminPin').set(inputHash);
+      isAdmin = true;
+      window.isAdmin = true;
+      document.getElementById('pin-overlay').style.display = 'none';
+      updateAdminUI();
+      alert('✅ 관리자 PIN이 설정되었습니다.\n앞으로 이 PIN으로 로그인하세요.');
+      return;
+    }
+
+    if(inputHash === storedHash){
+      isAdmin = true;
+      window.isAdmin = true;
+      document.getElementById('pin-overlay').style.display = 'none';
+      updateAdminUI();
+    } else {
+      document.getElementById('pin-error').style.display = 'block';
+      document.getElementById('pin-input').value = '';
+    }
+  } catch(e){
+    console.error('PIN 인증 오류', e);
+    alert('인증 오류: ' + e.message);
   }
 }
 
