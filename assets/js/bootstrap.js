@@ -48,6 +48,8 @@ function loadFromFirebase(){
     renderLeague();
     // 조편성 데이터가 있으면 자동 복원
     restoreLeagueUI();
+    // 저장된 로그인 자동 복원
+    autoLoginCheck();
   }).catch(function(e){ console.error('Firebase 로드 오류:', e); });
 }
 

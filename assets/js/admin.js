@@ -1,5 +1,21 @@
 // PIN은 소스코드에 저장하지 않음 — Firebase DB에 해시로 저장
-let isAdmin = false;
+var isAdmin = false;
+
+// 페이지 로드 시 저장된 로그인 자동 복원
+function autoLoginCheck(){
+  if(typeof db === 'undefined') return;
+  var saved = localStorage.getItem('ttgo_admin');
+  if(!saved) return;
+  db.ref('adminPin').once('value').then(function(snap){
+    if(snap.val() && snap.val() === saved){
+      isAdmin = true;
+      window.isAdmin = true;
+      updateAdminUI();
+    } else {
+      localStorage.removeItem('ttgo_admin');
+    }
+  }).catch(function(){ localStorage.removeItem('ttgo_admin'); });
+}
 
 // SHA-256 해시 생성 (Web Crypto API)
 async function hashPin(pin){
@@ -13,6 +29,7 @@ function toggleAdmin(){
     // 관리자 모드 해제
     isAdmin = false;
     window.isAdmin = false;
+    localStorage.removeItem('ttgo_admin');
     updateAdminUI();
     return;
   }
@@ -44,6 +61,7 @@ async function checkPin(){
       await db.ref('adminPin').set(inputHash);
       isAdmin = true;
       window.isAdmin = true;
+      localStorage.setItem('ttgo_admin', inputHash);
       document.getElementById('pin-overlay').style.display = 'none';
       updateAdminUI();
       alert('✅ 관리자 PIN이 설정되었습니다.\n앞으로 이 PIN으로 로그인하세요.');
@@ -53,6 +71,7 @@ async function checkPin(){
     if(inputHash === storedHash){
       isAdmin = true;
       window.isAdmin = true;
+      localStorage.setItem('ttgo_admin', inputHash);
       document.getElementById('pin-overlay').style.display = 'none';
       updateAdminUI();
     } else {
