@@ -120,13 +120,13 @@ function renderLeague(){
       return `<span class="player-chip ${sel?'selected':''}" onclick="toggleP('${jsEscape(guest.name)}')"
         style="${sel?'background:#546e7a;color:white;border-color:#546e7a;':'background:#eceff1;border-color:#90a4ae;color:#546e7a;'}${!isAdmin&&sel?'opacity:0.5;cursor:default;':''}">${escapeHtml(guest.name)}${escapeHtml(guest.total)}${isAdmin?` <small onclick="removeTempPlayer('${jsEscape(guest.name)}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small>`:''}</span>`;
     } else {
-      return `<span class="player-chip" style="background:#eceff1;border:1px dashed #90a4ae;color:#b0bec5;cursor:${isAdmin?'pointer':'default'};" ${isAdmin?`onclick="document.getElementById('temp-name').focus()"`:''}>+ 추가</span>`;
+      return `<span class="player-chip" style="background:#eceff1;border:1px dashed #90a4ae;color:#b0bec5;cursor:${isAdmin?'pointer':'default'};" ${isAdmin?`onclick="document.getElementById('temp-combo').focus()"`:''}>+ 추가</span>`;
     }
   });
   html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${guestSlots.join('')}</div>`;
   html += `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;">
-    <input type="text" id="temp-name" placeholder="이름" style="max-width:90px;padding:5px 8px;">
-    <input type="number" id="temp-bu" placeholder="부수" min="1" max="10" style="max-width:55px;padding:5px 8px;">
+    <input type="text" id="temp-combo" inputmode="text" placeholder="이름+부수 (예: 양정모5)" style="max-width:170px;padding:5px 8px;"
+      onkeydown="if(event.key==='Enter'){addTempPlayer();}">
     <button class="btn btn-sm" onclick="addTempPlayer()" style="background:#ede7f6;color:#5c6bc0;border-color:#b39ddb;">+ 추가</button>
   </div>`;
 
@@ -137,10 +137,15 @@ function renderLeague(){
 }
 
 function addTempPlayer(){
-  const name = document.getElementById('temp-name').value.trim();
-  const bu = parseInt(document.getElementById('temp-bu').value);
+  const combo = (document.getElementById('temp-combo').value||'').trim();
+  if(!combo){ alert('이름+부수를 입력하세요. (예: 양정모5)'); return; }
+  // 뒤에서부터 숫자 추출
+  const m = combo.match(/^(.+?)(\d{1,2})$/);
+  if(!m){ alert('형식: 이름+부수 (예: 양정모5)'); return; }
+  const name = m[1].trim();
+  const bu = parseInt(m[2]);
   if(!name){ alert('이름을 입력하세요.'); return; }
-  if(isNaN(bu)||bu<1||bu>10){ alert('부수를 입력하세요 (1~10).'); return; }
+  if(bu<1||bu>10){ alert('부수는 1~10 사이여야 합니다.'); return; }
   if(MNAMES.includes(name)||getExternals().find(e=>e.name===name)){
     alert('이미 회원 명단에 있습니다. 위에서 선택하세요.'); return;
   }
@@ -149,6 +154,11 @@ function addTempPlayer(){
   ST.week.tempPlayers.push({name, total:bu, g:'', temp:true});
   ST.week.players.push(name);
   saveST(); renderLeague();
+  // 추가 후 입력란 초기화 + 한글 키보드 유지
+  setTimeout(function(){
+    const el = document.getElementById('temp-combo');
+    if(el){ el.value=''; el.focus(); }
+  }, 50);
 }
 
 function removeTempPlayer(name){
