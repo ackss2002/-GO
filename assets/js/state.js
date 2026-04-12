@@ -1,5 +1,5 @@
 var MEMBERS = [
-  {name:'곽동석',g:'남',bu:6,total:6},
+  {name:'곽동석',g:'남',bu:6,total:6},{name:'김덕기',g:'남',bu:5,total:4},
   {name:'김동수',g:'남',bu:6,total:6},{name:'김영란',g:'여',bu:6,total:6},
   {name:'김영서',g:'남',bu:6,total:6},{name:'김옥란',g:'여',bu:9,total:9},
   {name:'김조영',g:'남',bu:6,total:6},{name:'김현종',g:'남',bu:6,total:6},
@@ -11,15 +11,13 @@ var MEMBERS = [
   {name:'이진규',g:'남',bu:6,total:6},{name:'전인석',g:'남',bu:7,total:7},
   {name:'정영아',g:'여',bu:8,total:8},{name:'정헌모',g:'남',bu:7,total:7},
   {name:'정희남',g:'남',bu:7,total:7},{name:'조경숙',g:'여',bu:9,total:9},
-  {name:'최양님',g:'여',bu:7,total:6},{name:'한금환',g:'남',bu:5,total:5},];
+  {name:'최양님',g:'여',bu:7,total:6},{name:'한금환',g:'남',bu:5,total:5},{name:'한철호',g:'남',bu:6,total:6},];
 var DORMANT = [
   {name:'안경식',g:'남',bu:6,total:6},
   {name:'김성훈',g:'남',bu:7,total:7},
   {name:'오영준',g:'남',bu:4,total:4},
   {name:'이동규',g:'남',bu:5,total:5},
   {name:'허순임',g:'여',bu:9,total:9},
-  {name:'김덕기',g:'남',bu:5,total:4},
-  {name:'한철호',g:'남',bu:6,total:6},
 ];
 // 특별 회원 (localStorage에서 관리)
 function getExternals(){ 
@@ -29,15 +27,6 @@ function saveExternals(arr){ localStorage.setItem('ttgo_externals', JSON.stringi
 function saveST(){ localStorage.setItem('ttgo_v3', JSON.stringify(ST)); if(typeof db!=='undefined'){ try{ db.ref('ttgo').set(ST); }catch(e){} } }
 
 var MNAMES = MEMBERS.map(m=>m.name);
-// 정회원(탈퇴자)만 안전하게 삭제, 게스트/기존 week 데이터는 건드리지 않음
-if (ST.week && ST.week.players) {
-  const 탈퇴회원 = ['김덕기', '한철호'];
-  ST.week.players = ST.week.players.filter(n => !탈퇴회원.includes(n) || (ST.week.tempPlayers||[]).some(t=>t.name===n));
-}
-if (ST.week && ST.week.groups) {
-  const 탈퇴회원 = ['김덕기', '한철호'];
-  ST.week.groups = ST.week.groups.map(g => g.filter(n => !탈퇴회원.includes(n) || (ST.week.tempPlayers||[]).some(t=>t.name===n)));
-}
 var INIT_SCORES = {};
 
 var ST = loadST();
