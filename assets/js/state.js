@@ -1,4 +1,4 @@
-const MEMBERS = [
+var MEMBERS = [
   {name:'곽동석',g:'남',bu:6,total:6},{name:'김덕기',g:'남',bu:5,total:4},
   {name:'김동수',g:'남',bu:6,total:6},{name:'김영란',g:'여',bu:6,total:6},
   {name:'김영서',g:'남',bu:6,total:6},{name:'김옥란',g:'여',bu:9,total:9},
@@ -13,7 +13,7 @@ const MEMBERS = [
   {name:'정희남',g:'남',bu:7,total:7},{name:'조경숙',g:'여',bu:9,total:9},
   {name:'최양님',g:'여',bu:7,total:7},{name:'한금환',g:'남',bu:5,total:5},
   {name:'한철호',g:'남',bu:6,total:6},];
-const DORMANT = [
+var DORMANT = [
   {name:'안경식',g:'남',bu:6,total:6},
   {name:'김성훈',g:'남',bu:7,total:7},
   {name:'오영준',g:'남',bu:4,total:4},
@@ -27,10 +27,10 @@ function getExternals(){
 function saveExternals(arr){ localStorage.setItem('ttgo_externals', JSON.stringify(arr)); }
 function saveST(){ localStorage.setItem('ttgo_v3', JSON.stringify(ST)); if(typeof db!=='undefined'){ try{ db.ref('ttgo').set(ST); }catch(e){} } }
 
-const MNAMES = MEMBERS.map(m=>m.name);
-const INIT_SCORES = {};
+var MNAMES = MEMBERS.map(m=>m.name);
+var INIT_SCORES = {};
 
-let ST = loadST();
+var ST = loadST();
 ensureCarryOver();
 function loadST(){
   try{ const s=localStorage.getItem('ttgo_v3');if(s)return JSON.parse(s); }catch(e){}
