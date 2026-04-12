@@ -94,11 +94,11 @@ function renderLeague(){
   const exts = getExternals();
   const temps = ST.week.tempPlayers||[];
 
-  // 정회원 카운트: 이번주 출전자 중 MEMBERS 목록에 있는 사람 수
+  // 정회원 카운트: 전체 회원 수를 표시
   try{
-    const memberCount = (ps||[]).filter(n=> MEMBERS.find(m=>m.name===n)).length;
+    const totalMembers = (MEMBERS||[]).length || 0;
     const el = document.getElementById('s1-member-count');
-    if(el) el.textContent = `정회원(${memberCount}명)`;
+    if(el) el.textContent = `정회원(${totalMembers}명)`;
   }catch(e){ /* 안전하게 무시 */ }
 
   // 정회원 칩 (안전하게 이스케이프)
