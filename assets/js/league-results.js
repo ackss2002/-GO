@@ -127,7 +127,21 @@ function calcResults(){
     all.push({g:gi+1, players:sortedPlayers});
   });
 
-  ST.week.results=all; saveST();
+  ST.week.results=all;
+  // 출석부 자동 기록 (정회원만)
+  if(ST.week.date && ST.week.players && ST.week.players.length>0){
+    var att;
+    try{ att=JSON.parse(localStorage.getItem('ttgo_attendance')||'{"dates":[],"records":{}}'); }catch(e){ att={dates:[],records:{}}; }
+    if(!att.dates.includes(ST.week.date)){ att.dates.push(ST.week.date); att.dates.sort(); }
+    ST.week.players.forEach(function(name){
+      if(!MNAMES.includes(name)) return;
+      if(!att.records[name]) att.records[name]={};
+      att.records[name][ST.week.date]=true;
+    });
+    localStorage.setItem('ttgo_attendance', JSON.stringify(att));
+    if(typeof db!=='undefined') db.ref('ttgo_attendance').set(att);
+  }
+  saveST();
 
   // ── 가위바위보 감지: 직접 계산 ──
   const jkByGroup = {};

@@ -117,7 +117,7 @@ const Q1_SCORES = {
   '김영서':  {w:0, s:0, t:1, pts:2,  up:false},
 };
 
-let currentQuarter = 1;
+let currentQuarter = 2;
 
 function switchQuarter(q){
   currentQuarter = q;

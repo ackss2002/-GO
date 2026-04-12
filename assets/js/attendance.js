@@ -55,7 +55,7 @@ const Q1_EXCHANGE_ATT = {
   '이운희':  [0,0,1],
 };
 
-let currentAttQuarter = 1;
+let currentAttQuarter = 2;
 
 function switchAttQuarter(q){
   currentAttQuarter = q;

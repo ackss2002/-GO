@@ -302,8 +302,8 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   
   <!-- 분기 탭 -->
   <div style="display:flex;gap:8px;margin-bottom:14px;border-bottom:2px solid #e0e0e0;padding-bottom:0;">
-    <button id="qtab-1" onclick="switchQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">1분기</button>
-    <button id="qtab-2" onclick="switchQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">2분기</button>
+    <button id="qtab-1" onclick="switchQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">1분기</button>
+    <button id="qtab-2" onclick="switchQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">2분기</button>
     <button id="qtab-all" onclick="switchQuarter('all')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">전체</button>
   </div>
 
@@ -333,12 +333,12 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 <div id="attendance" class="section">
   <!-- 분기 탭 -->
   <div style="display:flex;gap:8px;margin-bottom:14px;border-bottom:2px solid #e0e0e0;">
-    <button id="atab-1" onclick="switchAttQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">1분기</button>
-    <button id="atab-2" onclick="switchAttQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">2분기</button>
+    <button id="atab-1" onclick="switchAttQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">1분기</button>
+    <button id="atab-2" onclick="switchAttQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">2분기</button>
   </div>
 
   <!-- 1분기 -->
-  <div id="att-q1">
+  <div id="att-q1" style="display:none;">
     <div class="card">
       <div class="card-title">1분기 출석 현황 (금요리그 10회 + 교류전 3회)</div>
       <div style="overflow-x:auto;">
@@ -352,7 +352,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   </div>
 
   <!-- 2분기 -->
-  <div id="att-q2" style="display:none;">
+  <div id="att-q2">
     <!-- 금요리그 -->
     <div class="card">
       <div class="card-title">2분기 금요리그 출석</div>
