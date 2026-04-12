@@ -719,7 +719,7 @@ function renderMatches(){
         </tbody>
       </table>
       </div>
-      <div style="margin-top:8px;">${ord.map(m=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;">${m[0]}:${m[1]}</span>`).join('')}</div>
+      <div style="margin-top:8px;">${ord.map((m,idx)=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;"><b style="color:#e94560;">${idx+1}</b> ${escapeHtml(grp[m[0]-1])}:${escapeHtml(grp[m[1]-1])}</span>`).join('')}</div>
     </div>`;
   });
   document.getElementById('league-matches').innerHTML=html;
@@ -778,7 +778,7 @@ function renderMatchesDoubles(){
           </tr>`).join('')}
         </tbody>
       </table></div>
-      <div style="margin-top:8px;">${ord.map(m=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;">${m[0]}:${m[1]}</span>`).join('')}</div>
+      <div style="margin-top:8px;">${ord.map((m,idx)=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;"><b style="color:#e94560;">${idx+1}</b> ${escapeHtml(teamNames[m[0]-1])}:${escapeHtml(teamNames[m[1]-1])}</span>`).join('')}</div>
     </div>`;
   });
   document.getElementById('league-matches').innerHTML=html;
