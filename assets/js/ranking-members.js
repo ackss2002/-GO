@@ -49,7 +49,8 @@ function renderRanking(){
 
   const all = allMembers.map(m=>{
     const s = scores[m.name]||{w:0,s:0,t:0,pts:0};
-    return {name:m.name, gender:m.g, bu:m.total, isExt:m.isExt, ...s};
+    const buDisplay = m.bu!==m.total ? m.bu+'('+m.total+')' : String(m.bu);
+    return {name:m.name, gender:m.g, bu:buDisplay, isExt:m.isExt, ...s};
   }).sort((a,b)=>b.pts-a.pts||b.w-a.w||b.s-a.s);
 
   const bgs=['rank-1','rank-2','rank-3'];
