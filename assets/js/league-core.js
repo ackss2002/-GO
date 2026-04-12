@@ -430,6 +430,14 @@ function confirmGroups(){
     if(ST.doubles.groups.filter(g=>g.length>=2).length===0){alert('각 조 최소 2팀 배정하세요.');return;}
   } else {
     if(ST.week.groups.filter(g=>g.length>=3).length===0){alert('각 조 최소 3명 배정하세요.');return;}
+    // 부수 오름차순 정렬 (낮은 부수=실력 좋은 선수 먼저, 동일 부수면 가나다순)
+    var buMap={};
+    MEMBERS.forEach(function(m){ buMap[m.name]=m.total; });
+    getExternals().forEach(function(m){ buMap[m.name]=m.total; });
+    (ST.week.tempPlayers||[]).forEach(function(m){ buMap[m.name]=m.total; });
+    ST.week.groups.forEach(function(g){
+      g.sort(function(a,b){ return (buMap[a]||99)-(buMap[b]||99) || a.localeCompare(b,'ko'); });
+    });
   }
   saveST();
   document.getElementById('s3').style.display='block';
