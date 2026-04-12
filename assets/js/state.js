@@ -31,6 +31,22 @@ var MNAMES = MEMBERS.map(m=>m.name);
 var INIT_SCORES = {};
 
 var ST = loadST();
+// [자동 패치] 최양님 2분기 점수 0점으로 강제 초기화 (승급 이후 실적 없음, localStorage+Firebase 동기화)
+if (ST.scores) {
+  ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+  try { localStorage.setItem('ttgo_v3', JSON.stringify(ST)); } catch(e){}
+  if(typeof db!=='undefined'){ try{ db.ref('ttgo').set(ST); }catch(e){} }
+}
+// 최양님 2분기 점수 0점으로 강제 초기화 (승급 이후 실적 없음)
+if (ST.scores) {
+  ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+  saveST();
+}
+// 최양님 2분기 승급 이후 실적 0점으로 강제 초기화
+if (ST.scores && ST.scores['최양님']) {
+  ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+  saveST();
+}
 ensureCarryOver();
 function loadST(){
   try{ const s=localStorage.getItem('ttgo_v3');if(s)return JSON.parse(s); }catch(e){}
