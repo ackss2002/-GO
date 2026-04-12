@@ -13,18 +13,31 @@ function renderRanking(){
     scores = Q1_SCORES;
     title = '1분기 랭킹 포인트 순위';
   } else if(q===2){
-    // 2분기: 이월 승점 + 2분기 순수 획득분
+    // 2분기: 승급자는 승급 이후 점수만, 미승급자는 이월+2분기 전체
     scores = {};
     allMembers.forEach(m=>{
       const co = (ST.carryOver||{})[m.name]||{w:0,s:0,t:0,pts:0};
       const q2 = (ST.scores||{})[m.name]||{w:0,s:0,t:0,pts:0};
-      scores[m.name] = {
-        w:(co.w||0)+(q2.w||0),
-        s:(co.s||0)+(q2.s||0),
-        t:(co.t||0)+(q2.t||0),
-        pts:(co.pts||0)+(q2.pts||0),
-        up: q2.up
-      };
+      // 승급 여부 판단 (2분기 내 승급자는 q2.up===true)
+      if(q2.up){
+        // 승급자는 2분기 점수 리셋: 승급 이후 실적만 반영 (carryOver 제외)
+        scores[m.name] = {
+          w: q2.w||0,
+          s: q2.s||0,
+          t: q2.t||0,
+          pts: (q2.w||0)*5 + (q2.s||0)*3 + (q2.t||0)*2,
+          up: true
+        };
+      } else {
+        // 미승급자는 이월+2분기 전체
+        scores[m.name] = {
+          w:(co.w||0)+(q2.w||0),
+          s:(co.s||0)+(q2.s||0),
+          t:(co.t||0)+(q2.t||0),
+          pts:(co.pts||0)+(q2.pts||0),
+          up: false
+        };
+      }
     });
     title = '2분기 랭킹 포인트 순위';
   } else {
