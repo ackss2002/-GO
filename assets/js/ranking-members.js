@@ -28,16 +28,17 @@ function renderRanking(){
     });
     title = '2분기 승점 순위';
   } else {
-    // 전체: 1분기 + 이월 + 2분기 순수 획득분 (이월 중복 없음)
+    // 전체: 횟수 합산 → 실제 획득 총점으로 계산 (승급 리셋 무시)
     scores = {};
     allMembers.forEach(m=>{
       const q1 = Q1_SCORES[m.name]||{w:0,s:0,t:0,pts:0};
       const q2 = (ST.scores||{})[m.name]||{w:0,s:0,t:0,pts:0};
+      const w = (q1.w||0)+(q2.w||0);
+      const s = (q1.s||0)+(q2.s||0);
+      const t = (q1.t||0)+(q2.t||0);
       scores[m.name] = {
-        w:(q1.w||0)+(q2.w||0),
-        s:(q1.s||0)+(q2.s||0),
-        t:(q1.t||0)+(q2.t||0),
-        pts:(q1.pts||0)+(q2.pts||0),
+        w: w, s: s, t: t,
+        pts: w*5 + s*3 + t*2,
         up: q1.up||q2.up
       };
     });
