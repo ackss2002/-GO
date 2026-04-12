@@ -11,7 +11,7 @@ function renderRanking(){
   const q = currentQuarter||1;
   if(q===1){
     scores = Q1_SCORES;
-    title = '1분기 승점 순위';
+    title = '1분기 랭킹 포인트 순위';
   } else if(q===2){
     // 2분기: 이월 승점 + 2분기 순수 획득분
     scores = {};
@@ -26,7 +26,7 @@ function renderRanking(){
         up: q2.up
       };
     });
-    title = '2분기 승점 순위';
+    title = '2분기 랭킹 포인트 순위';
   } else {
     // 전체: 횟수 합산 → 실제 획득 총점으로 계산 (승급 리셋 무시)
     scores = {};
@@ -42,7 +42,7 @@ function renderRanking(){
         up: q1.up||q2.up
       };
     });
-    title = '전체 승점 순위';
+    title = '전체 랭킹 포인트 순위';
   }
 
   document.getElementById('ranking-title').textContent = title;
@@ -68,11 +68,9 @@ function renderRanking(){
   // 승급 현황 (2분기/전체만)
   if(q!==1){
     const ups = all.filter(p=>p.up);
-    const near = all.filter(p=>!p.up&&p.pts>=7);
     document.getElementById('upgrade-card').innerHTML=
       `<strong>승급 현황</strong> `+
-      (ups.length?ups.map(p=>`<span class="pill pill-amber">${escapeHtml(p.name)} 승급완료</span>`).join(' '):'승급자 없음')+
-      (near.length?` &nbsp;·&nbsp; 승급 후보: ${near.map(p=>escapeHtml(p.name)+' '+p.pts+'점').join(' · ')}`:'');
+      (ups.length?ups.map(p=>`<span class="pill pill-amber">${escapeHtml(p.name)} 승급완료</span>`).join(' '):'승급자 없음');
   } else {
     document.getElementById('upgrade-card').innerHTML='';
   }
@@ -92,7 +90,7 @@ function renderRanking(){
         <td><strong>${escapeHtml(g.name)}</strong></td><td>${escapeHtml(String(g.bu))}부</td>
         <td>${g.w}</td><td>${g.s}</td><td>${g.t}</td><td><strong>${g.pts}점</strong></td></tr>`;
     }).join('')
-    : '<tr><td colspan="7" style="color:#888;text-align:center;">게스트 승점 없음</td></tr>';
+    : '<tr><td colspan="7" style="color:#888;text-align:center;">게스트 랭킹 포인트 없음</td></tr>';
 }
 
 // 회원 관리
