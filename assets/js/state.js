@@ -29,12 +29,14 @@ function saveExternals(arr){ localStorage.setItem('ttgo_externals', JSON.stringi
 function saveST(){ localStorage.setItem('ttgo_v3', JSON.stringify(ST)); if(typeof db!=='undefined'){ try{ db.ref('ttgo').set(ST); }catch(e){} } }
 
 var MNAMES = MEMBERS.map(m=>m.name);
-// 이번주 리그에서 탈퇴 회원 자동 삭제
+// 정회원(탈퇴자)만 안전하게 삭제, 게스트/기존 week 데이터는 건드리지 않음
 if (ST.week && ST.week.players) {
-  ST.week.players = ST.week.players.filter(n => n !== '김덕기' && n !== '한철호');
+  const 탈퇴회원 = ['김덕기', '한철호'];
+  ST.week.players = ST.week.players.filter(n => !탈퇴회원.includes(n) || (ST.week.tempPlayers||[]).some(t=>t.name===n));
 }
 if (ST.week && ST.week.groups) {
-  ST.week.groups = ST.week.groups.map(g => g.filter(n => n !== '김덕기' && n !== '한철호'));
+  const 탈퇴회원 = ['김덕기', '한철호'];
+  ST.week.groups = ST.week.groups.map(g => g.filter(n => !탈퇴회원.includes(n) || (ST.week.tempPlayers||[]).some(t=>t.name===n)));
 }
 var INIT_SCORES = {};
 
