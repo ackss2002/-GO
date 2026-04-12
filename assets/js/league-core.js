@@ -640,6 +640,22 @@ function realtimeCalc(gi){
       rkEl.style.color = rank===0?'#e94560':rank===1?'#1565C0':rank===2?'#CD7F32':'#aaa';
     }
   });
+  // 경기순서 태그 자동 완료 표시
+  updateGameTags(gi,'g');
+}
+
+function updateGameTags(gi,prefix){
+  var idx=0;
+  while(true){
+    var tag=document.getElementById('gt'+gi+'_'+idx);
+    if(!tag) break;
+    var ri=parseInt(tag.dataset.r), ci=parseInt(tag.dataset.c);
+    var a=document.getElementById(prefix+gi+'r'+ri+'c'+ci);
+    var b=document.getElementById(prefix+gi+'r'+ci+'c'+ri);
+    var filled = a && b && a.value!=='' && b.value!=='';
+    if(filled) tag.classList.add('done'); else tag.classList.remove('done');
+    idx++;
+  }
 }
 
 function getOrder(n){
@@ -719,7 +735,7 @@ function renderMatches(){
         </tbody>
       </table>
       </div>
-      <div style="margin-top:8px;">${ord.map((m,idx)=>`<span class="game-tag" onclick="this.classList.toggle('done')" style="font-size:11px;padding:2px 7px;cursor:pointer;"><b style="color:#e94560;">${idx+1}</b> ${escapeHtml(grp[m[0]-1])}:${escapeHtml(grp[m[1]-1])}</span>`).join('')}</div>
+      <div style="margin-top:8px;">${ord.map((m,idx)=>`<span id="gt${gi}_${idx}" class="game-tag" onclick="this.classList.toggle('done')" style="font-size:11px;padding:2px 7px;cursor:pointer;" data-r="${m[0]-1}" data-c="${m[1]-1}"><b style="color:#e94560;">${idx+1}</b> ${escapeHtml(grp[m[0]-1])}:${escapeHtml(grp[m[1]-1])}</span>`).join('')}</div>
     </div>`;
   });
   document.getElementById('league-matches').innerHTML=html;
@@ -778,7 +794,7 @@ function renderMatchesDoubles(){
           </tr>`).join('')}
         </tbody>
       </table></div>
-      <div style="margin-top:8px;">${ord.map((m,idx)=>`<span class="game-tag" onclick="this.classList.toggle('done')" style="font-size:11px;padding:2px 7px;cursor:pointer;"><b style="color:#e94560;">${idx+1}</b> ${escapeHtml(teamNames[m[0]-1])}:${escapeHtml(teamNames[m[1]-1])}</span>`).join('')}</div>
+      <div style="margin-top:8px;">${ord.map((m,idx)=>`<span id="gt${gi}_${idx}" class="game-tag" onclick="this.classList.toggle('done')" style="font-size:11px;padding:2px 7px;cursor:pointer;" data-r="${m[0]-1}" data-c="${m[1]-1}"><b style="color:#e94560;">${idx+1}</b> ${escapeHtml(teamNames[m[0]-1])}:${escapeHtml(teamNames[m[1]-1])}</span>`).join('')}</div>
     </div>`;
   });
   document.getElementById('league-matches').innerHTML=html;
@@ -809,4 +825,5 @@ function realtimeCalcDoubles(gi){
       rkEl.style.color = rank===0?'#e94560':rank===1?'#1565C0':rank===2?'#CD7F32':'#aaa';
     }
   });
+  updateGameTags(gi,'dg');
 }
