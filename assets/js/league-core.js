@@ -996,27 +996,12 @@ function editMemberInfo(memberName) {
     alert('운영진만 수정할 수 있습니다.');
     return;
   }
-  // 회원을 MEMBERS 또는 DORMANT에서 찾음 (이름을 식별자로 사용)
-  let arr = MEMBERS.find(m => m.name === memberName) ? MEMBERS : (DORMANT.find(m => m.name === memberName) ? DORMANT : null);
-  if (!arr) {
-    alert('회원 정보를 찾을 수 없습니다.');
-    return;
+  // 모달로 편집: bootstrap.js의 showEditMemberModal 사용
+  if (typeof window.showEditMemberModal === 'function') {
+    window.showEditMemberModal(memberName);
+  } else {
+    alert('편집 모달을 열 수 없습니다.');
   }
-  const idx = arr.findIndex(m => m.name === memberName);
-  if (idx === -1) { alert('회원 정보를 찾을 수 없습니다.'); return; }
-  const member = arr[idx];
-  const newName = prompt('이름을 입력하세요:', member.name);
-  if (!newName) return;
-  const newBuRaw = prompt('부수를 입력하세요 (숫자):', member.total);
-  const newBu = parseInt(newBuRaw, 10);
-  if (isNaN(newBu) || newBu < 1 || newBu > 99) { alert('유효한 부수를 입력하세요.'); return; }
-  // 변경 반영
-  member.name = newName.trim();
-  member.total = newBu;
-  // MNAMES 전역 업데이트 (state.js에 정의된 변수)
-  try { MNAMES = MEMBERS.map(m => m.name); } catch(e) { window.MNAMES = MEMBERS.map(m => m.name); }
-  if (typeof syncAllMemberData === 'function') syncAllMemberData();
-  renderMembersAdminUI(window.currentUser||'');
 }
 
 // 탈퇴회원 완전삭제(운영진만)

@@ -405,4 +405,55 @@ function removeMemberFromAll(memberName) {
   });
 }
 
+// -----------------------
+// 회원 수정 모달 (동적 생성)
+// -----------------------
+window.showEditMemberModal = function(originalName){
+  try{
+    if(!document.getElementById('edit-member-modal')){
+      const wrapper = document.createElement('div');
+      wrapper.id = 'edit-member-modal';
+      wrapper.style = 'position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:12000;';
+      wrapper.innerHTML = `
+        <div style="background:white;border-radius:12px;padding:18px 18px;max-width:420px;width:94%;box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+          <h3 style="margin:0 0 8px 0;font-size:18px;color:#1a1a2e;">회원 정보 수정</h3>
+          <div style="margin-bottom:8px;font-size:13px;color:#666;">이름</div>
+          <input id="edit-member-name" type="text" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:10px;font-size:14px;" />
+          <div style="margin-bottom:8px;font-size:13px;color:#666;">부수</div>
+          <input id="edit-member-bu" type="number" min="1" max="99" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:12px;font-size:14px;" />
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button id="edit-member-cancel" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:white;">취소</button>
+            <button id="edit-member-save" style="padding:8px 12px;border-radius:8px;border:none;background:#1a1a2e;color:white;">저장</button>
+          </div>
+        </div>`;
+      document.body.appendChild(wrapper);
+      // 이벤트 바인딩
+      document.getElementById('edit-member-cancel').addEventListener('click', function(){ document.getElementById('edit-member-modal').style.display='none'; });
+    }
+    // 채우기
+    const member = MEMBERS.find(m=>m.name===originalName) || DORMANT.find(m=>m.name===originalName) || EX_MEMBERS.find(m=>m.name===originalName);
+    if(!member){ alert('이 페이지 내용:\n회원 정보를 찾을 수 없습니다.'); return; }
+    document.getElementById('edit-member-name').value = member.name;
+    document.getElementById('edit-member-bu').value = member.total || '';
+    document.getElementById('edit-member-modal').style.display = 'flex';
+    // 저장 버튼 핸들러 (한 번만 바인딩되도록 제거 후 재바인딩)
+    const saveBtn = document.getElementById('edit-member-save');
+    const newHandler = function(){
+      const newName = (document.getElementById('edit-member-name').value||'').trim();
+      const newBu = parseInt(document.getElementById('edit-member-bu').value,10);
+      if(!newName){ alert('이름을 입력하세요.'); return; }
+      if(isNaN(newBu) || newBu < 1){ alert('유효한 부수를 입력하세요.'); return; }
+      if(typeof updateMemberInfo === 'function'){
+        updateMemberInfo(originalName, { name: newName, total: newBu });
+      }
+      document.getElementById('edit-member-modal').style.display='none';
+      if(typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+    };
+    // remove existing listeners by cloning
+    const newSave = saveBtn.cloneNode(true);
+    saveBtn.parentNode.replaceChild(newSave, saveBtn);
+    newSave.addEventListener('click', newHandler);
+  }catch(e){ console.error('showEditMemberModal error', e); alert('모달을 열 수 없습니다. 콘솔을 확인하세요.'); }
+};
+
 // ...이후 UI/이벤트 바인딩/운영진만 노출/버튼 등은 league-core.js, index.html에서 추가 구현 예정...
