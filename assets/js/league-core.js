@@ -967,6 +967,7 @@ function renderMembersAdminUI(currentUser) {
   MEMBERS.forEach(m => {
     html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>정상</td>` +
       `<td><button onclick="editMemberInfo('${jsEscape(m.name)}')">수정</button></td>` +
+      `<td><button onclick="setDormant('${jsEscape(m.name)}')">휴면</button></td>` +
       `<td><button onclick="retireMember('${jsEscape(m.name)}')">탈퇴</button></td></tr>`;
   });
   html += '</tbody></table>';
@@ -975,6 +976,7 @@ function renderMembersAdminUI(currentUser) {
   DORMANT.forEach(m => {
     html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>휴면</td>` +
       `<td><button onclick="editMemberInfo('${jsEscape(m.name)}')">수정</button></td>` +
+      `<td><button onclick="restoreFromDormant('${jsEscape(m.name)}')">복구</button></td>` +
       `<td><button onclick="retireMember('${jsEscape(m.name)}')">탈퇴</button></td></tr>`;
   });
   html += '</tbody></table>';

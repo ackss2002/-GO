@@ -339,11 +339,14 @@ function retireMember(memberName) {
   // memberName으로 회원 찾기
   const member = MEMBERS.find(m => m.name === memberName) || DORMANT.find(m => m.name === memberName);
   if (!member) return false;
+  // 확인
+  if (!confirm(memberName + '님을 탈퇴 처리하시겠습니까? (복구 가능)')) return false;
   // MEMBERS/DORMANT에서 제거
   removeMemberFromAll(memberName);
   // EX_MEMBERS에 추가 (복구용 정보 포함)
   EX_MEMBERS.push({...member, retiredAt: Date.now()});
   syncAllMemberData();
+  if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
   return true;
 }
 
@@ -357,6 +360,7 @@ function restoreMemberFromEx(memberName) {
   // EX_MEMBERS에서 제거
   EX_MEMBERS.splice(idx, 1);
   syncAllMemberData();
+  if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
   return true;
 }
 
@@ -372,7 +376,32 @@ function updateMemberInfo(memberName, newInfo) {
     }
   });
   if (found) syncAllMemberData();
+  if (found && typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
   return found;
+}
+
+// 휴면 처리: MEMBERS -> DORMANT
+function setDormant(memberName) {
+  const member = MEMBERS.find(m=>m.name===memberName);
+  if(!member) return false;
+  if(!confirm(memberName + '님을 휴면 처리하시겠습니까?')) return false;
+  removeMemberFromAll(memberName);
+  DORMANT.push({...member});
+  syncAllMemberData();
+  if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  return true;
+}
+
+// 휴면 복구: DORMANT -> MEMBERS
+function restoreFromDormant(memberName){
+  const idx = DORMANT.findIndex(m=>m.name===memberName);
+  if(idx===-1) return false;
+  const member = DORMANT[idx];
+  DORMANT.splice(idx,1);
+  MEMBERS.push({...member});
+  syncAllMemberData();
+  if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  return true;
 }
 
 // 회원 전체 데이터 동기화 함수
