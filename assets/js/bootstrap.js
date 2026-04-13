@@ -1,3 +1,25 @@
+// =========================
+// 회원관리 탭 진입 시 데이터/함수 바인딩 보장 및 자동 렌더링
+// =========================
+
+// MEMBERS, DORMANT, EX_MEMBERS를 window에 항상 바인딩
+if (typeof window !== 'undefined') {
+  window.MEMBERS = window.MEMBERS || (typeof MEMBERS !== 'undefined' ? MEMBERS : []);
+  window.DORMANT = window.DORMANT || (typeof DORMANT !== 'undefined' ? DORMANT : []);
+  window.EX_MEMBERS = window.EX_MEMBERS || (typeof EX_MEMBERS !== 'undefined' ? EX_MEMBERS : []);
+}
+
+// 회원관리 탭 클릭 시 무조건 운영진 UI 렌더링
+document.addEventListener('DOMContentLoaded', function() {
+  const membersTab = document.querySelector('.tab[onclick*="members"]');
+  if (membersTab) {
+    membersTab.addEventListener('click', function() {
+      if (typeof window.renderMembersAdminUI === 'function') {
+        window.renderMembersAdminUI(window.currentUser || '');
+      }
+    });
+  }
+});
 // 초기 실행
 renderDash();
 renderMembers();
