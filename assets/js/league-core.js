@@ -926,6 +926,9 @@ function printSortedMembersByBu() {
       if (temp) return { name: temp.name, bu: temp.total };
       return { name, bu: '?' };
     });
+// ...existing code...
+}
+
 // 주요 함수들을 window에 바인딩해서 전역에서 접근 가능하게 함 (오빠 요청)
 window.renderDash = renderDash;
 window.renderLeague = renderLeague;
