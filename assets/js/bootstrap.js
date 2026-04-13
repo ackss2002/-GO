@@ -52,6 +52,31 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// 페이지 로드 시 마지막 활성 탭 복원 (새로고침 후 대시보드로 돌아가는 문제 해결)
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var saved = localStorage.getItem('ttgo_active_tab');
+    if(saved && typeof window.switchTab === 'function'){
+      var tabs = document.querySelectorAll('.tab');
+      var found = null;
+      tabs.forEach(function(t){
+        try{
+          var attr = t.getAttribute('onclick')||'';
+          if(attr.indexOf("switchTab('"+saved+"'")!==-1 || attr.indexOf('switchTab(\"'+saved+'\"')!==-1) found = t;
+        }catch(e){}
+      });
+      if(!found) found = document.querySelector('.tab');
+      if(found) window.switchTab(saved, found);
+    } else {
+      // 기본 대시보드로 이동
+      if(typeof window.switchTab === 'function'){
+        var first = document.querySelector('.tab');
+        if(first) window.switchTab('dashboard', first);
+      }
+    }
+  }catch(e){ console.error('restore tab error', e); }
+});
+
 // 자물쇠 버튼 클릭 시 토글
 window.toggleAdmin = function() {
   window.isAdminMode = !window.isAdminMode;

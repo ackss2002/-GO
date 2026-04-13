@@ -31,6 +31,7 @@ function switchTab(name,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById(name).classList.add('active');
   el.classList.add('active');
+  try{ localStorage.setItem('ttgo_active_tab', name); }catch(e){}
   if(name==='dashboard') renderDash();
   if(name==='ranking') renderRanking();
   if(name==='members') {
