@@ -1,4 +1,37 @@
 // =========================
+// 회원관리 데이터/운영진 기본값 보장 및 안내 메시지 보강
+// =========================
+
+// MEMBERS, DORMANT, EX_MEMBERS에 더미 데이터라도 기본값으로 바인딩
+if (typeof window !== 'undefined') {
+  if (!window.MEMBERS || !Array.isArray(window.MEMBERS) || window.MEMBERS.length === 0) {
+    window.MEMBERS = [
+      { id: 'admin1', name: '안치국', total: 1 },
+      { id: 'admin2', name: '이미진', total: 2 }
+    ];
+  }
+  if (!window.DORMANT || !Array.isArray(window.DORMANT)) {
+    window.DORMANT = [];
+  }
+  if (!window.EX_MEMBERS || !Array.isArray(window.EX_MEMBERS)) {
+    window.EX_MEMBERS = [];
+  }
+  // 운영진 currentUser 기본값 세팅(없으면)
+  if (!window.currentUser) window.currentUser = '안치국';
+}
+
+// renderMembersAdminUI 함수 내부에서 데이터 없을 때 안내 메시지 보강(이미 정의된 함수라면 패치 필요)
+if (typeof window.renderMembersAdminUI === 'function') {
+  const origRender = window.renderMembersAdminUI;
+  window.renderMembersAdminUI = function(currentUser) {
+    if (!window.MEMBERS || window.MEMBERS.length === 0) {
+      document.getElementById('admin-members-area').innerHTML = '<div style="color:#e94560;font-weight:700;">회원 데이터가 없습니다. (더미 데이터로 테스트 중)</div>';
+      return;
+    }
+    origRender(currentUser);
+  };
+}
+// =========================
 // 회원관리 탭 진입 시 데이터/함수 바인딩 보장 및 자동 렌더링
 // =========================
 
