@@ -129,11 +129,7 @@ function renderLeague(){
     const label = escapeHtml(m.name) + (m.bu!==m.total ? escapeHtml(m.bu+'('+m.total+')') : escapeHtml(m.total));
     return `<span class="player-chip ${sel}" onclick="toggleP('${jsEscape(m.name)}')" style="${style}">${label}</span>`;
   }).join('');
-    const sel = ps.includes(m.name) ? 'selected' : '';
-    const style = (!isAdmin && ps.includes(m.name)) ? 'opacity:0.5;cursor:default;' : '';
-    const label = escapeHtml(m.name) + (m.bu!==m.total ? escapeHtml(m.bu+'('+m.total+')') : escapeHtml(m.total));
-    return `<span class="player-chip ${sel}" onclick="toggleP('${jsEscape(m.name)}')" style="${style}">${label}</span>`;
-  }).join('');
+
 
   // 게스트 명단을 부수(숫자 낮은 순)로 정렬
   const sortedTemps = [...temps].sort((a, b) => (a.total || 99) - (b.total || 99));
