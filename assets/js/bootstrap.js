@@ -70,6 +70,36 @@ if (typeof window !== 'undefined') {
   console.log('[DEBUG] DORMANT:', window.DORMANT);
   console.log('[DEBUG] EX_MEMBERS:', window.EX_MEMBERS);
   console.log('[DEBUG] currentUser:', window.currentUser);
+
+  // window.isAdmin 함수 보장 (중복 방지)
+  if (typeof window.isAdmin !== 'function') {
+    window.isAdmin = function(userName) {
+      return ["이미진", "안치국"].includes(userName);
+    };
+    console.log('[DEBUG] window.isAdmin 바인딩됨');
+  }
+
+  // window.renderMembersAdminUI 함수 보장 (더미라도)
+  if (typeof window.renderMembersAdminUI !== 'function') {
+    window.renderMembersAdminUI = function(currentUser) {
+      var area = document.getElementById('admin-members-area');
+      if (area) area.innerHTML = '<div style="color:#e94560;font-weight:700;">회원관리 UI 함수가 정의되어 있지 않습니다. (더미 함수)</div>';
+    };
+    console.log('[DEBUG] window.renderMembersAdminUI 더미 바인딩됨');
+  }
+
+  // window.renderMembers 함수 보장 (실제는 renderMembersAdminUI 호출)
+  if (typeof window.renderMembers !== 'function') {
+    window.renderMembers = function() {
+      if (typeof window.renderMembersAdminUI === 'function') {
+        window.renderMembersAdminUI(window.currentUser || '');
+      } else {
+        var area = document.getElementById('admin-members-area');
+        if (area) area.innerHTML = '<div style="color:#e94560;font-weight:700;">회원관리 UI 함수가 정의되어 있지 않습니다.</div>';
+      }
+    };
+    console.log('[DEBUG] window.renderMembers 더미 바인딩됨');
+  }
 }
 
 // renderMembersAdminUI 함수 내부에서 데이터 없을 때 안내 메시지 보강(이미 정의된 함수라면 패치 필요)
@@ -77,15 +107,20 @@ if (typeof window.renderMembersAdminUI === 'function') {
   const origRender = window.renderMembersAdminUI;
   window.renderMembersAdminUI = function(currentUser) {
     var area = document.getElementById('admin-members-area');
-    if (!window.MEMBERS || !Array.isArray(window.MEMBERS) || window.MEMBERS.length === 0) {
-      if (area) area.innerHTML = '<div style="color:#e94560;font-weight:700;">회원 데이터가 없습니다. (Firebase 연동 또는 데이터 로딩 오류일 수 있습니다)</div>';
-      return;
-    }
-    // 정상 데이터가 있을 때만 원래 렌더링
-    origRender(currentUser);
-    // 데이터가 비어있지 않아도, 혹시라도 area가 비어있으면 안내 메시지 출력
-    if (area && !area.innerHTML.trim()) {
-      area.innerHTML = '<div style="color:#e94560;font-weight:700;">회원 데이터가 없습니다. (렌더링 오류)</div>';
+    try {
+      if (!window.MEMBERS || !Array.isArray(window.MEMBERS) || window.MEMBERS.length === 0) {
+        if (area) area.innerHTML = '<div style="color:#e94560;font-weight:700;">회원 데이터가 없습니다. (Firebase 연동 또는 데이터 로딩 오류일 수 있습니다)</div>';
+        return;
+      }
+      // 정상 데이터가 있을 때만 원래 렌더링
+      origRender(currentUser);
+      // 데이터가 비어있지 않아도, 혹시라도 area가 비어있으면 안내 메시지 출력
+      if (area && !area.innerHTML.trim()) {
+        area.innerHTML = '<div style="color:#e94560;font-weight:700;">회원 데이터가 없습니다. (렌더링 오류)</div>';
+      }
+    } catch(e) {
+      if (area) area.innerHTML = '<div style="color:#e94560;font-weight:700;">회원관리 UI 렌더링 중 오류 발생: '+e.message+'</div>';
+      console.error('[회원관리 UI 렌더링 오류]', e);
     }
   };
 }
