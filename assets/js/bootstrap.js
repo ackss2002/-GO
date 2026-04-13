@@ -98,6 +98,18 @@ if (typeof window !== 'undefined') {
   window.MEMBERS = window.MEMBERS || (typeof MEMBERS !== 'undefined' ? MEMBERS : []);
   window.DORMANT = window.DORMANT || (typeof DORMANT !== 'undefined' ? DORMANT : []);
   window.EX_MEMBERS = window.EX_MEMBERS || (typeof EX_MEMBERS !== 'undefined' ? EX_MEMBERS : []);
+
+  // renderMembers 함수가 없으면 더미 함수로 바인딩 (실제는 renderMembersAdminUI 호출)
+  if (typeof window.renderMembers !== 'function') {
+    window.renderMembers = function() {
+      if (typeof window.renderMembersAdminUI === 'function') {
+        window.renderMembersAdminUI(window.currentUser || '');
+      } else {
+        var area = document.getElementById('admin-members-area');
+        if (area) area.innerHTML = '<div style="color:#e94560;font-weight:700;">회원관리 UI 함수가 정의되어 있지 않습니다.</div>';
+      }
+    };
+  }
 }
 
 // 회원관리 탭 클릭 시 무조건 운영진 UI 렌더링
