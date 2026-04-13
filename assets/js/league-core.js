@@ -990,8 +990,32 @@ function renderMembersAdminUI(currentUser) {
 
 // 회원 정보 수정(운영진만)
 function editMemberInfo(memberId) {
-  // 오빠: 실제 수정 폼/로직은 이후 단계에서 구현
-  alert('회원 정보 수정 기능은 곧 추가됩니다!');
+  // 운영진만 접근 가능 (안전장치)
+  if (!window.isAdmin(window.currentUser)) {
+    alert('운영진만 수정할 수 있습니다.');
+    return;
+  }
+  // 회원을 MEMBERS 또는 DORMANT에서 찾음
+  let arr = MEMBERS.find(m => m.id === memberId) ? MEMBERS : (DORMANT.find(m => m.id === memberId) ? DORMANT : null);
+  if (!arr) {
+    alert('회원 정보를 찾을 수 없습니다.');
+    return;
+  }
+  const idx = arr.findIndex(m => m.id === memberId);
+  if (idx === -1) { alert('회원 정보를 찾을 수 없습니다.'); return; }
+  const member = arr[idx];
+  const newName = prompt('이름을 입력하세요:', member.name);
+  if (!newName) return;
+  const newBuRaw = prompt('부수를 입력하세요 (숫자):', member.total);
+  const newBu = parseInt(newBuRaw, 10);
+  if (isNaN(newBu) || newBu < 1 || newBu > 99) { alert('유효한 부수를 입력하세요.'); return; }
+  // 변경 반영
+  member.name = newName.trim();
+  member.total = newBu;
+  // MNAMES 전역 업데이트 (state.js에 정의된 변수)
+  try { MNAMES = MEMBERS.map(m => m.name); } catch(e) { window.MNAMES = MEMBERS.map(m => m.name); }
+  if (typeof syncAllMemberData === 'function') syncAllMemberData();
+  renderMembersAdminUI(window.currentUser||'');
 }
 
 // 탈퇴회원 완전삭제(운영진만)

@@ -352,12 +352,24 @@ function updateMemberInfo(memberId, newInfo) {
 
 // 회원 전체 데이터 동기화 함수
 function syncAllMemberData() {
-  // localStorage, Firebase 등 전체 동기화 (구현체에 맞게 수정)
-  // ...여기에 동기화 코드 추가...
-  // 예시: localStorage.setItem("MEMBERS", JSON.stringify(MEMBERS));
-  // 예시: localStorage.setItem("DORMANT", JSON.stringify(DORMANT));
-  // 예시: localStorage.setItem("EX_MEMBERS", JSON.stringify(EX_MEMBERS));
-  // 필요시 Firebase 연동도 추가
+  try {
+    // 로컬에 저장
+    localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
+    localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
+    localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
+    // 외부 특별회원 저장 함수와 동기화
+    if (typeof saveExternals === 'function') {
+      try { saveExternals(getExternals()); } catch(e){ /* ignore */ }
+    }
+    // Firebase에 동기화 (있을 때만)
+    if (typeof db !== 'undefined') {
+      try {
+        db.ref('members').set(MEMBERS);
+        db.ref('dormant').set(DORMANT);
+        db.ref('ex_members').set(EX_MEMBERS);
+      } catch(e){ console.error('Firebase syncAllMemberData error', e); }
+    }
+  } catch(e){ console.error('syncAllMemberData error', e); }
 }
 
 // 회원 배열에서 특정 회원 제거
