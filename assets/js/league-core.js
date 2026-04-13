@@ -118,20 +118,22 @@ function renderLeague(){
   const exts = getExternals();
   const temps = ST.week.tempPlayers||[];
 
-  // 정회원 칩 + 인원수
+  // 정회원 명단을 부수(숫자 낮은 순)로 정렬
+  const sortedMembers = [...MEMBERS].sort((a, b) => a.total - b.total);
   let html = `<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원 (${MEMBERS.length}명)</div>`;
-  html += MEMBERS.map(function(m){
+  html += sortedMembers.map(function(m){
     const sel = ps.includes(m.name) ? 'selected' : '';
     const style = (!isAdmin && ps.includes(m.name)) ? 'opacity:0.5;cursor:default;' : '';
     const label = escapeHtml(m.name) + (m.bu!==m.total ? escapeHtml(m.bu+'('+m.total+')') : escapeHtml(m.total));
     return `<span class="player-chip ${sel}" onclick="toggleP('${jsEscape(m.name)}')" style="${style}">${label}</span>`;
   }).join('');
 
-  // 게스트 + 인원수
+  // 게스트 명단을 부수(숫자 낮은 순)로 정렬
+  const sortedTemps = [...temps].sort((a, b) => (a.total || 99) - (b.total || 99));
   html += `<div style="font-size:11px;color:#546e7a;font-weight:700;margin:10px 0 6px;">🎫 게스트 (${temps.length}명)</div>`;
   const maxGuests = 10;
   const guestSlots = Array.from({length:maxGuests}, (_,i)=>{
-    const guest = temps[i];
+    const guest = sortedTemps[i];
     if(guest){
       const sel = ps.includes(guest.name);
       return `<span class="player-chip ${sel?'selected':''}" onclick="toggleP('${jsEscape(guest.name)}')"
