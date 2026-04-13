@@ -48,31 +48,45 @@ window.toggleAdmin = function() {
 
 // MEMBERS, DORMANT, EX_MEMBERS에 더미 데이터라도 기본값으로 바인딩
 if (typeof window !== 'undefined') {
+  // MEMBERS 기본값 보장
   if (!window.MEMBERS || !Array.isArray(window.MEMBERS) || window.MEMBERS.length === 0) {
     window.MEMBERS = [
       { id: 'admin1', name: '안치국', total: 1 },
       { id: 'admin2', name: '이미진', total: 2 }
     ];
   }
+  // DORMANT 기본값 보장
   if (!window.DORMANT || !Array.isArray(window.DORMANT)) {
     window.DORMANT = [];
   }
+  // EX_MEMBERS 기본값 보장
   if (!window.EX_MEMBERS || !Array.isArray(window.EX_MEMBERS)) {
     window.EX_MEMBERS = [];
   }
-  // 운영진 currentUser 기본값 세팅(없으면)
+  // currentUser 기본값 보장
   if (!window.currentUser) window.currentUser = '안치국';
+  // 디버깅용 콘솔 출력
+  console.log('[DEBUG] MEMBERS:', window.MEMBERS);
+  console.log('[DEBUG] DORMANT:', window.DORMANT);
+  console.log('[DEBUG] EX_MEMBERS:', window.EX_MEMBERS);
+  console.log('[DEBUG] currentUser:', window.currentUser);
 }
 
 // renderMembersAdminUI 함수 내부에서 데이터 없을 때 안내 메시지 보강(이미 정의된 함수라면 패치 필요)
 if (typeof window.renderMembersAdminUI === 'function') {
   const origRender = window.renderMembersAdminUI;
   window.renderMembersAdminUI = function(currentUser) {
-    if (!window.MEMBERS || window.MEMBERS.length === 0) {
-      document.getElementById('admin-members-area').innerHTML = '<div style="color:#e94560;font-weight:700;">회원 데이터가 없습니다. (더미 데이터로 테스트 중)</div>';
+    var area = document.getElementById('admin-members-area');
+    if (!window.MEMBERS || !Array.isArray(window.MEMBERS) || window.MEMBERS.length === 0) {
+      if (area) area.innerHTML = '<div style="color:#e94560;font-weight:700;">회원 데이터가 없습니다. (Firebase 연동 또는 데이터 로딩 오류일 수 있습니다)</div>';
       return;
     }
+    // 정상 데이터가 있을 때만 원래 렌더링
     origRender(currentUser);
+    // 데이터가 비어있지 않아도, 혹시라도 area가 비어있으면 안내 메시지 출력
+    if (area && !area.innerHTML.trim()) {
+      area.innerHTML = '<div style="color:#e94560;font-weight:700;">회원 데이터가 없습니다. (렌더링 오류)</div>';
+    }
   };
 }
 // =========================
