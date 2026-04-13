@@ -1,4 +1,37 @@
 // =========================
+// 운영자 모드(자물쇠) 상태를 localStorage에 저장/복원하여 새로고침해도 유지
+// =========================
+
+// 운영자 모드 상태 저장 함수
+function setAdminMode(isAdmin) {
+  localStorage.setItem('ttgo_admin_mode', isAdmin ? '1' : '0');
+  window.isAdminMode = !!isAdmin;
+  // UI 반영 (자물쇠, 배지 등)
+  const badge = document.getElementById('admin-badge');
+  const lockBtn = document.getElementById('lock-btn');
+  if (badge) badge.style.display = isAdmin ? '' : 'none';
+  if (lockBtn) lockBtn.textContent = isAdmin ? '🔓' : '🔒';
+}
+
+// 페이지 로드 시 운영자 모드 복원
+document.addEventListener('DOMContentLoaded', function() {
+  const saved = localStorage.getItem('ttgo_admin_mode');
+  if (saved === '1') {
+    setAdminMode(true);
+    window.currentUser = window.currentUser || '안치국';
+  } else {
+    setAdminMode(false);
+  }
+});
+
+// 자물쇠 버튼 클릭 시 토글
+window.toggleAdmin = function() {
+  window.isAdminMode = !window.isAdminMode;
+  setAdminMode(window.isAdminMode);
+  // 운영자 모드 진입 시 currentUser 자동 세팅
+  if (window.isAdminMode && !window.currentUser) window.currentUser = '안치국';
+};
+// =========================
 // 회원관리 데이터/운영진 기본값 보장 및 안내 메시지 보강
 // =========================
 
