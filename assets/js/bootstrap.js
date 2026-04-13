@@ -335,12 +335,12 @@ function isAdmin(userName) {
 }
 
 // 회원 탈퇴 함수 (soft-delete)
-function retireMember(memberId) {
-  // memberId로 회원 찾기
-  const member = MEMBERS.find(m => m.id === memberId) || DORMANT.find(m => m.id === memberId);
+function retireMember(memberName) {
+  // memberName으로 회원 찾기
+  const member = MEMBERS.find(m => m.name === memberName) || DORMANT.find(m => m.name === memberName);
   if (!member) return false;
   // MEMBERS/DORMANT에서 제거
-  removeMemberFromAll(memberId);
+  removeMemberFromAll(memberName);
   // EX_MEMBERS에 추가 (복구용 정보 포함)
   EX_MEMBERS.push({...member, retiredAt: Date.now()});
   syncAllMemberData();
@@ -348,8 +348,8 @@ function retireMember(memberId) {
 }
 
 // 탈퇴 회원 복구 함수
-function restoreMemberFromEx(memberId) {
-  const idx = EX_MEMBERS.findIndex(m => m.id === memberId);
+function restoreMemberFromEx(memberName) {
+  const idx = EX_MEMBERS.findIndex(m => m.name === memberName);
   if (idx === -1) return false;
   const member = EX_MEMBERS[idx];
   // MEMBERS에 복구
@@ -361,11 +361,11 @@ function restoreMemberFromEx(memberId) {
 }
 
 // 회원 정보 수정 함수
-function updateMemberInfo(memberId, newInfo) {
-  // MEMBERS/DORMANT/EX_MEMBERS 모두에서 찾아서 수정
+function updateMemberInfo(memberName, newInfo) {
+  // MEMBERS/DORMANT/EX_MEMBERS 모두에서 찾아서 수정 (이름 기준)
   let found = false;
   [MEMBERS, DORMANT, EX_MEMBERS].forEach(arr => {
-    const idx = arr.findIndex(m => m.id === memberId);
+    const idx = arr.findIndex(m => m.name === memberName);
     if (idx !== -1) {
       arr[idx] = {...arr[idx], ...newInfo};
       found = true;
@@ -398,9 +398,9 @@ function syncAllMemberData() {
 }
 
 // 회원 배열에서 특정 회원 제거
-function removeMemberFromAll(memberId) {
+function removeMemberFromAll(memberName) {
   [MEMBERS, DORMANT].forEach(arr => {
-    const idx = arr.findIndex(m => m.id === memberId);
+    const idx = arr.findIndex(m => m.name === memberName);
     if (idx !== -1) arr.splice(idx, 1);
   });
 }

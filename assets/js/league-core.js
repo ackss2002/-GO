@@ -966,43 +966,43 @@ function renderMembersAdminUI(currentUser) {
   html += '<table class="admin-table"><thead><tr><th>이름</th><th>부수</th><th>상태</th><th>수정</th><th>탈퇴</th></tr></thead><tbody>';
   MEMBERS.forEach(m => {
     html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>정상</td>` +
-      `<td><button onclick="editMemberInfo('${m.id}')">수정</button></td>` +
-      `<td><button onclick="retireMember('${m.id}')">탈퇴</button></td></tr>`;
+      `<td><button onclick="editMemberInfo('${jsEscape(m.name)}')">수정</button></td>` +
+      `<td><button onclick="retireMember('${jsEscape(m.name)}')">탈퇴</button></td></tr>`;
   });
   html += '</tbody></table>';
   html += '<h3>휴면 회원</h3>';
   html += '<table class="admin-table"><thead><tr><th>이름</th><th>부수</th><th>상태</th><th>수정</th><th>탈퇴</th></tr></thead><tbody>';
   DORMANT.forEach(m => {
     html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>휴면</td>` +
-      `<td><button onclick="editMemberInfo('${m.id}')">수정</button></td>` +
-      `<td><button onclick="retireMember('${m.id}')">탈퇴</button></td></tr>`;
+      `<td><button onclick="editMemberInfo('${jsEscape(m.name)}')">수정</button></td>` +
+      `<td><button onclick="retireMember('${jsEscape(m.name)}')">탈퇴</button></td></tr>`;
   });
   html += '</tbody></table>';
   html += '<h3>탈퇴 회원</h3>';
   html += '<table class="admin-table"><thead><tr><th>이름</th><th>부수</th><th>탈퇴일</th><th>복구</th><th>완전삭제</th></tr></thead><tbody>';
   EX_MEMBERS.forEach(m => {
     html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>${m.retiredAt ? new Date(m.retiredAt).toLocaleDateString() : '-'}</td>` +
-      `<td><button onclick="restoreMemberFromEx('${m.id}')">복구</button></td>` +
-      `<td><button onclick="deleteExMember('${m.id}')">삭제</button></td></tr>`;
+      `<td><button onclick="restoreMemberFromEx('${jsEscape(m.name)}')">복구</button></td>` +
+      `<td><button onclick="deleteExMember('${jsEscape(m.name)}')">삭제</button></td></tr>`;
   });
   html += '</tbody></table>';
   document.getElementById('admin-members-area').innerHTML = html;
 }
 
 // 회원 정보 수정(운영진만)
-function editMemberInfo(memberId) {
+function editMemberInfo(memberName) {
   // 운영진만 접근 가능 (안전장치)
   if (!window.isAdmin(window.currentUser)) {
     alert('운영진만 수정할 수 있습니다.');
     return;
   }
-  // 회원을 MEMBERS 또는 DORMANT에서 찾음
-  let arr = MEMBERS.find(m => m.id === memberId) ? MEMBERS : (DORMANT.find(m => m.id === memberId) ? DORMANT : null);
+  // 회원을 MEMBERS 또는 DORMANT에서 찾음 (이름을 식별자로 사용)
+  let arr = MEMBERS.find(m => m.name === memberName) ? MEMBERS : (DORMANT.find(m => m.name === memberName) ? DORMANT : null);
   if (!arr) {
     alert('회원 정보를 찾을 수 없습니다.');
     return;
   }
-  const idx = arr.findIndex(m => m.id === memberId);
+  const idx = arr.findIndex(m => m.name === memberName);
   if (idx === -1) { alert('회원 정보를 찾을 수 없습니다.'); return; }
   const member = arr[idx];
   const newName = prompt('이름을 입력하세요:', member.name);
@@ -1021,7 +1021,7 @@ function editMemberInfo(memberId) {
 
 // 탈퇴회원 완전삭제(운영진만)
 function deleteExMember(memberId) {
-  const idx = EX_MEMBERS.findIndex(m => m.id === memberId);
+  const idx = EX_MEMBERS.findIndex(m => m.name === memberId);
   if (idx !== -1) {
     EX_MEMBERS.splice(idx, 1);
     if (typeof syncAllMemberData === 'function') syncAllMemberData();
