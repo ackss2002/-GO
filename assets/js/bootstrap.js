@@ -1,4 +1,19 @@
 // =========================
+// 모든 탭 동작 보장: window.switchTab이 없으면 league-core.js의 switchTab을 window에 바인딩
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof window.switchTab !== 'function') {
+    try {
+      if (typeof switchTab === 'function') {
+        window.switchTab = switchTab;
+        console.log('[DEBUG] window.switchTab 바인딩 성공');
+      } else {
+        console.error('[ERROR] switchTab 함수가 정의되어 있지 않습니다.');
+      }
+    } catch(e) {
+      console.error('[ERROR] window.switchTab 바인딩 중 오류:', e);
+    }
+  }
+});
 // 운영진 체크 함수 window에 바인딩 (isAdmin 오류 방지)
 // =========================
 // 항상 함수로만 window.isAdmin을 바인딩 (admin.js와 충돌 방지)
