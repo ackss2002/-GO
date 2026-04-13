@@ -1,4 +1,13 @@
 // =========================
+// 운영진 체크 함수 window에 바인딩 (isAdmin 오류 방지)
+// =========================
+function isAdmin(userName) {
+  return ["이미진", "안치국"].includes(userName);
+}
+if (typeof window !== 'undefined') {
+  window.isAdmin = isAdmin;
+}
+// =========================
 // 운영자 모드(자물쇠) 상태를 localStorage에 저장/복원하여 새로고침해도 유지
 // =========================
 
