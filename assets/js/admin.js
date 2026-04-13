@@ -1,5 +1,5 @@
 // PIN은 소스코드에 저장하지 않음 — Firebase DB에 해시로 저장
-var isAdmin = false;
+var isAdminUser = false; // 오직 로그인 상태만 저장
 
 // 페이지 로드 시 저장된 로그인 자동 복원
 function autoLoginCheck(){
@@ -8,8 +8,8 @@ function autoLoginCheck(){
   if(!saved) return;
   db.ref('adminPin').once('value').then(function(snap){
     if(snap.val() && snap.val() === saved){
-      isAdmin = true;
-      window.isAdmin = true;
+      isAdminUser = true;
+      window.isAdminUser = true;
       updateAdminUI();
     } else {
       localStorage.removeItem('ttgo_admin');
@@ -25,10 +25,10 @@ async function hashPin(pin){
 }
 
 function toggleAdmin(){
-  if(isAdmin){
+  if(isAdminUser){
     // 관리자 모드 해제
-    isAdmin = false;
-    window.isAdmin = false;
+    isAdminUser = false;
+    window.isAdminUser = false;
     localStorage.removeItem('ttgo_admin');
     updateAdminUI();
     return;
@@ -59,8 +59,8 @@ async function checkPin(){
     if(!storedHash){
       // 최초 설정: 입력한 PIN을 해시로 저장
       await db.ref('adminPin').set(inputHash);
-      isAdmin = true;
-      window.isAdmin = true;
+      isAdminUser = true;
+      window.isAdminUser = true;
       localStorage.setItem('ttgo_admin', inputHash);
       document.getElementById('pin-overlay').style.display = 'none';
       updateAdminUI();
@@ -69,8 +69,8 @@ async function checkPin(){
     }
 
     if(inputHash === storedHash){
-      isAdmin = true;
-      window.isAdmin = true;
+      isAdminUser = true;
+      window.isAdminUser = true;
       localStorage.setItem('ttgo_admin', inputHash);
       document.getElementById('pin-overlay').style.display = 'none';
       updateAdminUI();
@@ -86,17 +86,18 @@ async function checkPin(){
 
 function closePinOverlay(){
   document.getElementById('pin-overlay').style.display='none';
-  isAdmin = false;
+  isAdminUser = false;
+  window.isAdminUser = false;
   updateAdminUI();
 }
 
 function updateAdminUI(){
   const adminBadge = document.getElementById('admin-badge');
   const lockBtn = document.getElementById('lock-btn');
-  adminBadge.style.display = isAdmin?'inline':'none';
-  lockBtn.textContent = isAdmin?'🔓':'🔒';
+  adminBadge.style.display = isAdminUser?'inline':'none';
+  lockBtn.textContent = isAdminUser?'🔓':'🔒';
   const adminBtns = document.querySelectorAll('.admin-only');
-  adminBtns.forEach(btn=>{ btn.style.display = isAdmin ? 'inline-flex' : 'none'; });
+  adminBtns.forEach(btn=>{ btn.style.display = isAdminUser ? 'inline-flex' : 'none'; });
   // 선수 칩 상태 업데이트
   renderLeague();
 }

@@ -1,12 +1,14 @@
 // =========================
 // 운영진 체크 함수 window에 바인딩 (isAdmin 오류 방지)
 // =========================
+// 항상 함수로만 window.isAdmin을 바인딩 (admin.js와 충돌 방지)
 function isAdmin(userName) {
   return ["이미진", "안치국"].includes(userName);
 }
 if (typeof window !== 'undefined') {
   window.isAdmin = isAdmin;
-  // 디버깅용: isAdmin 바인딩 확인
+  // window.isAdminUser가 true면 관리자 모드로 동작하도록 안내 (admin.js와 연동)
+  // 예시: if (window.isAdminUser && window.isAdmin(window.currentUser)) { ... }
   console.log('[DEBUG] typeof window.isAdmin:', typeof window.isAdmin);
 }
 // =========================
