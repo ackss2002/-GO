@@ -55,7 +55,7 @@ const Q1_EXCHANGE_ATT = {
   '이운희':  [0,0,1],
 };
 
-let currentAttQuarter = 1;
+let currentAttQuarter = 2;
 
 function switchAttQuarter(q){
   currentAttQuarter = q;
@@ -96,7 +96,7 @@ function renderQ1Attendance(){
   ];
 
   // 헤더
-  document.getElementById('att-q1-head').textContent = `<tr>
+  document.getElementById('att-q1-head').innerHTML = `<tr>
     <th style="background:#1a1a2e;color:white;padding:6px 8px;border:1px solid #555;text-align:center;min-width:36px;">순위</th>
     <th style="${nameTh}">이름</th>
     ${allDates.map(({d,type,team})=>{
@@ -123,7 +123,7 @@ function renderQ1Attendance(){
   }).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
 
   let rank=1;
-  document.getElementById('att-q1-body').textContent = rows.map((r,i)=>{
+  document.getElementById('att-q1-body').innerHTML = rows.map((r,i)=>{
     if(i>0 && r.total<rows[i-1].total) rank=i+1;
     const rankBg = rank===1?'background:#ffd700;color:#1a1a2e;font-size:15px;':(rank===2?'background:#aaa;color:white;':(rank===3?'background:#cd7f32;color:white;':'background:#f5f5f5;'));
     return `<tr>
@@ -178,7 +178,7 @@ function renderAttendance(){
   const att = getAttendance();
   const dates = att.dates;
   const members = MEMBERS.map(m=>m.name);
-  document.getElementById('att-head').textContent = `<tr>
+  document.getElementById('att-head').innerHTML = `<tr>
     <th style="background:#1a1a2e;color:white;padding:6px 8px;border:1px solid #555;text-align:center;min-width:36px;">순위</th>
     <th style="background:#1a1a2e;color:white;padding:6px 10px;border:1px solid #555;text-align:left;min-width:80px;">이름</th>
     ${dates.map(d=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:70px;font-size:11px;">
@@ -194,7 +194,7 @@ function renderAttendance(){
   }).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
 
   let rank=1;
-  document.getElementById('att-body').textContent = rows.map((r,i)=>{
+  document.getElementById('att-body').innerHTML = rows.map((r,i)=>{
     if(i>0 && r.total<rows[i-1].total) rank=i+1;
     const rankBg = rank===1?'background:#ffd700;':(rank===2?'background:#c0c0c0;':(rank===3?'background:#cd7f32;color:white;':''));
     return `<tr>

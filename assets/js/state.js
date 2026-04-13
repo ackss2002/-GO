@@ -1,4 +1,4 @@
-const MEMBERS = [
+var MEMBERS = [
   {name:'곽동석',g:'남',bu:6,total:6},{name:'김덕기',g:'남',bu:5,total:4},
   {name:'김동수',g:'남',bu:6,total:6},{name:'김영란',g:'여',bu:6,total:6},
   {name:'김영서',g:'남',bu:6,total:6},{name:'김옥란',g:'여',bu:9,total:9},
@@ -11,9 +11,8 @@ const MEMBERS = [
   {name:'이진규',g:'남',bu:6,total:6},{name:'전인석',g:'남',bu:7,total:7},
   {name:'정영아',g:'여',bu:8,total:8},{name:'정헌모',g:'남',bu:7,total:7},
   {name:'정희남',g:'남',bu:7,total:7},{name:'조경숙',g:'여',bu:9,total:9},
-  {name:'최양님',g:'여',bu:7,total:7},{name:'한금환',g:'남',bu:5,total:5},
-  {name:'한철호',g:'남',bu:6,total:6},];
-const DORMANT = [
+  {name:'최양님',g:'여',bu:7,total:6},{name:'한금환',g:'남',bu:5,total:5},{name:'한철호',g:'남',bu:6,total:6},];
+var DORMANT = [
   {name:'안경식',g:'남',bu:6,total:6},
   {name:'김성훈',g:'남',bu:7,total:7},
   {name:'오영준',g:'남',bu:4,total:4},
@@ -27,10 +26,31 @@ function getExternals(){
 function saveExternals(arr){ localStorage.setItem('ttgo_externals', JSON.stringify(arr)); }
 function saveST(){ localStorage.setItem('ttgo_v3', JSON.stringify(ST)); if(typeof db!=='undefined'){ try{ db.ref('ttgo').set(ST); }catch(e){} } }
 
-const MNAMES = MEMBERS.map(m=>m.name);
-const INIT_SCORES = {};
+var MNAMES = MEMBERS.map(m=>m.name);
+var INIT_SCORES = {};
 
-let ST = loadST();
+var ST = loadST();
+// [방어코드] ST.week가 undefined면 항상 기본값으로 초기화
+if (!ST.week) {
+  ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
+  saveST();
+}
+// [자동 패치] 최양님 2분기 점수 0점으로 강제 초기화 (승급 이후 실적 없음, localStorage+Firebase 동기화)
+if (ST.scores) {
+  ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+  try { localStorage.setItem('ttgo_v3', JSON.stringify(ST)); } catch(e){}
+  if(typeof db!=='undefined'){ try{ db.ref('ttgo').set(ST); }catch(e){} }
+}
+// 최양님 2분기 점수 0점으로 강제 초기화 (승급 이후 실적 없음)
+if (ST.scores) {
+  ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+  saveST();
+}
+// 최양님 2분기 승급 이후 실적 0점으로 강제 초기화
+if (ST.scores && ST.scores['최양님']) {
+  ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+  saveST();
+}
 ensureCarryOver();
 function loadST(){
   try{ const s=localStorage.getItem('ttgo_v3');if(s)return JSON.parse(s); }catch(e){}
@@ -226,14 +246,14 @@ function loadTestDataDoubles(numGroups){
       <div style="margin-top:8px;">${ord.map(m=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;">${m[0]}:${m[1]}</span>`).join('')}</div>
     </div>`;
   });
-  document.getElementById('league-matches').textContent=matchHtml;
+  document.getElementById('league-matches').innerHTML=matchHtml;
 
   // 실시간 순위 계산
   groups.forEach((_,gi)=>realtimeCalcDoubles(gi));
 
   // 조별 순위 표시
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n'];
-      document.getElementById('league-results').textContent=results.map(r=>`
+      document.getElementById('league-results').innerHTML=results.map(r=>`
     <div style="margin-bottom:14px;">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${r.g}조 순위</div>
       <table><thead><tr><th>순위</th><th>팀</th><th>승</th><th>패</th><th>승점</th><th>게임득실</th></tr></thead><tbody>
@@ -373,14 +393,14 @@ function loadTestData(numGroups){
       <div style="margin-top:8px;">${ord.map(m=>`<span class="game-tag" style="font-size:11px;padding:2px 7px;">${m[0]}:${m[1]}</span>`).join('')}</div>
     </div>`;
   });
-  document.getElementById('league-matches').textContent=matchHtml;
+  document.getElementById('league-matches').innerHTML=matchHtml;
 
   // 실시간 순위 계산
   groups.forEach((_,gi)=>realtimeCalc(gi));
 
   // 조별 순위 표시
   const bgs=['rank-1','rank-2','rank-3','rank-n','rank-n'];
-  document.getElementById('league-results').textContent=results.map(r=>{
+  document.getElementById('league-results').innerHTML=results.map(r=>{
     const rows = r.players.map((p,i)=>{
       return `<tr><td><span class="rank-badge ${bgs[i]||'rank-n'}">${i+1}</span></td>`+
              `<td>${escapeHtml(p.name)}</td><td>${p.w}</td><td>${p.l}</td><td><strong>${p.mp}점</strong></td><td>${p.scored}/${p.lost}</td></tr>`;

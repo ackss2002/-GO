@@ -43,7 +43,7 @@ function renderHistory(){
     return;
   }
 
-  listEl.textContent = history.map((h,i)=>{
+  listEl.innerHTML = history.map((h,i)=>{
     const date = escapeHtml(h.date);
     const week = escapeHtml(h.week||'');
     const type = escapeHtml(h.type||'');
@@ -63,7 +63,8 @@ function renderHistory(){
         </div>
       </div>
       <span style="color:#bbb;font-size:18px;">›</span>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function showHistoryDetail(idx){
@@ -144,7 +145,7 @@ function showHistoryDetail(idx){
       </div>
     </div>`;
 
-  document.getElementById('history-detail-content').textContent = html;
+  document.getElementById('history-detail-content').innerHTML = html;
 }
 
 function closeHistoryDetail(){

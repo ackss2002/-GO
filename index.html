@@ -4,7 +4,83 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>탁구치GO 금요리그</title>
-<link rel="stylesheet" href="assets/css/styles.css">
+<style>
+.admin-only { display: none; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif; background: #f5f5f5; color: #1a1a1a; }
+.header { background: #1a1a2e; color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header h1 { font-size: 17px; font-weight: 700; }
+.header .season { font-size: 11px; background: #e94560; padding: 3px 10px; border-radius: 20px; }
+.tabs { display: flex; background: white; border-bottom: 1px solid #e0e0e0; overflow-x: auto; position: sticky; top: 49px; z-index: 99; }
+.tab { padding: 11px 16px; font-size: 13px; cursor: pointer; border: none; background: none; color: #888; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; }
+.tab.active { color: #e94560; border-bottom-color: #e94560; font-weight: 700; }
+.content { padding: 14px; max-width: 860px; margin: 0 auto; }
+.section { display: none; }
+.section.active { display: block; }
+.notice { background: #e8f4fd; border-left: 3px solid #2196F3; padding: 10px 14px; border-radius: 4px; font-size: 13px; color: #1565C0; margin-bottom: 14px; }
+.notice-warn { background: #fff8e1; border-left: 3px solid #FFA000; padding: 10px 14px; border-radius: 4px; font-size: 13px; color: #e65100; margin-bottom: 14px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 14px; }
+.grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
+@media(max-width:600px){ .grid2{grid-template-columns:1fr;} .grid4{grid-template-columns:repeat(2,1fr);} .grid3{grid-template-columns:1fr 1fr;} }
+.metric { background: white; border-radius: 10px; padding: 12px 14px; border: 1px solid #e8e8e8; text-align: center; }
+.metric-label { font-size: 11px; color: #888; margin-bottom: 5px; }
+.metric-value { font-size: 20px; font-weight: 700; color: #1a1a2e; }
+.card { background: white; border-radius: 12px; padding: 14px 16px; border: 1px solid #e8e8e8; margin-bottom: 12px; }
+.card-title { font-size: 11px; color: #888; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px; font-size: 11px; font-weight: 700; color: #888; background: #f8f8f8; border-bottom: 1px solid #eee; }
+td { padding: 8px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafafa; }
+.rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 700; }
+.rank-1 { background: #FFD700; color: #5a4500; }
+.rank-2 { background: #C0C0C0; color: #3a3a3a; }
+.rank-3 { background: #CD7F32; color: #fff; }
+.rank-n { background: #f0f0f0; color: #888; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.pill-blue { background: #e3f2fd; color: #1565C0; }
+.pill-green { background: #e8f5e9; color: #2e7d32; }
+.pill-amber { background: #fff8e1; color: #f57f17; }
+.pill-gray { background: #f5f5f5; color: #757575; }
+.btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1px solid #ddd; background: white; color: #333; transition: all 0.15s; font-weight: 600; }
+.btn:hover { background: #f5f5f5; }
+.btn-primary { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+.btn-primary:hover { background: #2a2a4e; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+input[type="text"], input[type="number"], select { padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; background: white; color: #333; font-size: 13px; width: 100%; font-family: inherit; }
+input:focus, select:focus { outline: none; border-color: #1a1a2e; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+.score-input { width: 50px; text-align: center; }
+.player-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #f0f0f0; border-radius: 20px; font-size: 12px; margin: 3px; cursor: pointer; border: 1px solid #e0e0e0; transition: all 0.15s; }
+.player-chip.selected { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+.player-chip.g1 { background: #e3f2fd; color: #1565C0; border-color: #90caf9; }
+.player-chip.g2 { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+.player-chip.g3 { background: #fff3e0; color: #e65100; border-color: #ffcc80; }
+.player-chip.g4 { background: #f3e5f5; color: #6a1b9a; border-color: #ce93d8; }
+.match-row { display: flex; align-items: center; gap: 6px; padding: 7px 0; border-bottom: 1px solid #f0f0f0; }
+.match-row:last-child { border-bottom: none; }
+.match-player { flex: 1; font-size: 13px; font-weight: 600; }
+.match-vs { font-size: 11px; color: #888; }
+.match-num { font-size: 11px; color: #aaa; min-width: 24px; }
+.step { background: white; border-radius: 12px; border: 1px solid #e8e8e8; margin-bottom: 12px; overflow: hidden; }
+.step-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: #f8f8f8; border-bottom: 1px solid #eee; }
+.step-header h4 { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: #1a1a2e; color: white; border-radius: 50%; font-size: 11px; font-weight: 700; }
+.step-body { padding: 14px 16px; }
+.bar-wrap { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.bar-label { font-size: 13px; font-weight: 600; min-width: 65px; }
+.bar-score { font-size: 12px; color: #888; min-width: 35px; text-align: right; }
+.bar { flex: 1; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; background: #e94560; }
+.result-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #f8f8f8; border-radius: 8px; margin-bottom: 8px; }
+.game-tag { padding: 4px 10px; background: #e3f2fd; color: #1565C0; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin: 2px; cursor: pointer; transition: all 0.15s; }
+.game-tag.done { background: #c8e6c9; color: #2e7d32; text-decoration: line-through; opacity: 0.7; }
+.upgrade-box { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #fff8e1; border-radius: 8px; border-left: 3px solid #FFA000; margin-bottom: 8px; }
+.footer-note { text-align: center; font-size: 11px; color: #bbb; padding: 16px 0 8px; }
+</style>
 </head>
 <body>
 
@@ -38,7 +114,7 @@
   <button class="tab" onclick="switchTab('ranking',this)">누적 순위</button>
   <button class="tab" onclick="switchTab('attendance',this)">출석부</button>
   <button class="tab" onclick="switchTab('history',this)">경기 기록</button>
-  <button class="tab" onclick="switchTab('members',this)">회원 관리</button>
+  <button class="tab" onclick="switchTab('members',this); window.renderMembersAdminUI(window.currentUser||'');">회원 관리</button>
   <button class="tab" onclick="switchTab('guide',this)">📖 가이드</button>
 </div>
 
@@ -222,12 +298,12 @@
 
 <!-- 누적 순위 -->
 <div id="ranking" class="section">
-  <div class="notice">승점: 우승 5점 / 준우승 3점 / 3위 2점 · 10점 달성 시 1부수 승급 + 잔여 승점 소멸 (승급 부수 제한 없음)</div>
+  <div class="notice">랭킹 포인트: 우승 5점 / 준우승 3점 / 3위 2점 · 10점 달성 시 1부수 승급 + 잔여 포인트 소멸 (승급 부수 제한 없음)</div>
   
   <!-- 분기 탭 -->
   <div style="display:flex;gap:8px;margin-bottom:14px;border-bottom:2px solid #e0e0e0;padding-bottom:0;">
-    <button id="qtab-1" onclick="switchQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">1분기</button>
-    <button id="qtab-2" onclick="switchQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">2분기</button>
+    <button id="qtab-1" onclick="switchQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">1분기</button>
+    <button id="qtab-2" onclick="switchQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">2분기</button>
     <button id="qtab-all" onclick="switchQuarter('all')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">전체</button>
   </div>
 
@@ -236,17 +312,17 @@
     <div class="card-title" id="ranking-title">1분기 승점 순위</div>
     <div style="overflow-x:auto;">
     <table>
-      <thead><tr><th>순위</th><th>이름</th><th>성별</th><th>부수</th><th>우승</th><th>준우승</th><th>3위</th><th>승점</th><th>비고</th></tr></thead>
+      <thead><tr><th>순위</th><th>이름</th><th>성별</th><th>부수</th><th>우승</th><th>준우승</th><th>3위</th><th>랭킹 포인트</th><th>비고</th></tr></thead>
       <tbody id="ranking-tbody"></tbody>
     </table>
     </div>
   </div>
   <!-- 게스트 순위 -->
   <div class="card" id="guest-ranking-card">
-    <div class="card-title">🎫 게스트 승점 순위</div>
+    <div class="card-title">🎫 게스트 랭킹 포인트 순위</div>
     <div style="overflow-x:auto;">
     <table>
-      <thead><tr><th>순위</th><th>이름</th><th>부수</th><th>우승</th><th>준우승</th><th>3위</th><th>승점</th></tr></thead>
+      <thead><tr><th>순위</th><th>이름</th><th>부수</th><th>우승</th><th>준우승</th><th>3위</th><th>랭킹 포인트</th></tr></thead>
       <tbody id="guest-ranking-tbody"></tbody>
     </table>
     </div>
@@ -257,12 +333,12 @@
 <div id="attendance" class="section">
   <!-- 분기 탭 -->
   <div style="display:flex;gap:8px;margin-bottom:14px;border-bottom:2px solid #e0e0e0;">
-    <button id="atab-1" onclick="switchAttQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">1분기</button>
-    <button id="atab-2" onclick="switchAttQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">2분기</button>
+    <button id="atab-1" onclick="switchAttQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">1분기</button>
+    <button id="atab-2" onclick="switchAttQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">2분기</button>
   </div>
 
   <!-- 1분기 -->
-  <div id="att-q1">
+  <div id="att-q1" style="display:none;">
     <div class="card">
       <div class="card-title">1분기 출석 현황 (금요리그 10회 + 교류전 3회)</div>
       <div style="overflow-x:auto;">
@@ -276,7 +352,7 @@
   </div>
 
   <!-- 2분기 -->
-  <div id="att-q2" style="display:none;">
+  <div id="att-q2">
     <!-- 금요리그 -->
     <div class="card">
       <div class="card-title">2분기 금요리그 출석</div>
@@ -482,32 +558,9 @@
   </div>
 </div>
 
-<!-- 회원 관리 -->
+<!-- 회원 관리(운영진) UI 영역 -->
 <div id="members" class="section">
-  <div class="grid3" style="margin-bottom:14px;">
-    <div class="metric"><div class="metric-label">정회원</div><div class="metric-value" id="active-cnt">26명</div></div>
-    <div class="metric"><div class="metric-label">휴면 회원</div><div class="metric-value" id="dormant-cnt">5명</div></div>
-    <div class="metric"><div class="metric-label">전체 회원</div><div class="metric-value">31명</div></div>
-  </div>
-  <div class="card">
-    <div class="card-title">운영진</div>
-    <table><thead><tr><th>이름</th><th>역할</th></tr></thead><tbody>
-      <tr><td><strong>안치국</strong></td><td><span style="background:#1a1a2e;color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">회장 · 경기이사 겸직</span></td></tr>
-      <tr><td><strong>이미진</strong></td><td><span style="background:#1a1a2e;color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">총무 · 재무이사 겸직</span></td></tr>
-    </tbody></table>
-  </div>
-  <div class="card">
-    <div class="card-title">정회원 명단 (26명)</div>
-    <div style="overflow-x:auto;">
-    <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>통합</th></tr></thead>
-    <tbody id="active-tbody"></tbody></table>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title">휴면 회원 명단 (5명)</div>
-    <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>통합</th></tr></thead>
-    <tbody id="dormant-tbody"></tbody></table>
-  </div>
+  <div id="admin-members-area"></div>
 </div>
 
 </div>
@@ -528,7 +581,6 @@
 <!-- Firebase SDK - 맨 마지막에 로드 -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="assets/js/firebase-init.js"></script>
 <script src="assets/js/firebase-auth.js"></script>
 <script>

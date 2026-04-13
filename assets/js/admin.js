@@ -1,59 +1,103 @@
-// ADMIN PIN intentionally left blank for security. Do not hardcode sensitive PINs in client-side code.
-// For production, use server-side authentication (Firebase Auth / Cloud Functions).
-const ADMIN_PIN = '';
-if(!ADMIN_PIN) console.warn('ADMIN_PIN is not set. Admin actions require proper server-side auth.');
-let isAdmin = false;
+// PIN은 소스코드에 저장하지 않음 — Firebase DB에 해시로 저장
+var isAdminUser = false; // 오직 로그인 상태만 저장
+
+// 페이지 로드 시 저장된 로그인 자동 복원
+function autoLoginCheck(){
+  if(typeof db === 'undefined') return;
+  var saved = localStorage.getItem('ttgo_admin');
+  if(!saved) return;
+  db.ref('adminPin').once('value').then(function(snap){
+    if(snap.val() && snap.val() === saved){
+      isAdminUser = true;
+      window.isAdminUser = true;
+      updateAdminUI();
+    } else {
+      localStorage.removeItem('ttgo_admin');
+    }
+  }).catch(function(){ localStorage.removeItem('ttgo_admin'); });
+}
+
+// SHA-256 해시 생성 (Web Crypto API)
+async function hashPin(pin){
+  const encoded = new TextEncoder().encode(pin);
+  const buf = await crypto.subtle.digest('SHA-256', encoded);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
 function toggleAdmin(){
-  if(isAdmin){
-    // 로그아웃(관리자 모드 해제)
-    isAdmin = false;
+  if(isAdminUser){
+    // 관리자 모드 해제
+    isAdminUser = false;
+    window.isAdminUser = false;
+    localStorage.removeItem('ttgo_admin');
     updateAdminUI();
     return;
   }
-  // Firebase Auth가 있으면 로그인 흐름으로 위임
-  if(window.signIn){
-    window.signIn();
-    return;
-  }
-  // 폴백: 기존 PIN 오버레이 표시
+  // PIN 오버레이 표시
   document.getElementById('pin-overlay').style.display='flex';
   document.getElementById('pin-input').value='';
   document.getElementById('pin-error').style.display='none';
+  const hint = document.getElementById('pin-hint');
+  if(hint) hint.style.display='none';
   setTimeout(()=>document.getElementById('pin-input').focus(), 100);
 }
 
-function checkPin(){
+async function checkPin(){
   const val = document.getElementById('pin-input').value;
-  if(!ADMIN_PIN){
-    // PIN not configured — inform operator and close overlay
-    alert('관리자 PIN이 설정되어 있지 않습니다. 운영자 기능은 서버 인증으로 대체하세요.');
-    document.getElementById('pin-overlay').style.display='none';
+  if(!val || val.length < 4) return;
+
+  if(typeof db === 'undefined'){
+    alert('데이터베이스에 연결되지 않았습니다. 잠시 후 다시 시도하세요.');
     return;
   }
-  if(val === ADMIN_PIN){
-    isAdmin = true;
-    document.getElementById('pin-overlay').style.display='none';
-    updateAdminUI();
-  } else if(val.length===4){
-    document.getElementById('pin-error').style.display='block';
-    document.getElementById('pin-input').value='';
+
+  try{
+    const snap = await db.ref('adminPin').once('value');
+    const storedHash = snap.val();
+    const inputHash = await hashPin(val);
+
+    if(!storedHash){
+      // 최초 설정: 입력한 PIN을 해시로 저장
+      await db.ref('adminPin').set(inputHash);
+      isAdminUser = true;
+      window.isAdminUser = true;
+      localStorage.setItem('ttgo_admin', inputHash);
+      document.getElementById('pin-overlay').style.display = 'none';
+      updateAdminUI();
+      alert('✅ 관리자 PIN이 설정되었습니다.\n앞으로 이 PIN으로 로그인하세요.');
+      return;
+    }
+
+    if(inputHash === storedHash){
+      isAdminUser = true;
+      window.isAdminUser = true;
+      localStorage.setItem('ttgo_admin', inputHash);
+      document.getElementById('pin-overlay').style.display = 'none';
+      updateAdminUI();
+    } else {
+      document.getElementById('pin-error').style.display = 'block';
+      document.getElementById('pin-input').value = '';
+    }
+  } catch(e){
+    console.error('PIN 인증 오류', e);
+    alert('인증 오류: ' + e.message);
   }
 }
 
 function closePinOverlay(){
   document.getElementById('pin-overlay').style.display='none';
-  isAdmin = false;
+  isAdminUser = false;
+  window.isAdminUser = false;
   updateAdminUI();
 }
 
 function updateAdminUI(){
   const adminBadge = document.getElementById('admin-badge');
   const lockBtn = document.getElementById('lock-btn');
-  adminBadge.style.display = isAdmin?'inline':'none';
-  lockBtn.textContent = isAdmin?'🔓':'🔒';
+  adminBadge.style.display = isAdminUser?'inline':'none';
+  lockBtn.textContent = isAdminUser?'🔓':'🔒';
   const adminBtns = document.querySelectorAll('.admin-only');
-  adminBtns.forEach(btn=>{ btn.style.display = isAdmin ? 'inline-flex' : 'none'; });
+  adminBtns.forEach(btn=>{ btn.style.display = isAdminUser ? 'inline-flex' : 'none'; });
   // 선수 칩 상태 업데이트
   renderLeague();
 }
@@ -64,8 +108,8 @@ function showLockMsg(msg){
 
 
 const Q1_SCORES = {
-  '이원호':  {w:2, s:0, t:0, pts:13, up:true},  // 13점 달성 → 4부 승급
-  '김덕기':  {w:1, s:0, t:1, pts:12, up:true},  // 12점 달성 → 4부 승급
+  '이원호':  {w:2, s:1, t:0, pts:13, up:true},  // 13점 달성 → 4부 승급
+  '김덕기':  {w:2, s:0, t:1, pts:12, up:true},  // 12점 달성 → 4부 승급
   '안치국':  {w:1, s:0, t:1, pts:7,  up:false},
   '이미진':  {w:1, s:0, t:0, pts:5,  up:false},
   '최양님':  {w:1, s:0, t:0, pts:5,  up:false},
@@ -74,7 +118,7 @@ const Q1_SCORES = {
   '김영서':  {w:0, s:0, t:1, pts:2,  up:false},
 };
 
-let currentQuarter = 1;
+let currentQuarter = 2;
 
 function switchQuarter(q){
   currentQuarter = q;
