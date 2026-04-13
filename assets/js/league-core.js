@@ -33,7 +33,9 @@ function switchTab(name,el){
   el.classList.add('active');
   if(name==='dashboard') renderDash();
   if(name==='ranking') renderRanking();
-  if(name==='members') renderMembers();
+  if(name==='members') {
+    if (typeof renderMembers === 'function') renderMembers();
+  }
   if(name==='league') renderLeague();
   if(name==='tournament') renderTournamentTab();
   if(name==='attendance'){ currentAttQuarter===2 ? renderAttendance() : renderQ1Attendance(); switchAttQuarter(currentAttQuarter||1); }

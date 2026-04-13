@@ -58,7 +58,8 @@ function renderRanking(){
     title = '전체 랭킹 포인트 순위';
   }
 
-  document.getElementById('ranking-title').textContent = title;
+  var rankingTitle = document.getElementById('ranking-title');
+  if (rankingTitle) rankingTitle.textContent = title;
 
   const all = allMembers.map(m=>{
     const s = scores[m.name]||{w:0,s:0,t:0,pts:0};
@@ -68,36 +69,42 @@ function renderRanking(){
 
   const bgs=['rank-1','rank-2','rank-3'];
   let rank=1;
-  document.getElementById('ranking-tbody').innerHTML=all.map((p,i)=>{
-    if(i>0&&p.pts<all[i-1].pts) rank=i+1;
-    if(p.pts===0 && !p.up) return '';
-    const bg=rank<=3?bgs[rank-1]:'rank-n';
-    const upTag = p.up?'<span class="pill pill-amber" style="margin-left:4px;">↑승급</span>':'';
-    return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
-      <td><strong>${escapeHtml(p.name)}</strong></td><td>${escapeHtml(p.gender)}</td><td>${escapeHtml(String(p.bu))}</td>
-      <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td><td><strong>${p.pts}점</strong>${upTag}</td>
-      <td></td></tr>`;
-  }).join('')||'<tr><td colspan="9" style="color:#888;text-align:center;">데이터 없음</td></tr>';
+  var rankingTbody = document.getElementById('ranking-tbody');
+  if (rankingTbody) {
+    rankingTbody.innerHTML=all.map((p,i)=>{
+      if(i>0&&p.pts<all[i-1].pts) rank=i+1;
+      if(p.pts===0 && !p.up) return '';
+      const bg=rank<=3?bgs[rank-1]:'rank-n';
+      const upTag = p.up?'<span class="pill pill-amber" style="margin-left:4px;">↑승급</span>':'';
+      return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
+        <td><strong>${escapeHtml(p.name)}</strong></td><td>${escapeHtml(p.gender)}</td><td>${escapeHtml(String(p.bu))}</td>
+        <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td><td><strong>${p.pts}점</strong>${upTag}</td>
+        <td></td></tr>`;
+    }).join('')||'<tr><td colspan="9" style="color:#888;text-align:center;">데이터 없음</td></tr>';
+  }
 
   // 승급 현황 (2분기/전체만)
-  if(q!==1){
+  var upgradeCard = document.getElementById('upgrade-card');
+  if(q!==1 && upgradeCard){
     const ups = all.filter(p=>p.up);
-    document.getElementById('upgrade-card').innerHTML=
+    upgradeCard.innerHTML=
       `<strong>승급 현황</strong> `+
       (ups.length?ups.map(p=>`<span class="pill pill-amber">${escapeHtml(p.name)} 승급완료</span>`).join(' '):'승급자 없음');
-  } else {
-    document.getElementById('upgrade-card').innerHTML='';
+  } else if (upgradeCard) {
+    upgradeCard.innerHTML='';
   }
 
   // 게스트 순위
+  var guestRankingTbody = document.getElementById('guest-ranking-tbody');
   const guestScores = ST.guestScores||{};
   const guests = Object.keys(guestScores).map(name=>{
     const s = guestScores[name];
     return {name, bu:s.bu||'?', w:s.w||0, s:s.s||0, t:s.t||0, pts:s.pts||0};
   }).filter(g=>g.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
   let grank=1;
-  document.getElementById('guest-ranking-tbody').innerHTML = guests.length ?
-    guests.map((g,i)=>{
+  if (guestRankingTbody) {
+    guestRankingTbody.innerHTML = guests.length ?
+      guests.map((g,i)=>{
       if(i>0&&g.pts<guests[i-1].pts) grank=i+1;
       const bg=grank<=3?bgs[grank-1]:'rank-n';
       return `<tr><td><span class="rank-badge ${bg}">${grank}</span></td>

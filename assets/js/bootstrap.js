@@ -6,6 +6,8 @@ function isAdmin(userName) {
 }
 if (typeof window !== 'undefined') {
   window.isAdmin = isAdmin;
+  // 디버깅용: isAdmin 바인딩 확인
+  console.log('[DEBUG] typeof window.isAdmin:', typeof window.isAdmin);
 }
 // =========================
 // 운영자 모드(자물쇠) 상태를 localStorage에 저장/복원하여 새로고침해도 유지
