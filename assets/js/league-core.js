@@ -926,14 +926,6 @@ function printSortedMembersByBu() {
       if (temp) return { name: temp.name, bu: temp.total };
       return { name, bu: '?' };
     });
-// ...existing code...
-}
-
-// 주요 함수들을 window에 바인딩해서 전역에서 접근 가능하게 함 (오빠 요청)
-window.renderDash = renderDash;
-window.renderLeague = renderLeague;
-window.switchTab = switchTab;
-window.printSortedMembersByBu = printSortedMembersByBu;
 
   // 부수 오름차순 정렬(숫자 낮은 게 상위)
   regulars.sort((a, b) => a.bu - b.bu);
@@ -945,3 +937,9 @@ window.printSortedMembersByBu = printSortedMembersByBu;
   console.log('게스트 (부수 낮은 순):');
   guests.forEach(m => console.log(`${m.name} (${m.bu})`));
 }
+
+// 주요 함수들을 window에 바인딩해서 전역에서 접근 가능하게 함 (오빠 요청)
+window.renderDash = renderDash;
+window.renderLeague = renderLeague;
+window.switchTab = switchTab;
+window.printSortedMembersByBu = printSortedMembersByBu;
