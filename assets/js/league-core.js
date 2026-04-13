@@ -940,8 +940,74 @@ function printSortedMembersByBu() {
   guests.forEach(m => console.log(`${m.name} (${m.bu})`));
 }
 
+// =========================
+// 회원관리 고도화: 운영진만 회원관리 UI/기능 노출, EX_MEMBERS(탈퇴회원) 관리, 탈퇴/복구/정보수정/동기화 UI 및 이벤트 추가 (1차)
+// 오빠: 모든 주석은 한글, 코드 내 문자열은 영어로 작성
+// =========================
+
+// 운영진 여부 체크 함수 (bootstrap.js와 동일하게 window에 바인딩)
+window.isAdmin = function(userName) {
+  return ["이미진", "안치국"].includes(userName);
+};
+
+// EX_MEMBERS(탈퇴회원) 배열을 window에 바인딩 (bootstrap.js와 동기화)
+window.EX_MEMBERS = window.EX_MEMBERS || [];
+
+// 회원관리 UI 렌더링 함수 (정회원/휴면/탈퇴/복구/정보수정)
+function renderMembersAdminUI(currentUser) {
+  // 운영진만 접근 가능
+  if (!window.isAdmin(currentUser)) {
+    document.getElementById('admin-members-area').innerHTML = '<div style="color:#e94560;font-weight:700;">운영진만 접근 가능합니다.</div>';
+    return;
+  }
+  let html = '<h3>정회원 관리</h3>';
+  html += '<table class="admin-table"><thead><tr><th>이름</th><th>부수</th><th>상태</th><th>수정</th><th>탈퇴</th></tr></thead><tbody>';
+  MEMBERS.forEach(m => {
+    html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>정상</td>` +
+      `<td><button onclick="editMemberInfo('${m.id}')">수정</button></td>` +
+      `<td><button onclick="retireMember('${m.id}')">탈퇴</button></td></tr>`;
+  });
+  html += '</tbody></table>';
+  html += '<h3>휴면 회원</h3>';
+  html += '<table class="admin-table"><thead><tr><th>이름</th><th>부수</th><th>상태</th><th>수정</th><th>탈퇴</th></tr></thead><tbody>';
+  DORMANT.forEach(m => {
+    html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>휴면</td>` +
+      `<td><button onclick="editMemberInfo('${m.id}')">수정</button></td>` +
+      `<td><button onclick="retireMember('${m.id}')">탈퇴</button></td></tr>`;
+  });
+  html += '</tbody></table>';
+  html += '<h3>탈퇴 회원</h3>';
+  html += '<table class="admin-table"><thead><tr><th>이름</th><th>부수</th><th>탈퇴일</th><th>복구</th><th>완전삭제</th></tr></thead><tbody>';
+  EX_MEMBERS.forEach(m => {
+    html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>${m.retiredAt ? new Date(m.retiredAt).toLocaleDateString() : '-'}</td>` +
+      `<td><button onclick="restoreMemberFromEx('${m.id}')">복구</button></td>` +
+      `<td><button onclick="deleteExMember('${m.id}')">삭제</button></td></tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('admin-members-area').innerHTML = html;
+}
+
+// 회원 정보 수정(운영진만)
+function editMemberInfo(memberId) {
+  // 오빠: 실제 수정 폼/로직은 이후 단계에서 구현
+  alert('회원 정보 수정 기능은 곧 추가됩니다!');
+}
+
+// 탈퇴회원 완전삭제(운영진만)
+function deleteExMember(memberId) {
+  const idx = EX_MEMBERS.findIndex(m => m.id === memberId);
+  if (idx !== -1) {
+    EX_MEMBERS.splice(idx, 1);
+    if (typeof syncAllMemberData === 'function') syncAllMemberData();
+    renderMembersAdminUI(window.currentUser||'');
+  }
+}
+
 // 주요 함수들을 window에 바인딩해서 전역에서 접근 가능하게 함 (오빠 요청)
 window.renderDash = renderDash;
 window.renderLeague = renderLeague;
 window.switchTab = switchTab;
 window.printSortedMembersByBu = printSortedMembersByBu;
+window.renderMembersAdminUI = renderMembersAdminUI;
+window.editMemberInfo = editMemberInfo;
+window.deleteExMember = deleteExMember;

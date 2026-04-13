@@ -114,7 +114,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   <button class="tab" onclick="switchTab('ranking',this)">누적 순위</button>
   <button class="tab" onclick="switchTab('attendance',this)">출석부</button>
   <button class="tab" onclick="switchTab('history',this)">경기 기록</button>
-  <button class="tab" onclick="switchTab('members',this)">회원 관리</button>
+  <button class="tab" onclick="switchTab('members',this); window.renderMembersAdminUI(window.currentUser||'');">회원 관리</button>
   <button class="tab" onclick="switchTab('guide',this)">📖 가이드</button>
 </div>
 
@@ -558,32 +558,9 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   </div>
 </div>
 
-<!-- 회원 관리 -->
+<!-- 회원 관리(운영진) UI 영역 -->
 <div id="members" class="section">
-  <div class="grid3" style="margin-bottom:14px;">
-    <div class="metric"><div class="metric-label">정회원</div><div class="metric-value" id="active-cnt">26명</div></div>
-    <div class="metric"><div class="metric-label">휴면 회원</div><div class="metric-value" id="dormant-cnt">5명</div></div>
-    <div class="metric"><div class="metric-label">전체 회원</div><div class="metric-value">31명</div></div>
-  </div>
-  <div class="card">
-    <div class="card-title">운영진</div>
-    <table><thead><tr><th>이름</th><th>역할</th></tr></thead><tbody>
-      <tr><td><strong>안치국</strong></td><td><span style="background:#1a1a2e;color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">회장 · 경기이사 겸직</span></td></tr>
-      <tr><td><strong>이미진</strong></td><td><span style="background:#1a1a2e;color:white;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">총무 · 재무이사 겸직</span></td></tr>
-    </tbody></table>
-  </div>
-  <div class="card">
-    <div class="card-title">정회원 명단 (26명)</div>
-    <div style="overflow-x:auto;">
-    <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>통합</th></tr></thead>
-    <tbody id="active-tbody"></tbody></table>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title">휴면 회원 명단 (5명)</div>
-    <table><thead><tr><th>번호</th><th>이름</th><th>성별</th><th>부수</th><th>통합</th></tr></thead>
-    <tbody id="dormant-tbody"></tbody></table>
-  </div>
+  <div id="admin-members-area"></div>
 </div>
 
 </div>

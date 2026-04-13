@@ -114,3 +114,81 @@ function loadFromFirebase(){
 }
 
 // 앱 시작 시 Firebase 로드는 SDK 초기화 후 실행 (하단 script에서)
+
+// =========================
+// 회원관리 고도화 기능 (운영진만 관리, 탈퇴/복구/정보수정/동기화/EX_MEMBERS)
+// 오빠: 모든 주석은 한글, 코드 내 문자열은 영어로 작성
+// =========================
+
+// 운영진 계정(이름) 배열
+const ADMINS = ["이미진", "안치국"];
+
+// 탈퇴 회원(soft-delete) 관리용 배열
+let EX_MEMBERS = [];
+
+// 운영진 여부 체크 함수
+function isAdmin(userName) {
+  // 운영진이면 true 반환
+  return ADMINS.includes(userName);
+}
+
+// 회원 탈퇴 함수 (soft-delete)
+function retireMember(memberId) {
+  // memberId로 회원 찾기
+  const member = MEMBERS.find(m => m.id === memberId) || DORMANT.find(m => m.id === memberId);
+  if (!member) return false;
+  // MEMBERS/DORMANT에서 제거
+  removeMemberFromAll(memberId);
+  // EX_MEMBERS에 추가 (복구용 정보 포함)
+  EX_MEMBERS.push({...member, retiredAt: Date.now()});
+  syncAllMemberData();
+  return true;
+}
+
+// 탈퇴 회원 복구 함수
+function restoreMemberFromEx(memberId) {
+  const idx = EX_MEMBERS.findIndex(m => m.id === memberId);
+  if (idx === -1) return false;
+  const member = EX_MEMBERS[idx];
+  // MEMBERS에 복구
+  MEMBERS.push({...member});
+  // EX_MEMBERS에서 제거
+  EX_MEMBERS.splice(idx, 1);
+  syncAllMemberData();
+  return true;
+}
+
+// 회원 정보 수정 함수
+function updateMemberInfo(memberId, newInfo) {
+  // MEMBERS/DORMANT/EX_MEMBERS 모두에서 찾아서 수정
+  let found = false;
+  [MEMBERS, DORMANT, EX_MEMBERS].forEach(arr => {
+    const idx = arr.findIndex(m => m.id === memberId);
+    if (idx !== -1) {
+      arr[idx] = {...arr[idx], ...newInfo};
+      found = true;
+    }
+  });
+  if (found) syncAllMemberData();
+  return found;
+}
+
+// 회원 전체 데이터 동기화 함수
+function syncAllMemberData() {
+  // localStorage, Firebase 등 전체 동기화 (구현체에 맞게 수정)
+  // ...여기에 동기화 코드 추가...
+  // 예시: localStorage.setItem("MEMBERS", JSON.stringify(MEMBERS));
+  // 예시: localStorage.setItem("DORMANT", JSON.stringify(DORMANT));
+  // 예시: localStorage.setItem("EX_MEMBERS", JSON.stringify(EX_MEMBERS));
+  // 필요시 Firebase 연동도 추가
+}
+
+// 회원 배열에서 특정 회원 제거
+function removeMemberFromAll(memberId) {
+  [MEMBERS, DORMANT].forEach(arr => {
+    const idx = arr.findIndex(m => m.id === memberId);
+    if (idx !== -1) arr.splice(idx, 1);
+  });
+}
+
+// ...이후 UI/이벤트 바인딩/운영진만 노출/버튼 등은 league-core.js, index.html에서 추가 구현 예정...
