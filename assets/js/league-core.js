@@ -898,3 +898,42 @@ function realtimeCalcDoubles(gi){
   });
   updateGameTags(gi,'dg');
 }
+
+// 정회원/게스트 명단을 부수(낮은 숫자=높은 부수) 기준으로 정렬해서 콘솔에 출력하는 함수
+function printSortedMembersByBu() {
+  // 오빠: 이번주 리그 참가자 명단에서 정회원/게스트를 분리해서, 부수(total) 오름차순(숫자 낮은 게 상위)으로 정렬해서 콘솔에 출력하는 함수야.
+  const playerNames = (ST.week && ST.week.players) ? ST.week.players : [];
+  // 정회원: MEMBERS 배열에 있는 사람
+  const memberNames = MEMBERS.map(m => m.name);
+  const externals = getExternals();
+  const tempPlayers = (ST.week && ST.week.tempPlayers) ? ST.week.tempPlayers : [];
+
+  // 정회원 목록
+  const regulars = playerNames
+    .map(name => MEMBERS.find(m => m.name === name))
+    .filter(Boolean)
+    .map(m => ({ name: m.name, bu: m.total }));
+
+  // 게스트 목록 (특별회원 + 임시게스트)
+  const guests = playerNames
+    .filter(name => !memberNames.includes(name))
+    .map(name => {
+      // externals(특별회원)에서 찾기
+      let ext = externals.find(e => e.name === name);
+      if (ext) return { name: ext.name, bu: ext.total };
+      // tempPlayers(임시게스트)에서 찾기
+      let temp = tempPlayers.find(t => t.name === name);
+      if (temp) return { name: temp.name, bu: temp.total };
+      return { name, bu: '?' };
+    }));
+
+  // 부수 오름차순 정렬(숫자 낮은 게 상위)
+  regulars.sort((a, b) => a.bu - b.bu);
+  guests.sort((a, b) => a.bu - b.bu);
+
+  // 콘솔 출력
+  console.log('정회원 (부수 낮은 순):');
+  regulars.forEach(m => console.log(`${m.name} (${m.bu})`));
+  console.log('게스트 (부수 낮은 순):');
+  guests.forEach(m => console.log(`${m.name} (${m.bu})`));
+}
