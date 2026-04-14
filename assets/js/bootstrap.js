@@ -262,6 +262,29 @@ restoreLeagueUI();
   localStorage.setItem('ttgo_m0410v2','done');
 })();
 
+// 2분기 데이터 복구 마이그레이션 (carryOver / 4월 10일 이원호 3위 점수)
+(function migrateQ2Recovery(){
+  if(localStorage.getItem('ttgo_q2_recovery_v1')) return;
+  // 이월 점수 강제 복구 (carryOver가 유실된 경우)
+  ST.carryOver = {
+    '김영서':{w:0,s:0,t:1,pts:2},
+    '안치국':{w:1,s:0,t:1,pts:7},
+    '이상건':{w:0,s:0,t:2,pts:4},
+    '이진규':{w:0,s:1,t:1,pts:5},
+    '최양님':{w:1,s:0,t:0,pts:5},
+    '이미진':{w:1,s:0,t:0,pts:5},
+  };
+  if(!ST.scores) ST.scores = {};
+  // 이원호 4월 10일 3위 점수 복구 (없는 경우만 보정)
+  if(!ST.scores['이원호'] || (!ST.scores['이원호'].t && !ST.scores['이원호'].w && !ST.scores['이원호'].s)){
+    ST.scores['이원호'] = {w:0, s:0, t:1, pts:2};
+  }
+  // 최양님 2분기 승급 상태 보장
+  ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+  saveST(); // localStorage + Firebase 동기화
+  localStorage.setItem('ttgo_q2_recovery_v1','done');
+})();
+
 // ── Firebase 연동 함수 ──
 function saveToFirebase(){
   if(typeof db === 'undefined') return;
@@ -287,9 +310,12 @@ function loadFromFirebase(){
       if(!ST.doubles) ST.doubles={pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
       if(!ST.final) ST.final={win:'',second:'',third:'',third2:'',lucky:''};
       if(!ST.tournament) ST.tournament={};
-      // carryOver 없으면 세팅
+      // carryOver 없으면 세팅 (ensureCarryOver 내부에서 saveST() 호출)
+      var hadCarryOver = !!(ST.carryOver && Object.keys(ST.carryOver).length);
       ensureCarryOver();
       localStorage.setItem('ttgo_v3', JSON.stringify(ST));
+      // carryOver가 복구된 경우 Firebase에도 즉시 반영
+      if(!hadCarryOver){ try{ if(typeof db!=='undefined') db.ref('ttgo').set(ST); }catch(e){} }
     }
     if(data.externals) saveExternals(data.externals);
     // 출석부 데이터 로드
@@ -303,6 +329,7 @@ function loadFromFirebase(){
     renderDash();
     renderMembers();
     renderLeague();
+    if(typeof renderRanking === 'function') renderRanking();
     // 조편성 데이터가 있으면 자동 복원
     restoreLeagueUI();
     // 저장된 로그인 자동 복원
