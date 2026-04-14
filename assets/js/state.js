@@ -1,4 +1,4 @@
-var MEMBERS = [
+var MEMBERS_DEFAULT = [
   {name:'곽동석',g:'남',bu:6,total:6},{name:'김덕기',g:'남',bu:5,total:4},
   {name:'김동수',g:'남',bu:6,total:6},{name:'김영란',g:'여',bu:6,total:6},
   {name:'김영서',g:'남',bu:6,total:6},{name:'김옥란',g:'여',bu:9,total:9},
@@ -11,14 +11,26 @@ var MEMBERS = [
   {name:'이진규',g:'남',bu:6,total:6},{name:'전인석',g:'남',bu:7,total:7},
   {name:'정영아',g:'여',bu:8,total:8},{name:'정헌모',g:'남',bu:7,total:7},
   {name:'정희남',g:'남',bu:7,total:7},{name:'조경숙',g:'여',bu:9,total:9},
-  {name:'최양님',g:'여',bu:7,total:6},{name:'한금환',g:'남',bu:5,total:5},{name:'한철호',g:'남',bu:6,total:6},];
-var DORMANT = [
+  {name:'최양님',g:'여',bu:7,total:6},{name:'한금환',g:'남',bu:5,total:5},{name:'한철호',g:'남',bu:6,total:6},
+];
+var DORMANT_DEFAULT = [
   {name:'안경식',g:'남',bu:6,total:6},
   {name:'김성훈',g:'남',bu:7,total:7},
   {name:'오영준',g:'남',bu:4,total:4},
   {name:'이동규',g:'남',bu:5,total:5},
   {name:'허순임',g:'여',bu:9,total:9},
 ];
+// localStorage에 저장된 회원 데이터가 있으면 우선 사용 (탈퇴/휴면/수정 내역 유지)
+var MEMBERS, DORMANT, EX_MEMBERS_SAVED;
+try {
+  var _sm = localStorage.getItem('ttgo_members');
+  var _sd = localStorage.getItem('ttgo_dormant');
+  MEMBERS  = _sm ? JSON.parse(_sm) : MEMBERS_DEFAULT.slice();
+  DORMANT  = _sd ? JSON.parse(_sd) : DORMANT_DEFAULT.slice();
+} catch(e) {
+  MEMBERS = MEMBERS_DEFAULT.slice();
+  DORMANT = DORMANT_DEFAULT.slice();
+}
 // 특별 회원 (localStorage에서 관리)
 function getExternals(){ 
   try{ return JSON.parse(localStorage.getItem('ttgo_externals')||'[]'); }catch(e){ return []; }
