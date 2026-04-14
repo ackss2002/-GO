@@ -42,7 +42,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // 페이지 로드 시 마지막 활성 탭 복원 (새로고침 후 대시보드로 돌아가는 문제 해결)
-document.addEventListener('DOMContentLoaded', function(){
+// 다른 스크립트가 탭을 바꿀 수 있으므로 완전 로드 이후에 복원합니다.
+window.addEventListener('load', function(){
   try{
     var saved = localStorage.getItem('ttgo_active_tab');
     if(saved && typeof window.switchTab === 'function'){
