@@ -387,6 +387,29 @@ let EX_MEMBERS = (function(){
 // window.EX_MEMBERS 즉시 동기화 (line 95에서 []로 초기화됐으므로 덮어씀)
 window.EX_MEMBERS = EX_MEMBERS;
 
+// 탈퇴 회원 데이터 복구: MEMBERS에 없는데 EX_MEMBERS에도 없으면 탈퇴 목록에 추가
+(function recoverExMembers(){
+  var knownRetired = [
+    {name:'김덕기',g:'남',bu:5,total:4},
+    {name:'한철호',g:'남',bu:6,total:6}
+  ];
+  var changed = false;
+  knownRetired.forEach(function(m){
+    var inMembers  = MEMBERS.some(function(x){ return x.name===m.name; });
+    var inDormant  = DORMANT.some(function(x){ return x.name===m.name; });
+    var inEx       = EX_MEMBERS.some(function(x){ return x.name===m.name; });
+    if(!inMembers && !inDormant && !inEx){
+      EX_MEMBERS.push({...m, retiredAt: Date.now()});
+      changed = true;
+    }
+  });
+  if(changed){
+    window.EX_MEMBERS = EX_MEMBERS;
+    localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
+    if(typeof db!=='undefined') try{ db.ref('ex_members').set(EX_MEMBERS); }catch(e){}
+  }
+})();
+
 // 운영진 여부 체크 함수
 function isAdmin(userName) {
   // 운영진이면 true 반환
