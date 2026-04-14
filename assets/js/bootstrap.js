@@ -264,7 +264,7 @@ restoreLeagueUI();
 
 // 2분기 데이터 복구 마이그레이션 (carryOver / 4월 10일 이원호 3위 점수)
 (function migrateQ2Recovery(){
-  if(localStorage.getItem('ttgo_q2_recovery_v1')) return;
+  if(localStorage.getItem('ttgo_q2_recovery_v2')) return;
   // 이월 점수 강제 복구 (carryOver가 유실된 경우)
   ST.carryOver = {
     '김영서':{w:0,s:0,t:1,pts:2},
@@ -281,8 +281,13 @@ restoreLeagueUI();
   }
   // 최양님 2분기 승급 상태 보장
   ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
-  saveST(); // localStorage + Firebase 동기화
-  localStorage.setItem('ttgo_q2_recovery_v1','done');
+  // localStorage 저장
+  localStorage.setItem('ttgo_v3', JSON.stringify(ST));
+  // Firebase에 format2로 저장 (loadFromFirebase가 올바르게 읽을 수 있도록)
+  if(typeof db !== 'undefined'){
+    try{ db.ref('ttgo').set({ST:ST, externals:getExternals(), updatedAt:Date.now()}); }catch(e){}
+  }
+  localStorage.setItem('ttgo_q2_recovery_v2','done');
 })();
 
 // ── Firebase 연동 함수 ──
@@ -300,8 +305,11 @@ function loadFromFirebase(){
   db.ref('ttgo').once('value').then(function(snapshot){
     const data = snapshot.val();
     if(!data) return;
-    if(data.ST){
-      ST = data.ST;
+    // format1: saveST()가 raw ST 직접 저장 → data.scores 존재
+    // format2: saveToFirebase()가 {ST,externals,updatedAt} 저장 → data.ST 존재
+    var stData = data.ST || (data.scores !== undefined ? data : null);
+    if(stData){
+      ST = stData;
       // ST 구조 방어 코드
       if(!ST.scores) ST.scores={};
       if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
@@ -314,8 +322,8 @@ function loadFromFirebase(){
       var hadCarryOver = !!(ST.carryOver && Object.keys(ST.carryOver).length);
       ensureCarryOver();
       localStorage.setItem('ttgo_v3', JSON.stringify(ST));
-      // carryOver가 복구된 경우 Firebase에도 즉시 반영
-      if(!hadCarryOver){ try{ if(typeof db!=='undefined') db.ref('ttgo').set(ST); }catch(e){} }
+      // carryOver 복구됐거나 format1이면 format2로 정규화하여 Firebase에 재저장
+      if(!hadCarryOver || !data.ST){ try{ if(typeof db!=='undefined') db.ref('ttgo').set({ST:ST,externals:getExternals(),updatedAt:Date.now()}); }catch(e){} }
     }
     if(data.externals) saveExternals(data.externals);
     // 출석부 데이터 로드
