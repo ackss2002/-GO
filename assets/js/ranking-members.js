@@ -112,7 +112,8 @@ function renderRanking(){
         <td>${g.w}</td><td>${g.s}</td><td>${g.t}</td><td><strong>${g.pts}점</strong></td></tr>`;
     }).join('')
     : '<tr><td colspan="7" style="color:#888;text-align:center;">게스트 랭킹 포인트 없음</td></tr>';
-}
+  }
+} // renderRanking 종료
 
 // 회원 관리
 function renderMembers(){
