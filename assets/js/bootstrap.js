@@ -199,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
 renderDash();
 renderMembers();
 renderLeague();
+if(typeof renderRanking === 'function') renderRanking();
 updateAdminUI();
 restoreLeagueUI();
 
@@ -279,10 +280,10 @@ function loadFromFirebase(){
     if(!data) return;
     // format1: saveST()가 raw ST 직접 저장 → data.scores 존재
     // format2: saveToFirebase()가 {ST,externals,updatedAt} 저장 → data.ST 존재
+    // format1(saveST: raw ST) 또는 format2({ST:...}) 모두 처리
     var stData = data.ST || (data.scores !== undefined ? data : null);
     if(stData){
       ST = stData;
-      // ST 구조 방어 코드
       if(!ST.scores) ST.scores={};
       if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
       if(!ST.week.players) ST.week.players=[];
@@ -290,31 +291,23 @@ function loadFromFirebase(){
       if(!ST.doubles) ST.doubles={pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
       if(!ST.final) ST.final={win:'',second:'',third:'',third2:'',lucky:''};
       if(!ST.tournament) ST.tournament={};
-      // carryOver 없거나 비어있으면 강제 복구
-      var hadCarryOver = !!(ST.carryOver && Object.keys(ST.carryOver).length);
-      ensureCarryOver();
-      // 2분기 데이터 복구: Firebase 로드 완료 후 실행 (db 정의 이후 안전)
-      // 별도 플래그 'ttgo_fb_recovered_v1' 사용 (상단 migration과 충돌 방지)
-      var needsRecovery = !localStorage.getItem('ttgo_fb_recovered_v1');
-      if(needsRecovery){
-        ST.carryOver = {
-          '김영서':{w:0,s:0,t:1,pts:2}, '안치국':{w:1,s:0,t:1,pts:7},
-          '이상건':{w:0,s:0,t:2,pts:4}, '이진규':{w:0,s:1,t:1,pts:5},
-          '최양님':{w:1,s:0,t:0,pts:5}, '이미진':{w:1,s:0,t:0,pts:5},
-        };
-        if(!ST.scores) ST.scores = {};
-        if(!ST.scores['이원호']||(!ST.scores['이원호'].t&&!ST.scores['이원호'].w&&!ST.scores['이원호'].s)){
-          ST.scores['이원호'] = {w:0, s:0, t:1, pts:2};
-        }
-        ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
-        localStorage.setItem('ttgo_fb_recovered_v1','done');
-      }
-      localStorage.setItem('ttgo_v3', JSON.stringify(ST));
-      // format1이거나 복구된 경우 format2로 정규화하여 Firebase 재저장
-      if(!data.ST || needsRecovery || !hadCarryOver){
-        try{ db.ref('ttgo').set({ST:ST, externals:getExternals(), updatedAt:Date.now()}); }catch(e){}
-      }
     }
+    // carryOver는 고정 역사 데이터 → 항상 정확한 값으로 보장
+    ST.carryOver = {
+      '김영서':{w:0,s:0,t:1,pts:2}, '안치국':{w:1,s:0,t:1,pts:7},
+      '이상건':{w:0,s:0,t:2,pts:4}, '이진규':{w:0,s:1,t:1,pts:5},
+      '최양님':{w:1,s:0,t:0,pts:5}, '이미진':{w:1,s:0,t:0,pts:5},
+    };
+    if(!ST.scores) ST.scores = {};
+    // 최양님 승급 상태 항상 보장
+    ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+    // 이원호 4월10일 3위 점수 — 없으면 복구
+    if(!ST.scores['이원호'] || (!ST.scores['이원호'].t && !ST.scores['이원호'].w && !ST.scores['이원호'].s)){
+      ST.scores['이원호'] = {w:0, s:0, t:1, pts:2};
+    }
+    localStorage.setItem('ttgo_v3', JSON.stringify(ST));
+    // format2로 정규화하여 Firebase 재저장 (다음 접속자도 올바른 데이터 로드)
+    try{ db.ref('ttgo').set({ST:ST, externals:getExternals(), updatedAt:Date.now()}); }catch(e){}
     if(data.externals) saveExternals(data.externals);
     // 출석부 데이터 로드
     db.ref('ttgo_attendance').once('value').then(function(snap){
