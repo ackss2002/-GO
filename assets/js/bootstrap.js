@@ -384,6 +384,8 @@ const ADMINS = (typeof window.ADMINS !== 'undefined') ? window.ADMINS : ["이미
 let EX_MEMBERS = (function(){
   try { var s = localStorage.getItem('ttgo_ex_members'); return s ? JSON.parse(s) : []; } catch(e){ return []; }
 })();
+// window.EX_MEMBERS 즉시 동기화 (line 95에서 []로 초기화됐으므로 덮어씀)
+window.EX_MEMBERS = EX_MEMBERS;
 
 // 운영진 여부 체크 함수
 function isAdmin(userName) {
