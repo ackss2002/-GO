@@ -955,77 +955,55 @@ function printSortedMembersByBu() {
 // EX_MEMBERS(탈퇴회원) 배열을 window에 바인딩 (bootstrap.js와 동기화)
 window.EX_MEMBERS = window.EX_MEMBERS || [];
 
-// 회원관리 UI 렌더링 함수 (프로 스포츠 앱 스타일 그리드)
+// 회원관리 UI 렌더링 함수 (카드형 레이아웃)
 function renderMembersAdminUI(currentUser) {
   // 운영진만 접근 가능
   if (!window.isAdminMode) {
-    document.getElementById('admin-members-area').innerHTML =
-      '<div style="color:#ef4444;font-weight:700;padding:16px;">운영진만 접근 가능합니다.</div>';
+    document.getElementById('admin-members-area').innerHTML = '<div style="color:#e94560;font-weight:700;">운영진만 접근 가능합니다.</div>';
     return;
   }
 
-  // 단일 행 HTML 생성
-  function mgtRow(m, type) {
+  function memberCard(m, type) {
     const name = escapeHtml(m.name);
     const ne   = jsEscape(m.name);
     const bu   = m.total ? escapeHtml(String(m.total)) + '부' : '-';
-    let statusHtml, actionsHtml;
+    let meta = '', actions = '';
 
     if (type === 'active') {
-      statusHtml  = `<span class="mgt-status mgt-status-active">정회원</span>`;
-      actionsHtml =
-        `<button class="mgt-btn mgt-btn-edit"    onclick="editMemberInfo('${ne}')">수정</button>` +
-        `<button class="mgt-btn mgt-btn-dormant" onclick="setDormant('${ne}')">휴면</button>` +
-        `<button class="mgt-btn mgt-btn-retire"  onclick="retireMember('${ne}')">탈퇴</button>`;
+      actions =
+        `<button class="icon-btn icon-btn-edit"    onclick="editMemberInfo('${ne}')"       title="정보 수정">✏️</button>` +
+        `<button class="icon-btn icon-btn-sleep"   onclick="setDormant('${ne}')"            title="휴면 전환">💤</button>` +
+        `<button class="icon-btn icon-btn-danger"  onclick="retireMember('${ne}')"          title="탈퇴 처리">🚪</button>`;
     } else if (type === 'dormant') {
-      statusHtml  = `<span class="mgt-status mgt-status-dormant">휴면</span>`;
-      actionsHtml =
-        `<button class="mgt-btn mgt-btn-edit"    onclick="editMemberInfo('${ne}')">수정</button>` +
-        `<button class="mgt-btn mgt-btn-restore" onclick="restoreFromDormant('${ne}')">복구</button>` +
-        `<button class="mgt-btn mgt-btn-retire"  onclick="retireMember('${ne}')">탈퇴</button>`;
+      actions =
+        `<button class="icon-btn icon-btn-edit"    onclick="editMemberInfo('${ne}')"        title="정보 수정">✏️</button>` +
+        `<button class="icon-btn icon-btn-restore" onclick="restoreFromDormant('${ne}')"    title="정회원 복구">↩️</button>` +
+        `<button class="icon-btn icon-btn-danger"  onclick="retireMember('${ne}')"          title="탈퇴 처리">🚪</button>`;
     } else {
       const date = m.retiredAt ? new Date(m.retiredAt).toLocaleDateString('ko-KR') : '-';
-      statusHtml  = `<span class="mgt-status mgt-status-ex">탈퇴</span>` +
-                    `<span class="mgt-retire-date">${date}</span>`;
-      actionsHtml =
-        `<button class="mgt-btn mgt-btn-restore" onclick="restoreMemberFromEx('${ne}')">복구</button>` +
-        `<button class="mgt-btn mgt-btn-delete"  onclick="deleteExMember('${ne}')">완전삭제</button>`;
+      meta    = `<div class="member-card-meta">탈퇴일 ${date}</div>`;
+      actions =
+        `<button class="icon-btn icon-btn-restore" onclick="restoreMemberFromEx('${ne}')"  title="복구">↩️</button>` +
+        `<button class="icon-btn icon-btn-delete"  onclick="deleteExMember('${ne}')"       title="완전 삭제">🗑️</button>`;
     }
-
-    return `<div class="mgt-row">` +
-      `<div class="mgt-cell-name mgt-name">${name}</div>` +
-      `<div class="mgt-cell-bu"><span class="mgt-bu">${bu}</span></div>` +
-      `<div class="mgt-cell-status">${statusHtml}</div>` +
-      `<div class="mgt-cell-actions"><div class="mgt-actions">${actionsHtml}</div></div>` +
-      `</div>`;
+    return `<div class="member-card">` +
+      `<div class="member-card-top"><span class="member-name">${name}</span><span class="bu-badge">${bu}</span></div>` +
+      `${meta}<div class="member-actions">${actions}</div></div>`;
   }
 
-  // 섹션 패널 HTML 생성
-  function mgtPanel(type, label, members) {
-    const colLabel = type === 'ex' ? '탈퇴일' : '상태';
-    const colHead =
-      `<div class="mgt-col-head">` +
-        `<span>이름</span><span>부수</span><span>${colLabel}</span>` +
-        `<span class="mgt-ch-btn">관리</span>` +
-      `</div>`;
-    const rows = members.length
-      ? members.map(m => mgtRow(m, type)).join('')
-      : `<div class="mgt-empty">해당 회원이 없습니다.</div>`;
-    return `<div class="mgt-panel">` +
-      `<div class="mgt-section-head">` +
-        `<div class="mgt-section-title">` +
-          `<span class="mgt-dot mgt-dot-${type}"></span>${label}` +
-        `</div>` +
-        `<span class="mgt-count mgt-count-${type}">${members.length}명</span>` +
-      `</div>` +
-      colHead + rows +
-      `</div>`;
+  function section(cls, label, members, type) {
+    const cards = members.length
+      ? members.map(m => memberCard(m, type)).join('')
+      : `<div class="member-card-empty">없음</div>`;
+    return `<div class="member-section ${cls}">` +
+      `<div class="member-section-header"><span>${label}</span><span class="count-badge">${members.length}</span></div>` +
+      `<div class="member-cards">${cards}</div></div>`;
   }
 
   document.getElementById('admin-members-area').innerHTML =
-    mgtPanel('active',  '정회원',    MEMBERS)    +
-    mgtPanel('dormant', '휴면 회원', DORMANT)    +
-    mgtPanel('ex',      '탈퇴 회원', EX_MEMBERS);
+    section('section-active',  '정회원',    MEMBERS,    'active')  +
+    section('section-dormant', '휴면 회원', DORMANT,    'dormant') +
+    section('section-ex',      '탈퇴 회원', EX_MEMBERS, 'ex');
 }
 
 // 회원 정보 수정(운영진만)
