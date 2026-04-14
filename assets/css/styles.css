@@ -72,70 +72,127 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .game-tag { padding: 4px 10px; background: #e3f2fd; color: #1565C0; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin: 2px; }
 .upgrade-box { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #fff8e1; border-radius: 8px; border-left: 3px solid #FFA000; margin-bottom: 8px; }
 .footer-note { text-align: center; font-size: 11px; color: #bbb; padding: 16px 0 8px; }
-/* ── Member management card layout ─────────────────────────── */
-.member-section { margin-bottom: 24px; }
-.member-section-header {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 14px; border-radius: 10px;
-  font-size: 13px; font-weight: 700; margin-bottom: 10px;
-}
-.member-section-header .count-badge {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 22px; height: 22px; padding: 0 6px;
-  border-radius: 11px; font-size: 11px; font-weight: 700;
-}
-.section-active .member-section-header  { background: #e8f5e9; color: #2e7d32; }
-.section-active .count-badge            { background: #2e7d32; color: #fff; }
-.section-dormant .member-section-header { background: #fff8e1; color: #e65100; }
-.section-dormant .count-badge           { background: #f57f17; color: #fff; }
-.section-ex .member-section-header      { background: #f5f5f5; color: #616161; }
-.section-ex .count-badge                { background: #757575; color: #fff; }
+/* ── Member Management UI (mgt-) ─────────────────────────── */
+#admin-members-area { padding: 4px 0; }
 
-.member-cards {
+.mgt-panel {
+  background: #fff; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07); margin-bottom: 20px;
+}
+
+/* Section header: dark navy */
+.mgt-section-head {
+  background: #1a1a2e;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+}
+.mgt-section-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.4px;
+}
+.mgt-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.mgt-dot-active  { background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.7); }
+.mgt-dot-dormant { background: #f59e0b; box-shadow: 0 0 8px rgba(245,158,11,0.7); }
+.mgt-dot-ex      { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.7); }
+
+.mgt-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 700;
+}
+.mgt-count-active  { background: rgba(34,197,94,0.18);  color: #22c55e; border: 1px solid rgba(34,197,94,0.35); }
+.mgt-count-dormant { background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid rgba(245,158,11,0.35); }
+.mgt-count-ex      { background: rgba(239,68,68,0.18);  color: #ef4444; border: 1px solid rgba(239,68,68,0.35); }
+
+/* Column headers (desktop only) */
+.mgt-col-head {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 10px;
+  grid-template-columns: minmax(0,1fr) 70px 90px 180px;
+  gap: 8px; padding: 9px 18px;
+  background: #f8f9fb; border-bottom: 1px solid #eef0f4;
 }
-@media(max-width: 480px) { .member-cards { grid-template-columns: 1fr 1fr; gap: 8px; } }
-@media(max-width: 320px) { .member-cards { grid-template-columns: 1fr; } }
-
-.member-card {
-  background: #fff; border-radius: 12px; padding: 12px 12px 10px;
-  border: 1.5px solid #e8e8e8; display: flex; flex-direction: column; gap: 9px;
-  transition: box-shadow 0.15s, transform 0.15s;
+.mgt-col-head > span {
+  font-size: 11px; font-weight: 700; color: #9ca3af;
+  text-transform: uppercase; letter-spacing: 0.5px;
 }
-.member-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.09); transform: translateY(-1px); }
-.section-active  .member-card { border-left: 3px solid #4caf50; }
-.section-dormant .member-card { border-left: 3px solid #ffa726; }
-.section-ex      .member-card { border-left: 3px solid #bdbdbd; }
+.mgt-ch-btn { text-align: right; }
 
-.member-card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.member-name { font-size: 14px; font-weight: 700; color: #1a1a2e; }
-.bu-badge {
+/* Member row */
+.mgt-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 70px 90px 180px;
+  gap: 8px; align-items: center;
+  padding: 13px 18px; border-bottom: 1px solid #f0f2f6;
+  transition: background 0.12s;
+}
+.mgt-row:last-child { border-bottom: none; }
+.mgt-row:hover      { background: #fafbfd; }
+
+.mgt-name {
+  font-size: 14px; font-weight: 700; color: #1a1a2e;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* 부수 badge */
+.mgt-bu {
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; white-space: nowrap;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 700; background: #f1f3f6; color: #4b5563;
 }
-.section-active  .bu-badge { background: #e8f5e9; color: #2e7d32; }
-.section-dormant .bu-badge { background: #fff8e1; color: #e65100; }
-.section-ex      .bu-badge { background: #f5f5f5; color: #757575; }
 
-.member-card-meta { font-size: 11px; color: #aaa; }
-.member-card-empty { font-size: 13px; color: #bbb; padding: 12px 4px; }
-
-.member-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.icon-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e0e0e0;
-  background: #f8f8f8; cursor: pointer; font-size: 15px; line-height: 1;
-  transition: background 0.13s, border-color 0.13s, transform 0.13s;
-  flex-shrink: 0;
+/* Status badge */
+.mgt-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
 }
-.icon-btn:hover  { transform: scale(1.12); }
-.icon-btn-edit:hover    { background: #e3f2fd; border-color: #90caf9; }
-.icon-btn-sleep:hover   { background: #fff8e1; border-color: #ffe082; }
-.icon-btn-restore:hover { background: #e8f5e9; border-color: #a5d6a7; }
-.icon-btn-danger:hover  { background: #fff3e0; border-color: #ffcc80; }
-.icon-btn-delete:hover  { background: #ffebee; border-color: #ef9a9a; }
+.mgt-status::before {
+  content: ''; display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.mgt-status-active        { background: #dcfce7; color: #16a34a; }
+.mgt-status-active::before  { background: #22c55e; }
+.mgt-status-dormant       { background: #fef3c7; color: #d97706; }
+.mgt-status-dormant::before { background: #f59e0b; }
+.mgt-status-ex            { background: #fee2e2; color: #dc2626; }
+.mgt-status-ex::before      { background: #ef4444; }
+
+.mgt-retire-date { font-size: 10px; color: #9ca3af; display: block; margin-top: 2px; }
+
+/* Action buttons */
+.mgt-actions { display: flex; gap: 5px; justify-content: flex-end; flex-wrap: wrap; }
+.mgt-btn {
+  padding: 5px 12px; border-radius: 7px;
+  font-size: 11px; font-weight: 700; cursor: pointer; border: none;
+  transition: filter 0.13s, transform 0.1s;
+  white-space: nowrap; line-height: 1.4;
+}
+.mgt-btn:hover  { filter: brightness(0.88); transform: translateY(-1px); }
+.mgt-btn:active { filter: brightness(0.80); transform: translateY(0); }
+.mgt-btn-edit    { background: #2563eb; color: #fff; }
+.mgt-btn-dormant { background: #e5e7eb; color: #374151; }
+.mgt-btn-restore { background: #22c55e; color: #fff; }
+.mgt-btn-retire  { background: #ef4444; color: #fff; }
+.mgt-btn-delete  { background: #7f1d1d; color: #fff; }
+
+/* Empty state */
+.mgt-empty { padding: 28px 18px; text-align: center; font-size: 13px; color: #d1d5db; }
+
+/* Mobile: 2-row layout per member */
+@media(max-width: 600px) {
+  .mgt-col-head { display: none; }
+  .mgt-row {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    row-gap: 8px; column-gap: 10px;
+    padding: 12px 14px;
+  }
+  .mgt-cell-name    { grid-column: 1; grid-row: 1; }
+  .mgt-cell-bu      { grid-column: 2; grid-row: 1; }
+  .mgt-cell-status  { grid-column: 1; grid-row: 2; }
+  .mgt-cell-actions { grid-column: 2; grid-row: 2; }
+  .mgt-actions { justify-content: flex-end; }
+  .mgt-btn { padding: 5px 9px; }
+}
 
 /* Modal common styles */
 .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:12000; }
