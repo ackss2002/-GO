@@ -1008,11 +1008,23 @@ function editMemberInfo(memberName) {
 
 // 탈퇴회원 완전삭제(운영진만)
 function deleteExMember(memberId) {
-  const idx = EX_MEMBERS.findIndex(m => m.name === memberId);
-  if (idx !== -1) {
-    EX_MEMBERS.splice(idx, 1);
-    if (typeof syncAllMemberData === 'function') syncAllMemberData();
-    renderMembersAdminUI(window.currentUser||'');
+  const memberName = memberId;
+  if (typeof window.showConfirmModal === 'function'){
+    window.showConfirmModal(memberName + '님을 완전 삭제하시겠습니까? (복구 불가)', function(){
+      const idx = EX_MEMBERS.findIndex(m => m.name === memberName);
+      if (idx !== -1) {
+        EX_MEMBERS.splice(idx, 1);
+        if (typeof syncAllMemberData === 'function') syncAllMemberData();
+        if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+      }
+    }, { title: '완전삭제 확인' });
+  } else {
+    const idx = EX_MEMBERS.findIndex(m => m.name === memberName);
+    if (idx !== -1) {
+      EX_MEMBERS.splice(idx, 1);
+      if (typeof syncAllMemberData === 'function') syncAllMemberData();
+      renderMembersAdminUI(window.currentUser||'');
+    }
   }
 }
 

@@ -339,14 +339,13 @@ function retireMember(memberName) {
   // memberName으로 회원 찾기
   const member = MEMBERS.find(m => m.name === memberName) || DORMANT.find(m => m.name === memberName);
   if (!member) return false;
-  // 확인
-  if (!confirm(memberName + '님을 탈퇴 처리하시겠습니까? (복구 가능)')) return false;
-  // MEMBERS/DORMANT에서 제거
-  removeMemberFromAll(memberName);
-  // EX_MEMBERS에 추가 (복구용 정보 포함)
-  EX_MEMBERS.push({...member, retiredAt: Date.now()});
-  syncAllMemberData();
-  if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  // 확인 모달 표시 (비동기)
+  window.showConfirmModal(memberName + '님을 탈퇴 처리하시겠습니까? (복구 가능)', function(){
+    removeMemberFromAll(memberName);
+    EX_MEMBERS.push({...member, retiredAt: Date.now()});
+    syncAllMemberData();
+    if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  }, { title: '탈퇴 확인' });
   return true;
 }
 
@@ -384,11 +383,12 @@ function updateMemberInfo(memberName, newInfo) {
 function setDormant(memberName) {
   const member = MEMBERS.find(m=>m.name===memberName);
   if(!member) return false;
-  if(!confirm(memberName + '님을 휴면 처리하시겠습니까?')) return false;
-  removeMemberFromAll(memberName);
-  DORMANT.push({...member});
-  syncAllMemberData();
-  if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  window.showConfirmModal(memberName + '님을 휴면 처리하시겠습니까?', function(){
+    removeMemberFromAll(memberName);
+    DORMANT.push({...member});
+    syncAllMemberData();
+    if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  }, { title: '휴면 확인' });
   return true;
 }
 
@@ -483,6 +483,28 @@ window.showEditMemberModal = function(originalName){
     saveBtn.parentNode.replaceChild(newSave, saveBtn);
     newSave.addEventListener('click', newHandler);
   }catch(e){ console.error('showEditMemberModal error', e); alert('모달을 열 수 없습니다. 콘솔을 확인하세요.'); }
+};
+
+// Generic confirm modal
+window.showConfirmModal = function(message, onConfirm, options){
+  options = options || {};
+  try{
+    if(!document.getElementById('confirm-modal')){
+      const o = document.createElement('div');
+      o.id = 'confirm-modal';
+      o.className = 'modal-overlay';
+      o.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><h3>${options.title||'이 페이지 내용:'}</h3><div style="margin-top:8px;color:#333;">${message.replace(/\n/g,'<br/>')}</div><div class="modal-actions" style="margin-top:14px;"><button class="btn btn-cancel">취소</button><button class="btn btn-confirm">확인</button></div></div>`;
+      document.body.appendChild(o);
+      // cancel
+      o.querySelector('.btn-cancel').addEventListener('click', function(){ o.style.display='none'; });
+      // confirm
+      o.querySelector('.btn-confirm').addEventListener('click', function(){ o.style.display='none'; if(typeof onConfirm==='function') onConfirm(); });
+      // ESC to close
+      document.addEventListener('keydown', function escHandler(e){ if(e.key==='Escape'){ if(o.style.display==='flex'){ o.style.display='none'; } } });
+    }
+    const el = document.getElementById('confirm-modal');
+    el.style.display = 'flex';
+  }catch(e){ console.error('showConfirmModal error', e); if(typeof onConfirm==='function') onConfirm(); }
 };
 
 // ...이후 UI/이벤트 바인딩/운영진만 노출/버튼 등은 league-core.js, index.html에서 추가 구현 예정...
