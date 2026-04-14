@@ -345,6 +345,7 @@ function retireMember(memberName) {
     EX_MEMBERS.push({...member, retiredAt: Date.now()});
     syncAllMemberData();
     if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+    try{ recordAdminAction('retire', { member: memberName }); }catch(e){}
   }, { title: '탈퇴 확인' });
   return true;
 }
@@ -360,6 +361,7 @@ function restoreMemberFromEx(memberName) {
   EX_MEMBERS.splice(idx, 1);
   syncAllMemberData();
   if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  try{ recordAdminAction('restore_ex', { member: memberName }); }catch(e){}
   return true;
 }
 
@@ -376,6 +378,7 @@ function updateMemberInfo(memberName, newInfo) {
   });
   if (found) syncAllMemberData();
   if (found && typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  try{ recordAdminAction('update', { from: memberName, to: newInfo }); }catch(e){}
   return found;
 }
 
@@ -388,6 +391,7 @@ function setDormant(memberName) {
     DORMANT.push({...member});
     syncAllMemberData();
     if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+    try{ recordAdminAction('dormant', { member: memberName }); }catch(e){}
   }, { title: '휴면 확인' });
   return true;
 }
@@ -401,6 +405,7 @@ function restoreFromDormant(memberName){
   MEMBERS.push({...member});
   syncAllMemberData();
   if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  try{ recordAdminAction('restore', { member: memberName }); }catch(e){}
   return true;
 }
 
@@ -437,12 +442,62 @@ function removeMemberFromAll(memberName) {
 // -----------------------
 // 회원 수정 모달 (동적 생성)
 // -----------------------
+// 모달 오픈/클로즈 유틸: 포커스 트랩 및 포커스 복원
+window._lastFocusedElement = null;
+window.openModal = function(modalId){
+  try{
+    const el = document.getElementById(modalId);
+    if(!el) return;
+    // 저장된 포커스
+    if(!window._lastFocusedElement) window._lastFocusedElement = document.activeElement;
+    el.style.display = 'flex';
+    el.setAttribute('aria-hidden','false');
+    // keydown 핸들러 (ESC, TAB 트랩)
+    const handler = function(e){
+      if(e.key === 'Escape'){
+        e.preventDefault();
+        window.closeModal(modalId);
+        return;
+      }
+      if(e.key === 'Tab'){
+        const focusable = el.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+        if(focusable.length === 0){ e.preventDefault(); return; }
+        const first = focusable[0], last = focusable[focusable.length-1];
+        if(e.shiftKey){ if(document.activeElement === first){ e.preventDefault(); last.focus(); } }
+        else { if(document.activeElement === last){ e.preventDefault(); first.focus(); } }
+      }
+    };
+    el._modalKeyHandler = handler;
+    document.addEventListener('keydown', handler);
+    // 포커스: 첫 입력 또는 확인 버튼
+    setTimeout(function(){
+      const focusable = el.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      if(focusable.length) focusable[0].focus(); else el.focus();
+    }, 40);
+  }catch(e){ console.error('openModal error', e); }
+};
+
+window.closeModal = function(modalId){
+  try{
+    const el = document.getElementById(modalId);
+    if(!el) return;
+    el.style.display = 'none';
+    el.setAttribute('aria-hidden','true');
+    if(el._modalKeyHandler) document.removeEventListener('keydown', el._modalKeyHandler);
+    el._modalKeyHandler = null;
+    if(window._lastFocusedElement && typeof window._lastFocusedElement.focus === 'function'){
+      try{ window._lastFocusedElement.focus(); }catch(e){}
+    }
+    window._lastFocusedElement = null;
+  }catch(e){ console.error('closeModal error', e); }
+};
+
 window.showEditMemberModal = function(originalName){
   try{
     if(!document.getElementById('edit-member-modal')){
       const wrapper = document.createElement('div');
       wrapper.id = 'edit-member-modal';
-      wrapper.style = 'position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:12000;';
+      wrapper.style = 'position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:12000;';
       wrapper.innerHTML = `
         <div style="background:white;border-radius:12px;padding:18px 18px;max-width:420px;width:94%;box-shadow:0 20px 60px rgba(0,0,0,0.25);">
           <h3 style="margin:0 0 8px 0;font-size:18px;color:#1a1a2e;">회원 정보 수정</h3>
@@ -457,14 +512,14 @@ window.showEditMemberModal = function(originalName){
         </div>`;
       document.body.appendChild(wrapper);
       // 이벤트 바인딩
-      document.getElementById('edit-member-cancel').addEventListener('click', function(){ document.getElementById('edit-member-modal').style.display='none'; });
+      document.getElementById('edit-member-cancel').addEventListener('click', function(){ window.closeModal('edit-member-modal'); });
     }
     // 채우기
     const member = MEMBERS.find(m=>m.name===originalName) || DORMANT.find(m=>m.name===originalName) || EX_MEMBERS.find(m=>m.name===originalName);
     if(!member){ alert('이 페이지 내용:\n회원 정보를 찾을 수 없습니다.'); return; }
-    document.getElementById('edit-member-name').value = member.name;
-    document.getElementById('edit-member-bu').value = member.total || '';
-    document.getElementById('edit-member-modal').style.display = 'flex';
+      document.getElementById('edit-member-name').value = member.name;
+      document.getElementById('edit-member-bu').value = member.total || '';
+      window.openModal('edit-member-modal');
     // 저장 버튼 핸들러 (한 번만 바인딩되도록 제거 후 재바인딩)
     const saveBtn = document.getElementById('edit-member-save');
     const newHandler = function(){
@@ -475,7 +530,7 @@ window.showEditMemberModal = function(originalName){
       if(typeof updateMemberInfo === 'function'){
         updateMemberInfo(originalName, { name: newName, total: newBu });
       }
-      document.getElementById('edit-member-modal').style.display='none';
+      window.closeModal('edit-member-modal');
       if(typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
     };
     // remove existing listeners by cloning
@@ -485,6 +540,44 @@ window.showEditMemberModal = function(originalName){
   }catch(e){ console.error('showEditMemberModal error', e); alert('모달을 열 수 없습니다. 콘솔을 확인하세요.'); }
 };
 
+// 기록(간단 로그) 추가
+function recordAdminAction(type, details){
+  try{
+    var logs = [];
+    try{ logs = JSON.parse(localStorage.getItem('ttgo_admin_actions')||'[]'); }catch(e){ logs = []; }
+    logs.unshift({ type: type, details: details||null, actor: window.currentUser||null, at: Date.now() });
+    // keep recent 200
+    if(logs.length>200) logs = logs.slice(0,200);
+    localStorage.setItem('ttgo_admin_actions', JSON.stringify(logs));
+    // optional Firebase record
+    if(typeof db!=='undefined'){
+      try{ db.ref('admin_actions').push({ type:type, details:details||null, actor:window.currentUser||null, at:Date.now() }); }catch(e){}
+    }
+  }catch(e){ console.error('recordAdminAction error', e); }
+}
+
+// showConfirmModal에 포커스 지원 보강
+if(typeof window.showConfirmModal === 'function'){
+  (function(){
+    const orig = window.showConfirmModal;
+    window.showConfirmModal = function(message,onConfirm,options){
+      orig(message,function(){
+        try{ if(typeof onConfirm==='function') onConfirm(); }catch(e){ console.error(e); }
+      },options);
+      // focus confirm button when visible
+      setTimeout(function(){
+        try{
+          const cm = document.getElementById('confirm-modal');
+          if(cm){
+            const btn = cm.querySelector('.btn-confirm');
+            if(btn){ btn.focus(); }
+          }
+        }catch(e){ }
+      },60);
+    };
+  })();
+}
+
 // Generic confirm modal
 window.showConfirmModal = function(message, onConfirm, options){
   options = options || {};
@@ -493,17 +586,14 @@ window.showConfirmModal = function(message, onConfirm, options){
       const o = document.createElement('div');
       o.id = 'confirm-modal';
       o.className = 'modal-overlay';
-      o.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><h3>${options.title||'이 페이지 내용:'}</h3><div style="margin-top:8px;color:#333;">${message.replace(/\n/g,'<br/>')}</div><div class="modal-actions" style="margin-top:14px;"><button class="btn btn-cancel">취소</button><button class="btn btn-confirm">확인</button></div></div>`;
+      o.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><h3>${options.title||'확인'}</h3><div style="margin-top:8px;color:#333;">${message.replace(/\n/g,'<br/>')}</div><div class="modal-actions" style="margin-top:14px;"><button class="btn btn-cancel">취소</button><button class="btn btn-confirm">확인</button></div></div>`;
       document.body.appendChild(o);
       // cancel
-      o.querySelector('.btn-cancel').addEventListener('click', function(){ o.style.display='none'; });
+      o.querySelector('.btn-cancel').addEventListener('click', function(){ window.closeModal('confirm-modal'); });
       // confirm
-      o.querySelector('.btn-confirm').addEventListener('click', function(){ o.style.display='none'; if(typeof onConfirm==='function') onConfirm(); });
-      // ESC to close
-      document.addEventListener('keydown', function escHandler(e){ if(e.key==='Escape'){ if(o.style.display==='flex'){ o.style.display='none'; } } });
+      o.querySelector('.btn-confirm').addEventListener('click', function(){ window.closeModal('confirm-modal'); if(typeof onConfirm==='function') onConfirm(); });
     }
-    const el = document.getElementById('confirm-modal');
-    el.style.display = 'flex';
+    window.openModal('confirm-modal');
   }catch(e){ console.error('showConfirmModal error', e); if(typeof onConfirm==='function') onConfirm(); }
 };
 

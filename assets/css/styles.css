@@ -89,4 +89,15 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .modal .btn { padding:8px 12px; border-radius:8px; }
 .modal .btn-cancel { background:white; border:1px solid #ddd; }
 .modal .btn-confirm { background:#e94560; color:white; border:none; }
+/* Accessibility: focus styles */
+.modal:focus { outline: none; }
+.modal :focus { box-shadow: 0 0 0 3px rgba(233,69,96,0.18); }
+.btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(26,26,46,0.12); }
+
+/* Small screens: admin table becomes stacked for readability */
+@media(max-width:520px){
+	.admin-table thead{ display:none; }
+	.admin-table tr{ display:block; margin-bottom:10px; border-bottom:1px solid #eee; }
+	.admin-table td{ display:flex; justify-content:space-between; padding:8px 10px; }
+}
 </style>
