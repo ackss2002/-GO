@@ -958,7 +958,7 @@ window.EX_MEMBERS = window.EX_MEMBERS || [];
 // 회원관리 UI 렌더링 함수 (정회원/휴면/탈퇴/복구/정보수정)
 function renderMembersAdminUI(currentUser) {
   // 운영진만 접근 가능
-  if (!window.isAdmin(currentUser)) {
+  if (!window.isAdminMode) {
     document.getElementById('admin-members-area').innerHTML = '<div style="color:#e94560;font-weight:700;">운영진만 접근 가능합니다.</div>';
     return;
   }
@@ -994,7 +994,7 @@ function renderMembersAdminUI(currentUser) {
 // 회원 정보 수정(운영진만)
 function editMemberInfo(memberName) {
   // 운영진만 접근 가능 (안전장치)
-  if (!window.isAdmin(window.currentUser)) {
+  if (!window.isAdminMode) {
     alert('운영진만 수정할 수 있습니다.');
     return;
   }
