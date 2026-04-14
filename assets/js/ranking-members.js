@@ -176,3 +176,4 @@ function removeExternal(name){
   renderExternalMembers();
   renderLeague();
 }
+// renderMembersAdminUI is defined in league-core.js

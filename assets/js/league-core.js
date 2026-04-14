@@ -957,38 +957,203 @@ window.EX_MEMBERS = window.EX_MEMBERS || [];
 
 // 회원관리 UI 렌더링 함수 (정회원/휴면/탈퇴/복구/정보수정)
 function renderMembersAdminUI(currentUser) {
-  // 운영진만 접근 가능
+  var area = document.getElementById('admin-members-area');
+  if (!area) return;
+
   if (!window.isAdminMode) {
-    document.getElementById('admin-members-area').innerHTML = '<div style="color:#e94560;font-weight:700;">운영진만 접근 가능합니다.</div>';
+    area.innerHTML = `<div style="text-align:center;padding:48px 20px;">
+      <div style="font-size:52px;margin-bottom:14px;">🔒</div>
+      <div style="color:#e94560;font-weight:700;font-size:16px;">운영진만 접근 가능합니다.</div>
+    </div>`;
     return;
   }
-  let html = '<h3>정회원 관리</h3>';
-  html += '<table class="admin-table"><thead><tr><th>이름</th><th>부수</th><th>상태</th><th>수정</th><th>탈퇴</th></tr></thead><tbody>';
-  MEMBERS.forEach(m => {
-    html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>정상</td>` +
-      `<td><button onclick="editMemberInfo('${jsEscape(m.name)}')">수정</button></td>` +
-      `<td><button onclick="setDormant('${jsEscape(m.name)}')">휴면</button></td>` +
-      `<td><button onclick="retireMember('${jsEscape(m.name)}')">탈퇴</button></td></tr>`;
-  });
-  html += '</tbody></table>';
-  html += '<h3>휴면 회원</h3>';
-  html += '<table class="admin-table"><thead><tr><th>이름</th><th>부수</th><th>상태</th><th>수정</th><th>탈퇴</th></tr></thead><tbody>';
-  DORMANT.forEach(m => {
-    html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>휴면</td>` +
-      `<td><button onclick="editMemberInfo('${jsEscape(m.name)}')">수정</button></td>` +
-      `<td><button onclick="restoreFromDormant('${jsEscape(m.name)}')">복구</button></td>` +
-      `<td><button onclick="retireMember('${jsEscape(m.name)}')">탈퇴</button></td></tr>`;
-  });
-  html += '</tbody></table>';
-  html += '<h3>탈퇴 회원</h3>';
-  html += '<table class="admin-table"><thead><tr><th>이름</th><th>부수</th><th>탈퇴일</th><th>복구</th><th>완전삭제</th></tr></thead><tbody>';
-  EX_MEMBERS.forEach(m => {
-    html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.total)}</td><td>${m.retiredAt ? new Date(m.retiredAt).toLocaleDateString() : '-'}</td>` +
-      `<td><button onclick="restoreMemberFromEx('${jsEscape(m.name)}')">복구</button></td>` +
-      `<td><button onclick="deleteExMember('${jsEscape(m.name)}')">삭제</button></td></tr>`;
-  });
-  html += '</tbody></table>';
-  document.getElementById('admin-members-area').innerHTML = html;
+
+  var buFilter = area.dataset.buFilter || 'all';
+  var searchQ  = area.dataset.search  || '';
+  var wasFocused = document.activeElement && document.activeElement.id === 'member-search-input';
+
+  var allM  = (window.MEMBERS   || []).slice().sort((a,b) => (a.name||'').localeCompare(b.name||'','ko'));
+  var allD  = (window.DORMANT   || []).slice().sort((a,b) => (a.name||'').localeCompare(b.name||'','ko'));
+  var allEx = (window.EX_MEMBERS|| []).slice();
+
+  // 부수 필터 버튼 목록 (데이터에서 추출)
+  var buVals = [...new Set([...allM, ...allD].map(m => String(m.total||'')).filter(Boolean))]
+    .sort((a,b) => Number(a) - Number(b));
+
+  function matchFilter(m) {
+    var okBu = buFilter === 'all' || String(m.total) === buFilter;
+    var okQ  = !searchQ || (m.name||'').includes(searchQ);
+    return okBu && okQ;
+  }
+  var fM  = allM.filter(matchFilter);
+  var fD  = allD.filter(matchFilter);
+  var fEx = allEx.filter(m => !searchQ || (m.name||'').includes(searchQ));
+
+  // 부수별 배지 색상
+  function buColor(bu) {
+    var n = parseInt(bu) || 0;
+    if (n <= 3) return ['#fce4ec','#c62828'];
+    if (n <= 5) return ['#e3f2fd','#1565c0'];
+    if (n <= 7) return ['#e8f5e9','#2e7d32'];
+    if (n <= 9) return ['#fff3e0','#e65100'];
+    return ['#f3e5f5','#7b1fa2'];
+  }
+  function buTag(m) {
+    var c   = buColor(m.total);
+    var lbl = (m.bu && m.bu !== m.total) ? m.bu+'('+m.total+')' : (m.total||'?');
+    return `<span style="background:${c[0]};color:${c[1]};border-radius:12px;padding:3px 10px;font-size:12px;font-weight:700;white-space:nowrap;">${lbl}부</span>`;
+  }
+
+  // 버튼 헬퍼 (색상으로 위험도 표현)
+  function btn(label, onclick, bg, border, color) {
+    return `<button onclick="${onclick}"
+      style="padding:5px 10px;font-size:11px;border-radius:6px;cursor:pointer;font-weight:700;
+             border:1.5px solid ${border};background:${bg};color:${color};white-space:nowrap;">${label}</button>`;
+  }
+
+  // 필터 버튼
+  var filterBtns = ['all', ...buVals].map(v => {
+    var active = v === buFilter;
+    return `<button onclick="document.getElementById('admin-members-area').dataset.buFilter='${v}';renderMembersAdminUI(window.currentUser||'');"
+      style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
+             border:2px solid ${active?'#1a1a2e':'#e0e0e0'};
+             background:${active?'#1a1a2e':'#fff'};
+             color:${active?'#fff':'#666'};">${v==='all'?'전체':v+'부'}</button>`;
+  }).join('');
+
+  // 정회원 행
+  var memberRows = fM.length ? fM.map((m,i) => `
+    <div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid #f5f5f5;
+                background:${i%2===0?'#fff':'#fafafa'};gap:8px;flex-wrap:wrap;">
+      <span style="color:#ccc;font-size:12px;width:22px;text-align:right;flex-shrink:0;">${i+1}</span>
+      <span style="font-weight:700;font-size:14px;color:#1a1a2e;flex:1;min-width:50px;">${escapeHtml(m.name)}</span>
+      ${buTag(m)}
+      <span style="background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:3px 10px;font-size:11px;white-space:nowrap;">정회원</span>
+      <div style="display:flex;gap:4px;margin-left:auto;flex-shrink:0;">
+        ${btn('수정',  `editMemberInfo('${jsEscape(m.name)}')`,  '#fff',    '#546e7a', '#546e7a')}
+        ${btn('휴면',  `setDormant('${jsEscape(m.name)}')`,      '#fff3e0', '#e65100', '#e65100')}
+        ${btn('탈퇴',  `retireMember('${jsEscape(m.name)}')`,    '#fce4ec', '#c62828', '#c62828')}
+      </div>
+    </div>`).join('')
+    : '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">표시할 정회원이 없습니다.</div>';
+
+  // 휴면 행
+  var dormantRows = fD.length ? fD.map((m,i) => `
+    <div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid #f5f5f5;
+                background:${i%2===0?'#fff':'#fafafa'};gap:8px;flex-wrap:wrap;">
+      <span style="color:#ccc;font-size:12px;width:22px;text-align:right;flex-shrink:0;">${i+1}</span>
+      <span style="font-weight:700;font-size:14px;color:#607d8b;flex:1;min-width:50px;">${escapeHtml(m.name)}</span>
+      ${buTag(m)}
+      <span style="background:#eceff1;color:#607d8b;border-radius:12px;padding:3px 10px;font-size:11px;white-space:nowrap;">휴면</span>
+      <div style="display:flex;gap:4px;margin-left:auto;flex-shrink:0;">
+        ${btn('복구', `restoreFromDormant('${jsEscape(m.name)}')`, '#e8f5e9', '#2e7d32', '#2e7d32')}
+        ${btn('탈퇴', `retireMember('${jsEscape(m.name)}')`,       '#fce4ec', '#c62828', '#c62828')}
+      </div>
+    </div>`).join('')
+    : '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">필터 조건에 맞는 휴면 회원이 없습니다.</div>';
+
+  // 탈퇴 행
+  var exRows = fEx.length ? fEx.map((m,i) => `
+    <div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid #f5f5f5;gap:8px;flex-wrap:wrap;">
+      <span style="color:#ccc;font-size:12px;width:22px;text-align:right;flex-shrink:0;">${i+1}</span>
+      <span style="font-weight:700;font-size:14px;color:#bbb;flex:1;min-width:50px;">${escapeHtml(m.name)}</span>
+      <span style="background:#ffebee;color:#c62828;border-radius:12px;padding:3px 10px;font-size:11px;white-space:nowrap;">탈퇴</span>
+      <span style="color:#bbb;font-size:11px;white-space:nowrap;">${m.retiredAt ? new Date(m.retiredAt).toLocaleDateString() : '-'}</span>
+      <div style="display:flex;gap:4px;margin-left:auto;flex-shrink:0;">
+        ${btn('복구',    `restoreMemberFromEx('${jsEscape(m.name)}')`, '#e8f5e9', '#2e7d32', '#2e7d32')}
+        ${btn('완전삭제', `deleteExMember('${jsEscape(m.name)}')`,      '#f3e5f5', '#7b1fa2', '#7b1fa2')}
+      </div>
+    </div>`).join('')
+    : '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">검색 결과가 없습니다.</div>';
+
+  // 카운트 배지 (필터 중일 때 "N / 전체 M명" 표시)
+  function countBadge(filtered, all, bgFilter, bgAll, colorAll) {
+    if (buFilter !== 'all' || searchQ)
+      return `<span style="background:${bgFilter};color:#fff;border-radius:20px;padding:2px 12px;font-size:12px;font-weight:700;">${filtered}명</span>
+              <span style="background:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);border-radius:20px;padding:2px 10px;font-size:11px;">전체 ${all}명</span>`;
+    return `<span style="background:${bgAll};color:${colorAll};border-radius:20px;padding:2px 14px;font-size:12px;font-weight:700;">${all}명</span>`;
+  }
+
+  area.innerHTML = `
+  <div style="max-width:820px;margin:0 auto;padding:12px 8px;">
+
+    <!-- 요약 카드 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+      <div style="background:#1a1a2e;border-radius:12px;padding:14px 6px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:#fff;">${allM.length+allD.length+allEx.length}</div>
+        <div style="font-size:11px;color:#888;margin-top:3px;">전체 회원</div>
+      </div>
+      <div style="background:#e8f5e9;border-radius:12px;padding:14px 6px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:#2e7d32;">${allM.length}</div>
+        <div style="font-size:11px;color:#66bb6a;margin-top:3px;">정회원</div>
+      </div>
+      <div style="background:#fff3e0;border-radius:12px;padding:14px 6px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:#e65100;">${allD.length}</div>
+        <div style="font-size:11px;color:#ffa726;margin-top:3px;">휴면</div>
+      </div>
+      <div style="background:#fce4ec;border-radius:12px;padding:14px 6px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:#c62828;">${allEx.length}</div>
+        <div style="font-size:11px;color:#ef9a9a;margin-top:3px;">탈퇴</div>
+      </div>
+    </div>
+
+    <!-- 검색창 -->
+    <div style="position:relative;margin-bottom:12px;">
+      <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;">🔍</span>
+      <input id="member-search-input" type="text" placeholder="이름 검색..."
+        value="${escapeHtml(searchQ)}"
+        oninput="document.getElementById('admin-members-area').dataset.search=this.value;renderMembersAdminUI(window.currentUser||'');"
+        style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;
+               border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;
+               transition:border-color .2s;"
+        onfocus="this.style.borderColor='#1a1a2e'" onblur="this.style.borderColor='#e0e0e0'">
+    </div>
+
+    <!-- 부수 필터 -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">${filterBtns}</div>
+
+    <!-- 정회원 -->
+    <div style="background:#fff;border-radius:12px;box-shadow:0 2px 14px rgba(0,0,0,0.07);margin-bottom:16px;overflow:hidden;">
+      <div style="background:#1a1a2e;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <span style="color:#fff;font-weight:700;font-size:14px;">정회원</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${countBadge(fM.length, allM.length, '#e94560', '#e94560', '#fff')}
+        </div>
+      </div>
+      ${memberRows}
+    </div>
+
+    <!-- 휴면 회원 -->
+    ${allD.length ? `
+    <div style="background:#fff;border-radius:12px;box-shadow:0 2px 14px rgba(0,0,0,0.07);margin-bottom:16px;overflow:hidden;">
+      <div style="background:#607d8b;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <span style="color:#fff;font-weight:700;font-size:14px;">휴면 회원</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${countBadge(fD.length, allD.length, '#fff', '#fff', '#607d8b')}
+        </div>
+      </div>
+      ${dormantRows}
+    </div>` : ''}
+
+    <!-- 탈퇴 회원 -->
+    ${allEx.length ? `
+    <div style="background:#fff;border-radius:12px;box-shadow:0 2px 14px rgba(0,0,0,0.07);margin-bottom:16px;overflow:hidden;">
+      <div style="background:#b71c1c;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <span style="color:#fff;font-weight:700;font-size:14px;">탈퇴 회원</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${countBadge(fEx.length, allEx.length, '#fff', '#fff', '#b71c1c')}
+        </div>
+      </div>
+      ${exRows}
+    </div>` : ''}
+
+  </div>`;
+
+  // 검색 중 포커스 복원
+  if (wasFocused) {
+    var inp = document.getElementById('member-search-input');
+    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  }
 }
 
 // 회원 정보 수정(운영진만)
