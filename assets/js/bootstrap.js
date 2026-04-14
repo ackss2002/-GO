@@ -14,18 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 });
-// 운영진 체크 함수 window에 바인딩 (isAdmin 오류 방지)
-// =========================
-// 항상 함수로만 window.isAdmin을 바인딩 (admin.js와 충돌 방지)
-function isAdmin(userName) {
-  return ["이미진", "안치국"].includes(userName);
-}
-if (typeof window !== 'undefined') {
-  window.isAdmin = isAdmin;
-  // window.isAdminUser가 true면 관리자 모드로 동작하도록 안내 (admin.js와 연동)
-  // 예시: if (window.isAdminUser && window.isAdmin(window.currentUser)) { ... }
-  console.log('[DEBUG] typeof window.isAdmin:', typeof window.isAdmin);
-}
+// 운영진 체크 함수는 아래 ADMINS 배열과 함께 정의합니다 (중복 정의 방지)
 // =========================
 // 운영자 모드(자물쇠) 상태를 localStorage에 저장/복원하여 새로고침해도 유지
 // =========================
@@ -112,6 +101,11 @@ if (typeof window !== 'undefined') {
   console.log('[DEBUG] DORMANT:', window.DORMANT);
   console.log('[DEBUG] EX_MEMBERS:', window.EX_MEMBERS);
   console.log('[DEBUG] currentUser:', window.currentUser);
+
+  // 운영자 계정(이름) 배열: early bind to avoid TDZ when isAdmin is called
+  if (typeof window.ADMINS === 'undefined') {
+    window.ADMINS = ["이미진", "안치국"];
+  }
 
   // window.isAdmin 함수 보장 (중복 방지)
   if (typeof window.isAdmin !== 'function') {
@@ -322,8 +316,8 @@ function loadFromFirebase(){
 // 오빠: 모든 주석은 한글, 코드 내 문자열은 영어로 작성
 // =========================
 
-// 운영진 계정(이름) 배열
-const ADMINS = ["이미진", "안치국"];
+// 운영진 계정(이름) 배열 (참고: actual list bound to window.ADMINS above)
+const ADMINS = (typeof window.ADMINS !== 'undefined') ? window.ADMINS : ["이미진", "안치국"];
 
 // 탈퇴 회원(soft-delete) 관리용 배열
 let EX_MEMBERS = [];
@@ -333,6 +327,8 @@ function isAdmin(userName) {
   // 운영진이면 true 반환
   return ADMINS.includes(userName);
 }
+// 전역 바인딩
+if(typeof window !== 'undefined') window.isAdmin = isAdmin;
 
 // 회원 탈퇴 함수 (soft-delete)
 function retireMember(memberName) {
