@@ -409,6 +409,10 @@ function restoreFromDormant(memberName){
 // 회원 전체 데이터 동기화 함수
 function syncAllMemberData() {
   try {
+    // 로컬 변수와 window 글로벌 동기화 (EX_MEMBERS는 let으로 선언되어 분리됨)
+    window.MEMBERS   = MEMBERS;
+    window.DORMANT   = DORMANT;
+    window.EX_MEMBERS = EX_MEMBERS;
     // 로컬에 저장
     localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
     localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
@@ -553,44 +557,58 @@ function recordAdminAction(type, details){
   }catch(e){ console.error('recordAdminAction error', e); }
 }
 
-// showConfirmModal에 포커스 지원 보강
-if(typeof window.showConfirmModal === 'function'){
-  (function(){
-    const orig = window.showConfirmModal;
-    window.showConfirmModal = function(message,onConfirm,options){
-      orig(message,function(){
-        try{ if(typeof onConfirm==='function') onConfirm(); }catch(e){ console.error(e); }
-      },options);
-      // focus confirm button when visible
-      setTimeout(function(){
-        try{
-          const cm = document.getElementById('confirm-modal');
-          if(cm){
-            const btn = cm.querySelector('.btn-confirm');
-            if(btn){ btn.focus(); }
-          }
-        }catch(e){ }
-      },60);
-    };
-  })();
-}
-
 // Generic confirm modal
+// 매번 innerHTML을 새로 그리고 핸들러를 재바인딩한다 (콜백 stale 버그 방지)
 window.showConfirmModal = function(message, onConfirm, options){
   options = options || {};
   try{
-    if(!document.getElementById('confirm-modal')){
-      const o = document.createElement('div');
+    // 모달 컨테이너: 없으면 생성, 있으면 재사용
+    var o = document.getElementById('confirm-modal');
+    if(!o){
+      o = document.createElement('div');
       o.id = 'confirm-modal';
-      o.className = 'modal-overlay';
-      o.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><h3>${options.title||'확인'}</h3><div style="margin-top:8px;color:#333;">${message.replace(/\n/g,'<br/>')}</div><div class="modal-actions" style="margin-top:14px;"><button class="btn btn-cancel">취소</button><button class="btn btn-confirm">확인</button></div></div>`;
       document.body.appendChild(o);
-      // cancel
-      o.querySelector('.btn-cancel').addEventListener('click', function(){ window.closeModal('confirm-modal'); });
-      // confirm
-      o.querySelector('.btn-confirm').addEventListener('click', function(){ window.closeModal('confirm-modal'); if(typeof onConfirm==='function') onConfirm(); });
     }
+    // 오버레이 스타일을 인라인으로도 보장 (CSS 누락 대비)
+    o.className = 'modal-overlay';
+    o.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
+      'display:none;align-items:center;justify-content:center;' +
+      'background:rgba(0,0,0,0.55);z-index:12000;';
+    // 매번 내용 갱신 + 핸들러 재바인딩
+    var titleColor = options.danger ? '#c62828' : '#1a1a2e';
+    var confirmBg  = options.danger ? '#c62828' : '#e94560';
+    o.innerHTML =
+      '<div class="modal" role="dialog" aria-modal="true" ' +
+        'style="max-width:380px;width:92%;border-radius:16px;padding:24px 22px;' +
+               'box-shadow:0 24px 60px rgba(0,0,0,0.28);">' +
+        '<h3 style="margin:0 0 12px 0;font-size:17px;color:' + titleColor + ';">' +
+          (options.title || '확인') +
+        '</h3>' +
+        '<div style="color:#555;font-size:14px;line-height:1.7;">' +
+          message.replace(/\n/g,'<br/>') +
+        '</div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">' +
+          '<button class="btn-modal-cancel" style="padding:9px 20px;border-radius:8px;' +
+            'border:1.5px solid #ddd;background:#fff;color:#555;cursor:pointer;' +
+            'font-size:13px;font-weight:600;">취소</button>' +
+          '<button class="btn-modal-confirm" style="padding:9px 20px;border-radius:8px;' +
+            'border:none;background:' + confirmBg + ';color:#fff;cursor:pointer;' +
+            'font-size:13px;font-weight:700;">확인</button>' +
+        '</div>' +
+      '</div>';
+    o.querySelector('.btn-modal-cancel').addEventListener('click', function(){
+      window.closeModal('confirm-modal');
+    });
+    o.querySelector('.btn-modal-confirm').addEventListener('click', function(){
+      window.closeModal('confirm-modal');
+      try{ if(typeof onConfirm==='function') onConfirm(); }catch(e){ console.error(e); }
+    });
     window.openModal('confirm-modal');
+    // 확인 버튼에 포커스
+    setTimeout(function(){
+      var btn = o.querySelector('.btn-modal-confirm');
+      if(btn) btn.focus();
+    }, 50);
   }catch(e){ console.error('showConfirmModal error', e); if(typeof onConfirm==='function') onConfirm(); }
 };
 
