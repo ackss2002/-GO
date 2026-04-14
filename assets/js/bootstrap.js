@@ -324,6 +324,37 @@ function loadFromFirebase(){
     db.ref('ttgo_history').once('value').then(function(snap){
       if(snap.val()) localStorage.setItem('ttgo_history', JSON.stringify(snap.val()));
     });
+    // 회원 데이터 로드 (탈퇴/휴면/수정 내역 다기기 동기화)
+    db.ref('members').once('value').then(function(snap){
+      var val = snap.val();
+      if(val && Array.isArray(val) && val.length > 0){
+        MEMBERS.length = 0;
+        val.forEach(function(m){ MEMBERS.push(m); });
+        window.MEMBERS = MEMBERS;
+        localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
+      }
+    });
+    db.ref('dormant').once('value').then(function(snap){
+      var val = snap.val();
+      if(val && Array.isArray(val)){
+        DORMANT.length = 0;
+        val.forEach(function(m){ DORMANT.push(m); });
+        window.DORMANT = DORMANT;
+        localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
+      }
+    });
+    db.ref('ex_members').once('value').then(function(snap){
+      var val = snap.val();
+      if(val && Array.isArray(val)){
+        EX_MEMBERS.length = 0;
+        val.forEach(function(m){ EX_MEMBERS.push(m); });
+        window.EX_MEMBERS = EX_MEMBERS;
+        localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
+      }
+      // 모든 회원 데이터 로드 완료 후 UI 갱신
+      renderMembers();
+      if(typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+    });
     renderDash();
     renderMembers();
     renderLeague();
@@ -345,8 +376,10 @@ function loadFromFirebase(){
 // 운영진 계정(이름) 배열 (참고: actual list bound to window.ADMINS above)
 const ADMINS = (typeof window.ADMINS !== 'undefined') ? window.ADMINS : ["이미진", "안치국"];
 
-// 탈퇴 회원(soft-delete) 관리용 배열
-let EX_MEMBERS = [];
+// 탈퇴 회원(soft-delete) 관리용 배열 — localStorage에서 복원
+let EX_MEMBERS = (function(){
+  try { var s = localStorage.getItem('ttgo_ex_members'); return s ? JSON.parse(s) : []; } catch(e){ return []; }
+})();
 
 // 운영진 여부 체크 함수
 function isAdmin(userName) {
