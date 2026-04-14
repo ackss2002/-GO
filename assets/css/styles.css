@@ -72,70 +72,14 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .game-tag { padding: 4px 10px; background: #e3f2fd; color: #1565C0; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin: 2px; }
 .upgrade-box { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #fff8e1; border-radius: 8px; border-left: 3px solid #FFA000; margin-bottom: 8px; }
 .footer-note { text-align: center; font-size: 11px; color: #bbb; padding: 16px 0 8px; }
-/* ── Member management card layout ─────────────────────────── */
-.member-section { margin-bottom: 24px; }
-.member-section-header {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 14px; border-radius: 10px;
-  font-size: 13px; font-weight: 700; margin-bottom: 10px;
-}
-.member-section-header .count-badge {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 22px; height: 22px; padding: 0 6px;
-  border-radius: 11px; font-size: 11px; font-weight: 700;
-}
-.section-active .member-section-header  { background: #e8f5e9; color: #2e7d32; }
-.section-active .count-badge            { background: #2e7d32; color: #fff; }
-.section-dormant .member-section-header { background: #fff8e1; color: #e65100; }
-.section-dormant .count-badge           { background: #f57f17; color: #fff; }
-.section-ex .member-section-header      { background: #f5f5f5; color: #616161; }
-.section-ex .count-badge                { background: #757575; color: #fff; }
-
-.member-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 10px;
-}
-@media(max-width: 480px) { .member-cards { grid-template-columns: 1fr 1fr; gap: 8px; } }
-@media(max-width: 320px) { .member-cards { grid-template-columns: 1fr; } }
-
-.member-card {
-  background: #fff; border-radius: 12px; padding: 12px 12px 10px;
-  border: 1.5px solid #e8e8e8; display: flex; flex-direction: column; gap: 9px;
-  transition: box-shadow 0.15s, transform 0.15s;
-}
-.member-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.09); transform: translateY(-1px); }
-.section-active  .member-card { border-left: 3px solid #4caf50; }
-.section-dormant .member-card { border-left: 3px solid #ffa726; }
-.section-ex      .member-card { border-left: 3px solid #bdbdbd; }
-
-.member-card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.member-name { font-size: 14px; font-weight: 700; color: #1a1a2e; }
-.bu-badge {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; white-space: nowrap;
-}
-.section-active  .bu-badge { background: #e8f5e9; color: #2e7d32; }
-.section-dormant .bu-badge { background: #fff8e1; color: #e65100; }
-.section-ex      .bu-badge { background: #f5f5f5; color: #757575; }
-
-.member-card-meta { font-size: 11px; color: #aaa; }
-.member-card-empty { font-size: 13px; color: #bbb; padding: 12px 4px; }
-
-.member-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.icon-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e0e0e0;
-  background: #f8f8f8; cursor: pointer; font-size: 15px; line-height: 1;
-  transition: background 0.13s, border-color 0.13s, transform 0.13s;
-  flex-shrink: 0;
-}
-.icon-btn:hover  { transform: scale(1.12); }
-.icon-btn-edit:hover    { background: #e3f2fd; border-color: #90caf9; }
-.icon-btn-sleep:hover   { background: #fff8e1; border-color: #ffe082; }
-.icon-btn-restore:hover { background: #e8f5e9; border-color: #a5d6a7; }
-.icon-btn-danger:hover  { background: #fff3e0; border-color: #ffcc80; }
-.icon-btn-delete:hover  { background: #ffebee; border-color: #ef9a9a; }
+/* Admin table styling */
+.admin-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+.admin-table th { background: #fafafa; font-size: 12px; color: #666; padding: 10px; border-bottom: 1px solid #eee; }
+.admin-table td { padding: 12px 10px; border-bottom: 1px solid #f2f2f2; }
+.admin-table tr:hover td { background: #ffffff; }
+.admin-table button { padding: 6px 10px; border-radius: 6px; border: 1px solid #ddd; background: white; cursor: pointer; }
+.admin-table button:hover { background: #f5f5f5; }
+.btn-square { width:54px; height:34px; display:inline-flex; align-items:center; justify-content:center; }
 
 /* Modal common styles */
 .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:12000; }
@@ -150,5 +94,10 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .modal :focus { box-shadow: 0 0 0 3px rgba(233,69,96,0.18); }
 .btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(26,26,46,0.12); }
 
-
+/* Small screens: admin table becomes stacked for readability */
+@media(max-width:520px){
+	.admin-table thead{ display:none; }
+	.admin-table tr{ display:block; margin-bottom:10px; border-bottom:1px solid #eee; }
+	.admin-table td{ display:flex; justify-content:space-between; padding:8px 10px; }
+}
 </style>
