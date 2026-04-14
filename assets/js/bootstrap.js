@@ -318,12 +318,29 @@ function loadFromFirebase(){
       if(!ST.doubles) ST.doubles={pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
       if(!ST.final) ST.final={win:'',second:'',third:'',third2:'',lucky:''};
       if(!ST.tournament) ST.tournament={};
-      // carryOver 없으면 세팅 (ensureCarryOver 내부에서 saveST() 호출)
+      // carryOver 없거나 비어있으면 강제 복구
       var hadCarryOver = !!(ST.carryOver && Object.keys(ST.carryOver).length);
       ensureCarryOver();
+      // 2분기 데이터 복구: Firebase 로드 후 적용 (db 정의 이후이므로 안전)
+      var needsRecovery = !localStorage.getItem('ttgo_q2_recovery_v2');
+      if(needsRecovery){
+        ST.carryOver = {
+          '김영서':{w:0,s:0,t:1,pts:2}, '안치국':{w:1,s:0,t:1,pts:7},
+          '이상건':{w:0,s:0,t:2,pts:4}, '이진규':{w:0,s:1,t:1,pts:5},
+          '최양님':{w:1,s:0,t:0,pts:5}, '이미진':{w:1,s:0,t:0,pts:5},
+        };
+        if(!ST.scores) ST.scores = {};
+        if(!ST.scores['이원호']||(!ST.scores['이원호'].t&&!ST.scores['이원호'].w&&!ST.scores['이원호'].s)){
+          ST.scores['이원호'] = {w:0, s:0, t:1, pts:2};
+        }
+        ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+        localStorage.setItem('ttgo_q2_recovery_v2','done');
+      }
       localStorage.setItem('ttgo_v3', JSON.stringify(ST));
-      // carryOver 복구됐거나 format1이면 format2로 정규화하여 Firebase에 재저장
-      if(!hadCarryOver || !data.ST){ try{ if(typeof db!=='undefined') db.ref('ttgo').set({ST:ST,externals:getExternals(),updatedAt:Date.now()}); }catch(e){} }
+      // format1이거나 데이터 복구된 경우 format2로 정규화하여 Firebase에 재저장
+      if(!data.ST || needsRecovery || !hadCarryOver){
+        try{ db.ref('ttgo').set({ST:ST, externals:getExternals(), updatedAt:Date.now()}); }catch(e){}
+      }
     }
     if(data.externals) saveExternals(data.externals);
     // 출석부 데이터 로드
