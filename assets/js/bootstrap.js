@@ -317,37 +317,48 @@ function loadFromFirebase(){
     db.ref('ttgo_history').once('value').then(function(snap){
       if(snap.val()) localStorage.setItem('ttgo_history', JSON.stringify(snap.val()));
     });
-    // 회원 데이터 로드 (탈퇴/휴면/수정 내역 다기기 동기화)
-    db.ref('members').once('value').then(function(snap){
-      var val = snap.val();
-      if(val && Array.isArray(val) && val.length > 0){
-        MEMBERS.length = 0;
-        val.forEach(function(m){ MEMBERS.push(m); });
-        window.MEMBERS = MEMBERS;
-        localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
-      }
-    });
-    db.ref('dormant').once('value').then(function(snap){
-      var val = snap.val();
-      if(val && Array.isArray(val)){
-        DORMANT.length = 0;
-        val.forEach(function(m){ DORMANT.push(m); });
-        window.DORMANT = DORMANT;
-        localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
-      }
-    });
-    db.ref('ex_members').once('value').then(function(snap){
-      var val = snap.val();
-      if(val && Array.isArray(val)){
-        EX_MEMBERS.length = 0;
-        val.forEach(function(m){ EX_MEMBERS.push(m); });
-        window.EX_MEMBERS = EX_MEMBERS;
-        localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
-      }
-      // 모든 회원 데이터 로드 완료 후 UI 갱신
-      renderMembers();
-      if(typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
-    });
+    // 회원 데이터: localStorage가 없을 때만 Firebase에서 로드
+    // (있으면 이미 최신 데이터 — 덮어쓰면 탈퇴/휴면 처리가 롤백됨)
+    var needMembersFromFB  = !localStorage.getItem('ttgo_members');
+    var needDormantFromFB  = !localStorage.getItem('ttgo_dormant');
+    var needExFromFB       = !localStorage.getItem('ttgo_ex_members');
+    if(needMembersFromFB){
+      db.ref('members').once('value').then(function(snap){
+        var val = snap.val();
+        if(val && Array.isArray(val) && val.length > 0){
+          MEMBERS.length = 0;
+          val.forEach(function(m){ MEMBERS.push(m); });
+          window.MEMBERS = MEMBERS;
+          localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
+          renderMembers();
+          if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+        }
+      });
+    }
+    if(needDormantFromFB){
+      db.ref('dormant').once('value').then(function(snap){
+        var val = snap.val();
+        if(val && Array.isArray(val)){
+          DORMANT.length = 0;
+          val.forEach(function(m){ DORMANT.push(m); });
+          window.DORMANT = DORMANT;
+          localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
+        }
+      });
+    }
+    if(needExFromFB){
+      db.ref('ex_members').once('value').then(function(snap){
+        var val = snap.val();
+        if(val && Array.isArray(val)){
+          EX_MEMBERS.length = 0;
+          val.forEach(function(m){ EX_MEMBERS.push(m); });
+          window.EX_MEMBERS = EX_MEMBERS;
+          localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
+          renderMembers();
+          if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+        }
+      });
+    }
     renderDash();
     renderMembers();
     renderLeague();
