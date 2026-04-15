@@ -316,14 +316,9 @@ function loadFromFirebase(){
     db.ref('ttgo_history').once('value').then(function(snap){
       if(snap.val()) localStorage.setItem('ttgo_history', JSON.stringify(snap.val()));
     });
-    // 회원 데이터: Firebase updatedAt vs localStorage updatedAt 비교 후 최신 데이터 사용
-    // Firebase가 더 최신이면(다른 기기에서 변경됨) Firebase 데이터로 덮어씀
+    // 회원 데이터: 항상 Firebase에서 로드 (멀티기기 동기화 보장)
     var fbMembersUpdatedAt = data.membersUpdatedAt || 0;
-    var localMembersUpdatedAt = parseInt(localStorage.getItem('ttgo_members_updatedAt')||'0', 10);
-    var needMembersFromFB = !localStorage.getItem('ttgo_members') || fbMembersUpdatedAt > localMembersUpdatedAt;
-    var needDormantFromFB = !localStorage.getItem('ttgo_dormant') || fbMembersUpdatedAt > localMembersUpdatedAt;
-    var needExFromFB      = !localStorage.getItem('ttgo_ex_members') || fbMembersUpdatedAt > localMembersUpdatedAt;
-    if(needMembersFromFB){
+    {
       db.ref('members').once('value').then(function(snap){
         var val = snap.val();
         if(val && Array.isArray(val) && val.length > 0){
@@ -338,7 +333,7 @@ function loadFromFirebase(){
         }
       });
     }
-    if(needDormantFromFB){
+    {
       db.ref('dormant').once('value').then(function(snap){
         var val = snap.val();
         if(val && Array.isArray(val)){
@@ -350,7 +345,7 @@ function loadFromFirebase(){
         }
       });
     }
-    if(needExFromFB){
+    {
       db.ref('ex_members').once('value').then(function(snap){
         var val = snap.val();
         if(val && Array.isArray(val)){
