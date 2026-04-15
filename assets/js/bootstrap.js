@@ -307,8 +307,7 @@ function loadFromFirebase(){
     }
     localStorage.setItem('ttgo_v3', JSON.stringify(ST));
     // format2로 정규화하여 Firebase 재저장 (다음 접속자도 올바른 데이터 로드)
-    try{ db.ref('ttgo').set({ST:ST, externals:getExternals(), updatedAt:Date.now()}); }catch(e){}
-    if(data.externals) saveExternals(data.externals);
+    try{ db.ref('ttgo').set({ST:ST, updatedAt:Date.now()}); }catch(e){}
     // 출석부 데이터 로드
     db.ref('ttgo_attendance').once('value').then(function(snap){
       if(snap.val()) localStorage.setItem('ttgo_attendance', JSON.stringify(snap.val()));
@@ -516,10 +515,6 @@ function syncAllMemberData() {
     localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
     localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
     localStorage.setItem('ttgo_members_updatedAt', String(now));
-    // 외부 특별회원 저장 함수와 동기화
-    if (typeof saveExternals === 'function') {
-      try { saveExternals(getExternals()); } catch(e){ /* ignore */ }
-    }
     // Firebase에 동기화 (있을 때만) — updatedAt 포함해서 다른 기기가 감지 가능
     if (typeof db !== 'undefined') {
       try {
