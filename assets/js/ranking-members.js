@@ -1,9 +1,13 @@
 // 누적 순위
 function renderRanking(){
   const exts = getExternals();
+  // 탈퇴 회원도 기록 유지: localStorage에서 최신 EX_MEMBERS 읽기
+  let exMems = [];
+  try { exMems = JSON.parse(localStorage.getItem('ttgo_ex_members')||'[]'); } catch(e){}
   const allMembers = [
-    ...MEMBERS.map(m=>({...m, isExt:false})),
-    ...exts.map(m=>({...m, isExt:true}))
+    ...MEMBERS.map(m=>({...m, isExt:false, isEx:false})),
+    ...exMems.map(m=>({...m, isExt:false, isEx:true})),
+    ...exts.map(m=>({...m, isExt:true, isEx:false}))
   ];
 
   // 분기별 점수 결정
@@ -64,7 +68,7 @@ function renderRanking(){
   const all = allMembers.map(m=>{
     const s = scores[m.name]||{w:0,s:0,t:0,pts:0};
     const buDisplay = m.bu!==m.total ? m.bu+'('+m.total+')' : String(m.bu);
-    return {name:m.name, gender:m.g, bu:buDisplay, isExt:m.isExt, ...s};
+    return {name:m.name, gender:m.g, bu:buDisplay, isExt:m.isExt, isEx:m.isEx, ...s};
   }).sort((a,b)=>b.pts-a.pts||b.w-a.w||b.s-a.s);
 
   const bgs=['rank-1','rank-2','rank-3'];
@@ -76,8 +80,9 @@ function renderRanking(){
       if(p.pts===0 && !p.up) return '';
       const bg=rank<=3?bgs[rank-1]:'rank-n';
       const upTag = p.up?'<span class="pill pill-amber" style="margin-left:4px;">↑승급</span>':'';
+      const exTag = p.isEx?'<span class="pill" style="margin-left:4px;background:#ffebee;color:#c62828;font-size:10px;">탈퇴</span>':'';
       return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
-        <td><strong>${escapeHtml(p.name)}</strong></td><td>${escapeHtml(p.gender)}</td><td>${escapeHtml(String(p.bu))}</td>
+        <td><strong>${escapeHtml(p.name)}</strong>${exTag}</td><td>${escapeHtml(p.gender)}</td><td>${escapeHtml(String(p.bu))}</td>
         <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td><td><strong>${p.pts}점</strong>${upTag}</td>
         <td></td></tr>`;
     }).join('')||'<tr><td colspan="9" style="color:#888;text-align:center;">데이터 없음</td></tr>';
