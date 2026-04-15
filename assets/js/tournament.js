@@ -813,7 +813,21 @@ function saveScoreModal(){
   renderBracket(ST.tournament.bracket, ST.tournament.size);
 }
 
+var _popupTimer = null;
+var _popupEventCache = null;
+
 function showPlayerPopup(e, name){
+  // 점수 입력 모달이 열려있으면 팝업 표시 안 함
+  if(document.getElementById('score-modal').style.display==='flex') return;
+  // 딜레이: 빠르게 지나가면 팝업 안 뜸
+  clearTimeout(_popupTimer);
+  _popupEventCache = {pageX: e.pageX, pageY: e.pageY};
+  _popupTimer = setTimeout(function(){
+    _showPlayerPopupNow(_popupEventCache, name);
+  }, 450);
+}
+
+function _showPlayerPopupNow(e, name){
   // 점수 입력 모달이 열려있으면 팝업 표시 안 함
   if(document.getElementById('score-modal').style.display==='flex') return;
   const popup = document.getElementById('player-popup');
@@ -921,6 +935,8 @@ function showPlayerPopup(e, name){
 }
 
 function hidePlayerPopup(){
+  clearTimeout(_popupTimer);
+  _popupTimer = null;
   const popup = document.getElementById('player-popup');
   if(popup) popup.style.display = 'none';
 }
