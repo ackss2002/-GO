@@ -123,14 +123,16 @@ function renderRanking(){
 
 // 회원 관리
 function renderMembers(){
-  // 가나다(한글) 순 정렬 후 출력
+  var activeEl = document.getElementById('active-tbody');
+  var dormantEl = document.getElementById('dormant-tbody');
+  if(!activeEl || !dormantEl) return; // 탭이 비활성 상태면 스킵
   const sorted = (MEMBERS||[]).slice().sort((a,b)=>{
     return (a.name||'').localeCompare(b.name||'', 'ko');
   });
-  document.getElementById('active-tbody').innerHTML=sorted.map((m,i)=>{
+  activeEl.innerHTML=sorted.map((m,i)=>{
     return `<tr><td>${i+1}</td><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.g)}</td><td>${escapeHtml(m.bu)}</td><td>${escapeHtml(m.bu!==m.total?m.bu+'('+m.total+')':m.total)}</td></tr>`;
   }).join('');
-  document.getElementById('dormant-tbody').innerHTML=DORMANT.map((m,i)=>{
+  dormantEl.innerHTML=DORMANT.map((m,i)=>{
     return `<tr><td>${i+1}</td><td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.g)}</td><td>${escapeHtml(m.bu)}</td><td>${escapeHtml(m.bu!==m.total?m.bu+'('+m.total+')':m.total)}</td></tr>`;
   }).join('');
 }

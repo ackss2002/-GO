@@ -335,33 +335,32 @@ function loadFromFirebase(){
       var exVal = snaps[2].val();
       if(exVal && Array.isArray(exVal) && exVal.length > 0){
         // Firebase에 탈퇴 데이터 있음 → 로컬 덮어씌우기
-        EX_MEMBERS.length = 0;
-        exVal.forEach(function(m){ EX_MEMBERS.push(m); });
-        window.EX_MEMBERS = EX_MEMBERS;
-        localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
-      } else if(!exVal && EX_MEMBERS.length > 0){
+        window.EX_MEMBERS = exVal.slice();
+        localStorage.setItem('ttgo_ex_members', JSON.stringify(window.EX_MEMBERS));
+      } else if(!exVal && window.EX_MEMBERS && window.EX_MEMBERS.length > 0){
         // Firebase에 탈퇴 데이터 없는데 로컬엔 있음 → Firebase로 동기화
-        try{ db.ref('ex_members').set(EX_MEMBERS); }catch(e){}
+        try{ db.ref('ex_members').set(window.EX_MEMBERS); }catch(e){}
       }
       // Firebase 로드 완료 후 탈퇴 회원 복구 (db 준비된 상태에서 실행)
       var knownRetired = [
         {name:'김덕기',g:'남',bu:5,total:4},
         {name:'한철호',g:'남',bu:6,total:6}
       ];
+      var exArr = window.EX_MEMBERS || [];
       var changed = false;
       knownRetired.forEach(function(m){
         var inMembers = MEMBERS.some(function(x){ return x.name===m.name; });
         var inDormant = DORMANT.some(function(x){ return x.name===m.name; });
-        var inEx      = EX_MEMBERS.some(function(x){ return x.name===m.name; });
+        var inEx      = exArr.some(function(x){ return x.name===m.name; });
         if(!inMembers && !inDormant && !inEx){
-          EX_MEMBERS.push({name:m.name,g:m.g,bu:m.bu,total:m.total,retiredAt:Date.now()});
+          exArr.push({name:m.name,g:m.g,bu:m.bu,total:m.total,retiredAt:Date.now()});
           changed = true;
         }
       });
       if(changed){
-        window.EX_MEMBERS = EX_MEMBERS;
-        localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
-        try{ db.ref('ex_members').set(EX_MEMBERS); }catch(e){}
+        window.EX_MEMBERS = exArr;
+        localStorage.setItem('ttgo_ex_members', JSON.stringify(exArr));
+        try{ db.ref('ex_members').set(exArr); }catch(e){}
       }
       // 전체 렌더링
       renderDash();
