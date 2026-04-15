@@ -791,7 +791,7 @@ function showPlayerPopup(e, name){
   if(document.getElementById('score-modal').style.display==='flex') return;
   // 딜레이: 빠르게 지나가면 팝업 안 뜸
   clearTimeout(_popupTimer);
-  _popupEventCache = {pageX: e.pageX, pageY: e.pageY};
+  _popupEventCache = {pageX: e.clientX, pageY: e.clientY};
   _popupTimer = setTimeout(function(){
     _showPlayerPopupNow(_popupEventCache, name);
   }, 450);
@@ -893,13 +893,15 @@ function _showPlayerPopupNow(e, name){
   const popH = popup.offsetHeight || 200;
   const popW = popup.offsetWidth  || 260;
   let px = e.pageX - popW/2;
-  let py = e.pageY - popH - 60;
+  let py = e.pageY - popH - 16;
   // 화면 왼쪽 벗어남 방지
   if(px < 8) px = 8;
   // 화면 오른쪽 벗어남 방지
   if(px + popW > window.innerWidth - 8) px = window.innerWidth - popW - 8;
   // 위쪽 벗어나면 커서 아래로
-  if(py < window.scrollY + 8) py = e.pageY + 16;
+  if(py < 8) py = e.pageY + 16;
+  // 아래쪽 벗어남 방지
+  if(py + popH > window.innerHeight - 8) py = e.pageY - popH - 16;
   popup.style.left = px + 'px';
   popup.style.top  = py + 'px';
 }
