@@ -67,13 +67,7 @@ window.addEventListener('load', function(){
   }catch(e){ console.error('restore tab error', e); }
 });
 
-// 자물쇠 버튼 클릭 시 토글
-window.toggleAdmin = function() {
-  window.isAdminMode = !window.isAdminMode;
-  setAdminMode(window.isAdminMode);
-  // 운영자 모드 진입 시 currentUser 자동 세팅
-  if (window.isAdminMode && !window.currentUser) window.currentUser = '안치국';
-};
+// 자물쇠 버튼 클릭은 admin.js의 toggleAdmin()이 처리 (PIN 인증 포함)
 // =========================
 // 회원관리 데이터/운영진 기본값 보장 및 안내 메시지 보강
 // =========================

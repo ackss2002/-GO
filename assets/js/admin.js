@@ -97,8 +97,12 @@ function updateAdminUI(){
   adminBadge.style.display = isAdminUser?'inline':'none';
   lockBtn.textContent = isAdminUser?'🔓':'🔒';
   document.body.classList.toggle('admin-mode', isAdminUser);
+  // window.isAdminMode 동기화 (renderMembersAdminUI 등에서 사용)
+  window.isAdminMode = isAdminUser;
+  localStorage.setItem('ttgo_admin_mode', isAdminUser ? '1' : '0');
   // 선수 칩 상태 업데이트
   renderLeague();
+  if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
 }
 
 function showLockMsg(msg){
