@@ -1,5 +1,5 @@
 var MEMBERS_DEFAULT = [
-  {name:'곽동석',g:'남',bu:6,total:6},{name:'김덕기',g:'남',bu:5,total:4},
+  {name:'곽동석',g:'남',bu:6,total:6},
   {name:'김동수',g:'남',bu:6,total:6},{name:'김영란',g:'여',bu:6,total:6},
   {name:'김영서',g:'남',bu:6,total:6},{name:'김옥란',g:'여',bu:9,total:9},
   {name:'김조영',g:'남',bu:6,total:6},{name:'김현종',g:'남',bu:6,total:6},
@@ -11,7 +11,7 @@ var MEMBERS_DEFAULT = [
   {name:'이진규',g:'남',bu:6,total:6},{name:'전인석',g:'남',bu:7,total:7},
   {name:'정영아',g:'여',bu:8,total:8},{name:'정헌모',g:'남',bu:7,total:7},
   {name:'정희남',g:'남',bu:7,total:7},{name:'조경숙',g:'여',bu:9,total:9},
-  {name:'최양님',g:'여',bu:7,total:6},{name:'한금환',g:'남',bu:5,total:5},{name:'한철호',g:'남',bu:6,total:6},
+  {name:'최양님',g:'여',bu:7,total:6},{name:'한금환',g:'남',bu:5,total:5},
 ];
 var DORMANT_DEFAULT = [
   {name:'안경식',g:'남',bu:6,total:6},
