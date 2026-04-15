@@ -316,57 +316,64 @@ function loadFromFirebase(){
     db.ref('ttgo_history').once('value').then(function(snap){
       if(snap.val()) localStorage.setItem('ttgo_history', JSON.stringify(snap.val()));
     });
-    // 회원 데이터: 항상 Firebase에서 로드 (멀티기기 동기화 보장)
+    // 회원 데이터: 항상 Firebase에서 로드 후 한 번에 렌더링 (멀티기기 동기화 보장)
     var fbMembersUpdatedAt = data.membersUpdatedAt || 0;
-    {
-      db.ref('members').once('value').then(function(snap){
-        var val = snap.val();
-        if(val && Array.isArray(val) && val.length > 0){
-          MEMBERS.length = 0;
-          val.forEach(function(m){ MEMBERS.push(m); });
-          window.MEMBERS = MEMBERS;
-          localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
-          localStorage.setItem('ttgo_members_updatedAt', String(fbMembersUpdatedAt||Date.now()));
-          renderMembers();
-          if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
-          if(typeof renderRanking==='function') renderRanking();
+    Promise.all([
+      db.ref('members').once('value'),
+      db.ref('dormant').once('value'),
+      db.ref('ex_members').once('value')
+    ]).then(function(snaps){
+      var mVal = snaps[0].val();
+      if(mVal && Array.isArray(mVal) && mVal.length > 0){
+        MEMBERS.length = 0;
+        mVal.forEach(function(m){ MEMBERS.push(m); });
+        window.MEMBERS = MEMBERS;
+        localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
+        localStorage.setItem('ttgo_members_updatedAt', String(fbMembersUpdatedAt||Date.now()));
+      }
+      var dVal = snaps[1].val();
+      if(dVal && Array.isArray(dVal)){
+        DORMANT.length = 0;
+        dVal.forEach(function(m){ DORMANT.push(m); });
+        window.DORMANT = DORMANT;
+        localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
+      }
+      var exVal = snaps[2].val();
+      if(exVal && Array.isArray(exVal)){
+        EX_MEMBERS.length = 0;
+        exVal.forEach(function(m){ EX_MEMBERS.push(m); });
+        window.EX_MEMBERS = EX_MEMBERS;
+        localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
+      }
+      // Firebase 로드 완료 후 탈퇴 회원 복구 (db 준비된 상태에서 실행)
+      var knownRetired = [
+        {name:'김덕기',g:'남',bu:5,total:4},
+        {name:'한철호',g:'남',bu:6,total:6}
+      ];
+      var changed = false;
+      knownRetired.forEach(function(m){
+        var inMembers = MEMBERS.some(function(x){ return x.name===m.name; });
+        var inDormant = DORMANT.some(function(x){ return x.name===m.name; });
+        var inEx      = EX_MEMBERS.some(function(x){ return x.name===m.name; });
+        if(!inMembers && !inDormant && !inEx){
+          EX_MEMBERS.push({name:m.name,g:m.g,bu:m.bu,total:m.total,retiredAt:Date.now()});
+          changed = true;
         }
       });
-    }
-    {
-      db.ref('dormant').once('value').then(function(snap){
-        var val = snap.val();
-        if(val && Array.isArray(val)){
-          DORMANT.length = 0;
-          val.forEach(function(m){ DORMANT.push(m); });
-          window.DORMANT = DORMANT;
-          localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
-          if(typeof renderRanking==='function') renderRanking();
-        }
-      });
-    }
-    {
-      db.ref('ex_members').once('value').then(function(snap){
-        var val = snap.val();
-        if(val && Array.isArray(val)){
-          EX_MEMBERS.length = 0;
-          val.forEach(function(m){ EX_MEMBERS.push(m); });
-          window.EX_MEMBERS = EX_MEMBERS;
-          localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
-          renderMembers();
-          if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
-          if(typeof renderRanking==='function') renderRanking();
-        }
-      });
-    }
-    renderDash();
-    renderMembers();
-    renderLeague();
-    if(typeof renderRanking === 'function') renderRanking();
-    // 조편성 데이터가 있으면 자동 복원
-    restoreLeagueUI();
-    // 저장된 로그인 자동 복원
-    autoLoginCheck();
+      if(changed){
+        window.EX_MEMBERS = EX_MEMBERS;
+        localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
+        try{ db.ref('ex_members').set(EX_MEMBERS); }catch(e){}
+      }
+      // 전체 렌더링
+      renderDash();
+      renderMembers();
+      if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+      renderLeague();
+      if(typeof renderRanking==='function') renderRanking();
+      restoreLeagueUI();
+      autoLoginCheck();
+    });
   }).catch(function(e){ console.error('Firebase 로드 오류:', e); });
 }
 
@@ -387,28 +394,7 @@ let EX_MEMBERS = (function(){
 // window.EX_MEMBERS 즉시 동기화 (line 95에서 []로 초기화됐으므로 덮어씀)
 window.EX_MEMBERS = EX_MEMBERS;
 
-// 탈퇴 회원 데이터 복구: MEMBERS에 없는데 EX_MEMBERS에도 없으면 탈퇴 목록에 추가
-(function recoverExMembers(){
-  var knownRetired = [
-    {name:'김덕기',g:'남',bu:5,total:4},
-    {name:'한철호',g:'남',bu:6,total:6}
-  ];
-  var changed = false;
-  knownRetired.forEach(function(m){
-    var inMembers  = MEMBERS.some(function(x){ return x.name===m.name; });
-    var inDormant  = DORMANT.some(function(x){ return x.name===m.name; });
-    var inEx       = EX_MEMBERS.some(function(x){ return x.name===m.name; });
-    if(!inMembers && !inDormant && !inEx){
-      EX_MEMBERS.push({...m, retiredAt: Date.now()});
-      changed = true;
-    }
-  });
-  if(changed){
-    window.EX_MEMBERS = EX_MEMBERS;
-    localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
-    if(typeof db!=='undefined') try{ db.ref('ex_members').set(EX_MEMBERS); }catch(e){}
-  }
-})();
+// 탈퇴 회원 복구는 loadFromFirebase() 내부에서 Firebase 준비 후 실행됨
 
 // 운영진 여부 체크 함수
 function isAdmin(userName) {
