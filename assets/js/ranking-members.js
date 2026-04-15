@@ -1,15 +1,13 @@
 // 누적 순위
 function renderRanking(){
-  const exts = getExternals();
   // localStorage에서 항상 최신 데이터 읽기 (탈퇴/휴면 포함)
   let exMems = [], dormMems = [];
   try { exMems   = JSON.parse(localStorage.getItem('ttgo_ex_members')||'[]'); } catch(e){}
   try { dormMems = JSON.parse(localStorage.getItem('ttgo_dormant')||'[]'); } catch(e){}
   const allMembers = [
-    ...MEMBERS.map(m=>({...m, isExt:false, isEx:false, isDormant:false})),
-    ...dormMems.map(m=>({...m, isExt:false, isEx:false, isDormant:true})),
-    ...exMems.map(m=>({...m, isExt:false, isEx:true,   isDormant:false})),
-    ...exts.map(m=>({...m, isExt:true,  isEx:false,  isDormant:false}))
+    ...MEMBERS.map(m=>({...m, isEx:false, isDormant:false})),
+    ...dormMems.map(m=>({...m, isEx:false, isDormant:true})),
+    ...exMems.map(m=>({...m, isEx:true,   isDormant:false}))
   ];
 
   // 분기별 점수 결정
@@ -137,52 +135,4 @@ function renderMembers(){
   }).join('');
 }
 
-function renderExternalMembers(){
-  const exts = getExternals();
-  const el = document.getElementById('external-tbody');
-  const empty = document.getElementById('external-empty');
-  const cnt = document.getElementById('external-cnt');
-  if(cnt) cnt.textContent = exts.length+'명';
-  if(!exts.length){
-    if(el) el.textContent='';
-    if(empty) empty.style.display='block';
-    return;
-  }
-  if(empty) empty.style.display='none';
-  if(el) el.innerHTML=exts.map((m,i)=>{
-    const s = ST.scores[m.name]||{pts:0};
-    return `<tr>
-      <td>${i+1}</td>
-      <td><strong>${escapeHtml(m.name)}</strong> <span class="pill" style="background:#fff3e0;color:#e65100;font-size:10px;">특별</span></td>
-      <td>${escapeHtml(m.g)}</td><td>${escapeHtml(String(m.total))}부</td>
-      <td>${s.pts||0}점</td>
-      <td><button class="btn btn-sm" onclick="removeExternal('${jsEscape(m.name)}')" style="background:#ffebee;color:#c62828;border-color:#ffcdd2;padding:2px 8px;">삭제</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function addExternal(){
-  const name = document.getElementById('ext-name').value.trim();
-  const gender = document.getElementById('ext-gender').value;
-  const bu = parseInt(document.getElementById('ext-bu').value);
-  if(!name){ alert('이름을 입력하세요.'); return; }
-  if(isNaN(bu)||bu<1||bu>10){ alert('부수를 입력하세요 (1~10).'); return; }
-  if(MNAMES.includes(name)){ alert('정회원 명단에 있는 이름입니다.'); return; }
-  const exts = getExternals();
-  if(exts.find(e=>e.name===name)){ alert('이미 등록된 특별 회원입니다.'); return; }
-  exts.push({name, g:gender, bu, total:bu});
-  saveExternals(exts);
-  document.getElementById('ext-name').value='';
-  document.getElementById('ext-bu').value='';
-  renderExternalMembers();
-  renderLeague();
-}
-
-function removeExternal(name){
-  if(!confirm(name+'을(를) 특별 회원에서 삭제할까요?')) return;
-  const exts = getExternals().filter(e=>e.name!==name);
-  saveExternals(exts);
-  renderExternalMembers();
-  renderLeague();
-}
 // renderMembersAdminUI is defined in league-core.js

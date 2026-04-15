@@ -31,11 +31,8 @@ try {
   MEMBERS = MEMBERS_DEFAULT.slice();
   DORMANT = DORMANT_DEFAULT.slice();
 }
-// 특별 회원 (localStorage에서 관리)
-function getExternals(){ 
-  try{ return JSON.parse(localStorage.getItem('ttgo_externals')||'[]'); }catch(e){ return []; }
-}
-function saveExternals(arr){ localStorage.setItem('ttgo_externals', JSON.stringify(arr)); }
+function getExternals(){ return []; }
+function saveExternals(arr){}
 function saveST(){ localStorage.setItem('ttgo_v3', JSON.stringify(ST)); if(typeof db!=='undefined'){ try{ db.ref('ttgo').set(ST); }catch(e){} } }
 
 var MNAMES = MEMBERS.map(m=>m.name);
