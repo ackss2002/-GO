@@ -972,6 +972,11 @@ function renderMembersAdminUI(currentUser) {
   var searchQ  = area.dataset.search  || '';
   var wasFocused = document.activeElement && document.activeElement.id === 'member-search-input';
 
+  // 항상 localStorage에서 최신 데이터 읽기
+  try { var _lm = localStorage.getItem('ttgo_members'); if(_lm){ window.MEMBERS = JSON.parse(_lm); MEMBERS = window.MEMBERS; } } catch(e){}
+  try { var _ld = localStorage.getItem('ttgo_dormant'); if(_ld){ window.DORMANT = JSON.parse(_ld); DORMANT = window.DORMANT; } } catch(e){}
+  try { window.EX_MEMBERS = JSON.parse(localStorage.getItem('ttgo_ex_members')||'[]'); } catch(e){ window.EX_MEMBERS = []; }
+
   var allM  = (window.MEMBERS   || []).slice().sort((a,b) => (a.name||'').localeCompare(b.name||'','ko'));
   var allD  = (window.DORMANT   || []).slice().sort((a,b) => (a.name||'').localeCompare(b.name||'','ko'));
   var allEx = (window.EX_MEMBERS|| []).slice();
