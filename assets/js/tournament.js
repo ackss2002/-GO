@@ -292,18 +292,18 @@ function buildBracket(grpNames, results, size, strict){
       const a = bracket[aIdx], b = bracket[bIdx];
       if(!a || !b || a==='BYE' || b==='BYE') continue;
       if(grpMap[a] && grpMap[b] && grpMap[a]===grpMap[b]){
-        // 같은 조 충돌: 뒤쪽 페어에서 교환할 슬롯 찾기
-        for(let j=i+1;j<pairs;j++){
+        // 같은 조 충돌: 시드 보호를 위해 가장 낮은 시드(뒤쪽 페어)부터 교환 시도
+        for(let j=pairs-1;j>i;j--){
           const cIdx = j*2, dIdx = j*2+1;
           const c = bracket[cIdx], d = bracket[dIdx];
+          // 시도: b<->d (낮은 시드 위치 우선)
+          const ok2 = d && d!=='BYE' && (!grpMap[a] || !grpMap[d] || grpMap[a]!==grpMap[d]);
+          const ok2b = (!grpMap[b] || !grpMap[c] || grpMap[b]!==grpMap[c]);
+          if(ok2 && ok2b){ bracket[bIdx]=d; bracket[dIdx]=b; break; }
           // 시도: b<->c
           const ok1 = c && c!=='BYE' && (!grpMap[a] || !grpMap[c] || grpMap[a]!==grpMap[c]);
           const ok1b = (!grpMap[b] || !grpMap[d] || grpMap[b]!==grpMap[d]);
           if(ok1 && ok1b){ bracket[bIdx]=c; bracket[cIdx]=b; break; }
-          // 시도: b<->d
-          const ok2 = d && d!=='BYE' && (!grpMap[a] || !grpMap[d] || grpMap[a]!==grpMap[d]);
-          const ok2b = (!grpMap[b] || !grpMap[c] || grpMap[b]!==grpMap[c]);
-          if(ok2 && ok2b){ bracket[bIdx]=d; bracket[dIdx]=b; break; }
         }
       }
     }
