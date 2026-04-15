@@ -370,8 +370,82 @@ function loadFromFirebase(){
       if(typeof renderRanking==='function') renderRanking();
       restoreLeagueUI();
       autoLoginCheck();
+      // 초기 로드 완료 후 실시간 동기화 리스너 설정
+      setupRealtimeSync();
     });
   }).catch(function(e){ console.error('Firebase 로드 오류:', e); });
+}
+
+// 실시간 동기화: 다른 기기에서 변경 시 자동 반영
+var _realtimeSyncReady = false;
+function setupRealtimeSync(){
+  if(_realtimeSyncReady || typeof db === 'undefined') return;
+  _realtimeSyncReady = true;
+
+  // ST 데이터 (경기결과, 토너먼트, 순위)
+  db.ref('ttgo').on('value', function(snap){
+    var data = snap.val();
+    if(!data) return;
+    var stData = data.ST || (data.scores !== undefined ? data : null);
+    if(!stData) return;
+    var co = ST.carryOver; // 고정 역사 데이터 보존
+    Object.assign(ST, stData);
+    if(co) ST.carryOver = co;
+    if(!ST.scores) ST.scores={};
+    if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
+    if(!ST.week.players) ST.week.players=[];
+    if(!ST.week.groups) ST.week.groups=[[],[],[],[]];
+    if(!ST.doubles) ST.doubles={pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
+    if(!ST.final) ST.final={win:'',second:'',third:'',third2:'',lucky:''};
+    if(!ST.tournament) ST.tournament={};
+    localStorage.setItem('ttgo_v3', JSON.stringify(ST));
+    renderDash();
+    if(typeof renderRanking==='function') renderRanking();
+    var t = localStorage.getItem('ttgo_active_tab');
+    if(t==='tournament' && typeof renderTournamentTab==='function') renderTournamentTab();
+    if(t==='history' && typeof renderHistory==='function') renderHistory();
+  });
+
+  // 회원 데이터
+  db.ref('members').on('value', function(snap){
+    var val = snap.val();
+    if(!val || !Array.isArray(val) || !val.length) return;
+    MEMBERS.length=0; val.forEach(function(m){MEMBERS.push(m);}); window.MEMBERS=MEMBERS;
+    localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
+    if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+    if(typeof renderRanking==='function') renderRanking();
+  });
+
+  db.ref('dormant').on('value', function(snap){
+    var val = snap.val();
+    if(!val || !Array.isArray(val)) return;
+    DORMANT.length=0; val.forEach(function(m){DORMANT.push(m);}); window.DORMANT=DORMANT;
+    localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
+    if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+  });
+
+  db.ref('ex_members').on('value', function(snap){
+    var val = snap.val();
+    window.EX_MEMBERS = (val && Array.isArray(val)) ? val.slice() : (window.EX_MEMBERS||[]);
+    localStorage.setItem('ttgo_ex_members', JSON.stringify(window.EX_MEMBERS));
+    if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+  });
+
+  // 출석부
+  db.ref('ttgo_attendance').on('value', function(snap){
+    if(!snap.val()) return;
+    localStorage.setItem('ttgo_attendance', JSON.stringify(snap.val()));
+    var t = localStorage.getItem('ttgo_active_tab');
+    if(t==='attendance' && typeof renderAttendance==='function') renderAttendance();
+  });
+
+  // 경기 기록
+  db.ref('ttgo_history').on('value', function(snap){
+    if(!snap.val()) return;
+    localStorage.setItem('ttgo_history', JSON.stringify(snap.val()));
+    var t = localStorage.getItem('ttgo_active_tab');
+    if(t==='history' && typeof renderHistory==='function') renderHistory();
+  });
 }
 
 // 앱 시작 시 Firebase 로드는 SDK 초기화 후 실행 (하단 script에서)
