@@ -96,8 +96,7 @@ function updateAdminUI(){
   const lockBtn = document.getElementById('lock-btn');
   adminBadge.style.display = isAdminUser?'inline':'none';
   lockBtn.textContent = isAdminUser?'🔓':'🔒';
-  const adminBtns = document.querySelectorAll('.admin-only');
-  adminBtns.forEach(btn=>{ btn.style.display = isAdminUser ? (btn.style.width==='100%' ? 'block' : 'inline-flex') : 'none'; });
+  document.body.classList.toggle('admin-mode', isAdminUser);
   // 선수 칩 상태 업데이트
   renderLeague();
 }
