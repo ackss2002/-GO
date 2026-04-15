@@ -317,11 +317,13 @@ function loadFromFirebase(){
     db.ref('ttgo_history').once('value').then(function(snap){
       if(snap.val()) localStorage.setItem('ttgo_history', JSON.stringify(snap.val()));
     });
-    // 회원 데이터: localStorage가 없을 때만 Firebase에서 로드
-    // (있으면 이미 최신 데이터 — 덮어쓰면 탈퇴/휴면 처리가 롤백됨)
-    var needMembersFromFB  = !localStorage.getItem('ttgo_members');
-    var needDormantFromFB  = !localStorage.getItem('ttgo_dormant');
-    var needExFromFB       = !localStorage.getItem('ttgo_ex_members');
+    // 회원 데이터: Firebase updatedAt vs localStorage updatedAt 비교 후 최신 데이터 사용
+    // Firebase가 더 최신이면(다른 기기에서 변경됨) Firebase 데이터로 덮어씀
+    var fbMembersUpdatedAt = data.membersUpdatedAt || 0;
+    var localMembersUpdatedAt = parseInt(localStorage.getItem('ttgo_members_updatedAt')||'0', 10);
+    var needMembersFromFB = !localStorage.getItem('ttgo_members') || fbMembersUpdatedAt > localMembersUpdatedAt;
+    var needDormantFromFB = !localStorage.getItem('ttgo_dormant') || fbMembersUpdatedAt > localMembersUpdatedAt;
+    var needExFromFB      = !localStorage.getItem('ttgo_ex_members') || fbMembersUpdatedAt > localMembersUpdatedAt;
     if(needMembersFromFB){
       db.ref('members').once('value').then(function(snap){
         var val = snap.val();
@@ -330,8 +332,10 @@ function loadFromFirebase(){
           val.forEach(function(m){ MEMBERS.push(m); });
           window.MEMBERS = MEMBERS;
           localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
+          localStorage.setItem('ttgo_members_updatedAt', String(fbMembersUpdatedAt||Date.now()));
           renderMembers();
           if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+          if(typeof renderRanking==='function') renderRanking();
         }
       });
     }
@@ -343,6 +347,7 @@ function loadFromFirebase(){
           val.forEach(function(m){ DORMANT.push(m); });
           window.DORMANT = DORMANT;
           localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
+          if(typeof renderRanking==='function') renderRanking();
         }
       });
     }
@@ -356,6 +361,7 @@ function loadFromFirebase(){
           localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
           renderMembers();
           if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+          if(typeof renderRanking==='function') renderRanking();
         }
       });
     }
@@ -429,6 +435,7 @@ function retireMember(memberName) {
     EX_MEMBERS.push({...member, retiredAt: Date.now()});
     syncAllMemberData();
     if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+    if (typeof renderRanking === 'function') renderRanking();
     try{ recordAdminAction('retire', { member: memberName }); }catch(e){}
   }, { title: '탈퇴 확인' });
   return true;
@@ -445,6 +452,7 @@ function restoreMemberFromEx(memberName) {
   EX_MEMBERS.splice(idx, 1);
   syncAllMemberData();
   if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  if (typeof renderRanking === 'function') renderRanking();
   try{ recordAdminAction('restore_ex', { member: memberName }); }catch(e){}
   return true;
 }
@@ -475,6 +483,7 @@ function setDormant(memberName) {
     DORMANT.push({...member});
     syncAllMemberData();
     if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+    if (typeof renderRanking === 'function') renderRanking();
     try{ recordAdminAction('dormant', { member: memberName }); }catch(e){}
   }, { title: '휴면 확인' });
   return true;
@@ -489,6 +498,7 @@ function restoreFromDormant(memberName){
   MEMBERS.push({...member});
   syncAllMemberData();
   if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+  if (typeof renderRanking === 'function') renderRanking();
   try{ recordAdminAction('restore', { member: memberName }); }catch(e){}
   return true;
 }
@@ -500,20 +510,23 @@ function syncAllMemberData() {
     window.MEMBERS   = MEMBERS;
     window.DORMANT   = DORMANT;
     window.EX_MEMBERS = EX_MEMBERS;
-    // 로컬에 저장
+    // 로컬에 저장 (타임스탬프 포함 — 다기기 동기화 기준)
+    var now = Date.now();
     localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
     localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
     localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
+    localStorage.setItem('ttgo_members_updatedAt', String(now));
     // 외부 특별회원 저장 함수와 동기화
     if (typeof saveExternals === 'function') {
       try { saveExternals(getExternals()); } catch(e){ /* ignore */ }
     }
-    // Firebase에 동기화 (있을 때만)
+    // Firebase에 동기화 (있을 때만) — updatedAt 포함해서 다른 기기가 감지 가능
     if (typeof db !== 'undefined') {
       try {
         db.ref('members').set(MEMBERS);
         db.ref('dormant').set(DORMANT);
         db.ref('ex_members').set(EX_MEMBERS);
+        db.ref('ttgo').update({membersUpdatedAt: now});
       } catch(e){ console.error('Firebase syncAllMemberData error', e); }
     }
   } catch(e){ console.error('syncAllMemberData error', e); }
