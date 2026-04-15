@@ -653,11 +653,11 @@ window.showConfirmModal = function(message, onConfirm, options){
     o.innerHTML =
       '<div class="modal" role="dialog" aria-modal="true" ' +
         'style="max-width:380px;width:92%;border-radius:16px;padding:24px 22px;' +
-               'box-shadow:0 24px 60px rgba(0,0,0,0.28);">' +
+               'background:#fff;box-shadow:0 24px 60px rgba(0,0,0,0.28);">' +
         '<h3 style="margin:0 0 12px 0;font-size:17px;color:' + titleColor + ';">' +
           (options.title || '확인') +
         '</h3>' +
-        '<div style="color:#555;font-size:14px;line-height:1.7;">' +
+        '<div style="color:#333;font-size:14px;line-height:1.7;">' +
           message.replace(/\n/g,'<br/>') +
         '</div>' +
         '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">' +
