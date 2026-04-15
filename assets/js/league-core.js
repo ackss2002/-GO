@@ -960,13 +960,8 @@ function renderMembersAdminUI(currentUser) {
   var area = document.getElementById('admin-members-area');
   if (!area) return;
 
-  if (!window.isAdminMode) {
-    area.innerHTML = `<div style="text-align:center;padding:48px 20px;">
-      <div style="font-size:52px;margin-bottom:14px;">🔒</div>
-      <div style="color:#e94560;font-weight:700;font-size:16px;">운영진만 접근 가능합니다.</div>
-    </div>`;
-    return;
-  }
+  // isAdmin: 관리 버튼 표시 여부 (조회는 누구나 가능)
+  var isAdmin = !!window.isAdminMode;
 
   var buFilter = area.dataset.buFilter || 'all';
   var searchQ  = area.dataset.search  || '';
@@ -1034,11 +1029,11 @@ function renderMembersAdminUI(currentUser) {
       <span style="font-weight:700;font-size:14px;color:#1a1a2e;flex:1;min-width:50px;">${escapeHtml(m.name)}</span>
       ${buTag(m)}
       <span style="background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:3px 10px;font-size:11px;white-space:nowrap;">정회원</span>
-      <div style="display:flex;gap:4px;margin-left:auto;flex-shrink:0;">
+      ${isAdmin ? `<div style="display:flex;gap:4px;margin-left:auto;flex-shrink:0;">
         ${btn('수정',  `editMemberInfo('${jsEscape(m.name)}')`,  '#fff',    '#546e7a', '#546e7a')}
         ${btn('휴면',  `setDormant('${jsEscape(m.name)}')`,      '#fff3e0', '#e65100', '#e65100')}
         ${btn('탈퇴',  `retireMember('${jsEscape(m.name)}')`,    '#fce4ec', '#c62828', '#c62828')}
-      </div>
+      </div>` : ''}
     </div>`).join('')
     : '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">표시할 정회원이 없습니다.</div>';
 
@@ -1050,10 +1045,10 @@ function renderMembersAdminUI(currentUser) {
       <span style="font-weight:700;font-size:14px;color:#607d8b;flex:1;min-width:50px;">${escapeHtml(m.name)}</span>
       ${buTag(m)}
       <span style="background:#eceff1;color:#607d8b;border-radius:12px;padding:3px 10px;font-size:11px;white-space:nowrap;">휴면</span>
-      <div style="display:flex;gap:4px;margin-left:auto;flex-shrink:0;">
+      ${isAdmin ? `<div style="display:flex;gap:4px;margin-left:auto;flex-shrink:0;">
         ${btn('복구', `restoreFromDormant('${jsEscape(m.name)}')`, '#e8f5e9', '#2e7d32', '#2e7d32')}
         ${btn('탈퇴', `retireMember('${jsEscape(m.name)}')`,       '#fce4ec', '#c62828', '#c62828')}
-      </div>
+      </div>` : ''}
     </div>`).join('')
     : '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">필터 조건에 맞는 휴면 회원이 없습니다.</div>';
 
@@ -1064,10 +1059,10 @@ function renderMembersAdminUI(currentUser) {
       <span style="font-weight:700;font-size:14px;color:#bbb;flex:1;min-width:50px;">${escapeHtml(m.name)}</span>
       <span style="background:#ffebee;color:#c62828;border-radius:12px;padding:3px 10px;font-size:11px;white-space:nowrap;">탈퇴</span>
       <span style="color:#bbb;font-size:11px;white-space:nowrap;">${m.retiredAt ? new Date(m.retiredAt).toLocaleDateString() : '-'}</span>
-      <div style="display:flex;gap:4px;margin-left:auto;flex-shrink:0;">
+      ${isAdmin ? `<div style="display:flex;gap:4px;margin-left:auto;flex-shrink:0;">
         ${btn('복구',    `restoreMemberFromEx('${jsEscape(m.name)}')`, '#e8f5e9', '#2e7d32', '#2e7d32')}
         ${btn('완전삭제', `deleteExMember('${jsEscape(m.name)}')`,      '#f3e5f5', '#7b1fa2', '#7b1fa2')}
-      </div>
+      </div>` : ''}
     </div>`).join('')
     : '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">검색 결과가 없습니다.</div>';
 
