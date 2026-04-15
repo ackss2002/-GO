@@ -333,11 +333,15 @@ function loadFromFirebase(){
         localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
       }
       var exVal = snaps[2].val();
-      if(exVal && Array.isArray(exVal)){
+      if(exVal && Array.isArray(exVal) && exVal.length > 0){
+        // Firebase에 탈퇴 데이터 있음 → 로컬 덮어씌우기
         EX_MEMBERS.length = 0;
         exVal.forEach(function(m){ EX_MEMBERS.push(m); });
         window.EX_MEMBERS = EX_MEMBERS;
         localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
+      } else if(!exVal && EX_MEMBERS.length > 0){
+        // Firebase에 탈퇴 데이터 없는데 로컬엔 있음 → Firebase로 동기화
+        try{ db.ref('ex_members').set(EX_MEMBERS); }catch(e){}
       }
       // Firebase 로드 완료 후 탈퇴 회원 복구 (db 준비된 상태에서 실행)
       var knownRetired = [
