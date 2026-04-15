@@ -509,13 +509,7 @@ function genTournament(){
   }
   saveST();
 
-  const bracketLabel = size===4 ? '4강 대진 (크로스매치)' : size===8 ? '8강 대진 (크로스매치)' : size+'강 대진';
-  const matchLabels = [];
-  for(let i=0;i<size/2;i++){
-    const p1=bracket[i*2], p2=bracket[i*2+1];
-    matchLabels.push(`<span class="pill pill-blue" style="margin:2px;">${i+1}경기: ${escapeHtml(p1)} vs ${escapeHtml(p2)}</span>`);
-  }
-  document.getElementById('t-seeds').innerHTML = bracketLabel + '<br>' + matchLabels.join('<br>');
+  document.getElementById('t-seeds').innerHTML = '';
 
   renderBracket(bracket, size);
   document.getElementById('t2').style.display='block';
