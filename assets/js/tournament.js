@@ -307,31 +307,7 @@ function buildBracket(grpNames, results, size, strict){
         }
       }
     }
-    // 엄격 모드: 가능하면 같은 조원이 같은 절반에 들어가지 않도록 교환 시도
-    if(strict){
-      const half = size/2;
-      // map slot->group
-      const slotGroup = function(idx){ const name=bracket[idx]; return (name && grpMap[name])?grpMap[name]:null; };
-      for(let i=0;i<size;i++){
-        const g1 = slotGroup(i); if(!g1) continue;
-        for(let j=i+1;j<size;j++){
-          if(Math.floor(i/half)!==Math.floor(j/half)) continue; // only check same half
-          const g2 = slotGroup(j); if(!g2) continue;
-          if(g1===g2){
-            // try swap j with some slot in other half
-            for(let k=0;k<size;k++){
-              if(Math.floor(k/half)===Math.floor(i/half)) continue; // need opposite half
-              const gk = slotGroup(k);
-              // ensure swapping j<->k does not create new same-half conflict
-              if(gk && gk===g1) continue;
-              // perform swap
-              const tmp = bracket[j]; bracket[j]=bracket[k]; bracket[k]=tmp;
-              break;
-            }
-          }
-        }
-      }
-    }
+    // ITTF Strict 모드: 조당 인원이 많으면 반쪽 분리가 불가능하여 오히려 시드 배치를 망가뜨리므로 제거됨
   }catch(e){ /* 안전하게 무시 */ }
   return bracket;
 }
