@@ -35,7 +35,8 @@ function switchTab(name,el){
   if(name==='dashboard') renderDash();
   if(name==='ranking') renderRanking();
   if(name==='members') {
-    if (typeof renderMembers === 'function') renderMembers();
+    if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+    else if (typeof renderMembers === 'function') renderMembers();
   }
   if(name==='league') renderLeague();
   if(name==='tournament') renderTournamentTab();
