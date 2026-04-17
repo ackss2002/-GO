@@ -736,6 +736,8 @@ window.showAddMemberModal = function(){
       }
       MEMBERS.push({name, g:gender, bu, total:bu});
       window.MEMBERS = MEMBERS;
+      // MNAMES 즉시 갱신 (출석 자동기록 등에 사용)
+      window.MNAMES = MEMBERS.map(function(m){ return m.name; });
       syncAllMemberData();
       window.closeModal('add-member-modal');
       if(typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
