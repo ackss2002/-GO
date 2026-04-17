@@ -50,13 +50,13 @@ function renderRanking(){
 
   let title, getData;
   if(tab==='q1'){
-    title='1분기 랭킹 포인트';
+    title='Q1 랭킹 포인트';
     getData=function(m){ return getQ1Pts(m.name); };
   } else if(tab==='q2'){
-    title='2분기 랭킹 포인트';
+    title='Q2 랭킹 포인트';
     getData=function(m){ return getQ2Pts(m.name); };
   } else {
-    title='시즌 랭킹 포인트 (전분기 누적)';
+    title='RANKINGS · 시즌 누적 포인트';
     getData=function(m){ return getTotalPts(m.name); };
   }
 
