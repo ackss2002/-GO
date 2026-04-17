@@ -1108,18 +1108,6 @@ function renderMembersAdminUI(currentUser) {
       </div>
     </div>
 
-    <!-- 검색창 -->
-    <div style="position:relative;margin-bottom:12px;">
-      <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;">🔍</span>
-      <input id="member-search-input" type="text" placeholder="이름 검색..."
-        value="${escapeHtml(searchQ)}"
-        oninput="document.getElementById('admin-members-area').dataset.search=this.value;renderMembersAdminUI(window.currentUser||'');"
-        style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;
-               border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;
-               transition:border-color .2s;"
-        onfocus="this.style.borderColor='#1a1a2e'" onblur="this.style.borderColor='#e0e0e0'">
-    </div>
-
     <!-- 부수 필터 -->
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">${filterBtns}</div>
 
