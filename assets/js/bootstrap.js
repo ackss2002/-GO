@@ -295,8 +295,8 @@ function loadFromFirebase(){
       '최양님':{w:1,s:0,t:0,pts:5}, '이미진':{w:1,s:0,t:0,pts:5},
     };
     if(!ST.scores) ST.scores = {};
-    // 최양님 승급 상태 항상 보장
-    ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+    // 최양님 승급 상태 항상 보장 (4/10 우승 w:1 보존, pts만 리셋)
+    ST.scores['최양님'] = {w:1, s:0, t:0, pts:0, up:true};
     // 이원호 4월10일 3위 점수 — 없으면 복구
     if(!ST.scores['이원호'] || (!ST.scores['이원호'].t && !ST.scores['이원호'].w && !ST.scores['이원호'].s)){
       ST.scores['이원호'] = {w:0, s:0, t:1, pts:2};
