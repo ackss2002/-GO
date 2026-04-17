@@ -117,7 +117,7 @@ const Q1_SCORES = {
   '이미진':  {w:1, s:0, t:0, pts:5,  up:false},
   '최양님':  {w:1, s:0, t:0, pts:5,  up:false},
   '이상건':  {w:0, s:0, t:2, pts:4,  up:false},
-  '이진규':  {w:0, s:1, t:1, pts:5,  up:false},
+  '이진규':  {w:1, s:1, t:1, pts:10, up:true},   // 4/1 교류전 우승 +5 → 10점 달성 → 승급
   '김영서':  {w:0, s:0, t:1, pts:2,  up:false},
 };
 
