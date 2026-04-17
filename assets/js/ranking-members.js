@@ -56,7 +56,7 @@ function renderRanking(){
     title='2분기 랭킹 포인트';
     getData=function(m){ return getQ2Pts(m.name); };
   } else {
-    title='역대 누적 랭킹 포인트 (1분기+2분기)';
+    title='시즌 랭킹 포인트 (전분기 누적)';
     getData=function(m){ return getTotalPts(m.name); };
   }
 
