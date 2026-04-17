@@ -690,6 +690,60 @@ window.showEditMemberModal = function(originalName){
   }catch(e){ console.error('showEditMemberModal error', e); alert('모달을 열 수 없습니다. 콘솔을 확인하세요.'); }
 };
 
+window.showAddMemberModal = function(){
+  try{
+    if(!document.getElementById('add-member-modal')){
+      const wrapper = document.createElement('div');
+      wrapper.id = 'add-member-modal';
+      wrapper.style = 'position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:12000;background:rgba(0,0,0,0.5);';
+      wrapper.innerHTML = `
+        <div style="background:white;border-radius:12px;padding:20px;max-width:420px;width:94%;box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+          <h3 style="margin:0 0 16px 0;font-size:18px;color:#1a1a2e;">신규 회원 추가</h3>
+          <div style="margin-bottom:6px;font-size:13px;color:#666;">이름</div>
+          <input id="add-member-name" type="text" placeholder="이름 입력" style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #ddd;border-radius:6px;margin-bottom:12px;font-size:14px;" />
+          <div style="margin-bottom:6px;font-size:13px;color:#666;">성별</div>
+          <select id="add-member-gender" style="width:100%;padding:9px;border:1px solid #ddd;border-radius:6px;margin-bottom:12px;font-size:14px;">
+            <option value="남">남</option>
+            <option value="여">여</option>
+          </select>
+          <div style="margin-bottom:6px;font-size:13px;color:#666;">부수</div>
+          <input id="add-member-bu" type="number" min="1" max="99" placeholder="예: 6" style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #ddd;border-radius:6px;margin-bottom:18px;font-size:14px;" />
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button id="add-member-cancel" style="padding:9px 16px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer;font-size:14px;">취소</button>
+            <button id="add-member-save" style="padding:9px 16px;border-radius:8px;border:none;background:#1a1a2e;color:white;cursor:pointer;font-size:14px;font-weight:700;">추가</button>
+          </div>
+        </div>`;
+      document.body.appendChild(wrapper);
+      document.getElementById('add-member-cancel').addEventListener('click', function(){ window.closeModal('add-member-modal'); });
+    }
+    // 입력 초기화
+    document.getElementById('add-member-name').value = '';
+    document.getElementById('add-member-bu').value = '';
+    document.getElementById('add-member-gender').value = '남';
+    window.openModal('add-member-modal');
+    // 저장 버튼 핸들러
+    const saveBtn = document.getElementById('add-member-save');
+    const newSave = saveBtn.cloneNode(true);
+    saveBtn.parentNode.replaceChild(newSave, saveBtn);
+    newSave.addEventListener('click', function(){
+      const name = (document.getElementById('add-member-name').value||'').trim();
+      const gender = document.getElementById('add-member-gender').value;
+      const bu = parseInt(document.getElementById('add-member-bu').value, 10);
+      if(!name){ alert('이름을 입력하세요.'); return; }
+      if(isNaN(bu) || bu < 1){ alert('유효한 부수를 입력하세요.'); return; }
+      if(MEMBERS.find(m=>m.name===name) || DORMANT.find(m=>m.name===name)){
+        alert('이미 존재하는 회원입니다.'); return;
+      }
+      MEMBERS.push({name, g:gender, bu, total:bu});
+      window.MEMBERS = MEMBERS;
+      syncAllMemberData();
+      window.closeModal('add-member-modal');
+      if(typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+      alert(name + ' 님이 정회원으로 추가되었습니다.');
+    });
+  }catch(e){ console.error('showAddMemberModal error', e); }
+};
+
 // 기록(간단 로그) 추가
 function recordAdminAction(type, details){
   try{

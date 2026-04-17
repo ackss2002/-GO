@@ -1129,6 +1129,7 @@ function renderMembersAdminUI(currentUser) {
         <span style="color:#fff;font-weight:700;font-size:14px;">정회원</span>
         <div style="display:flex;gap:6px;align-items:center;">
           ${countBadge(fM.length, allM.length, '#e94560', '#e94560', '#fff')}
+          ${isAdmin ? `<button onclick="window.showAddMemberModal()" style="padding:5px 12px;font-size:12px;font-weight:700;border-radius:8px;border:none;background:#e94560;color:white;cursor:pointer;">+ 신규 추가</button>` : ''}
         </div>
       </div>
       ${memberRows}
