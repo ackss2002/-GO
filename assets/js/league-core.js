@@ -1082,11 +1082,11 @@ function renderMembersAdminUI(currentUser) {
         ${btn('완전삭제', `deleteExMember('${jsEscape(m.name)}')`,      '#f3e5f5', '#7b1fa2', '#7b1fa2')}
       </div>` : ''}
     </div>`).join('')
-    : '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">검색 결과가 없습니다.</div>';
+    : '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">표시할 회원이 없습니다.</div>';
 
   // 카운트 배지 (필터 중일 때 "N / 전체 M명" 표시)
   function countBadge(filtered, all, bgFilter, bgAll, colorAll) {
-    if (buFilter !== 'all' || searchQ)
+    if (buFilter !== 'all')
       return `<span style="background:${bgFilter};color:#fff;border-radius:20px;padding:2px 12px;font-size:12px;font-weight:700;">${filtered}명</span>
               <span style="background:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);border-radius:20px;padding:2px 10px;font-size:11px;">전체 ${all}명</span>`;
     return `<span style="background:${bgAll};color:${colorAll};border-radius:20px;padding:2px 14px;font-size:12px;font-weight:700;">${all}명</span>`;
