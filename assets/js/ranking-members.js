@@ -93,11 +93,14 @@ function renderRanking(){
         promoBar=`<div style="display:inline-block;vertical-align:middle;margin-left:6px;width:50px;height:4px;background:#eee;border-radius:2px;"><div style="height:4px;background:#e94560;border-radius:2px;width:${pct}%;"></div></div>`;
       }
 
+      const promoPts = tab==='total' ? getPromotionPts(p.name) : null;
+      const promoLabel = (tab==='total' && promoPts!==null)
+        ? `<span style="font-size:11px;color:#888;margin-left:4px;">(승급 ${promoPts}pt)</span>` : '';
       return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
         <td><strong>${escapeHtml(p.name)}</strong>${exTag}${dormTag}</td>
         <td>${escapeHtml(p.gender)}</td><td>${escapeHtml(String(p.bu))}</td>
         <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td>
-        <td><strong>${p.pts}점</strong>${upTag}${promoBar}</td>
+        <td><strong>${p.pts}점</strong>${promoLabel}${upTag}${promoBar}</td>
         <td></td></tr>`;
     }).join('')||'<tr><td colspan="9" style="color:#888;text-align:center;">데이터 없음</td></tr>';
   }

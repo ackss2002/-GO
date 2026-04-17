@@ -121,7 +121,7 @@ const Q1_SCORES = {
   '김영서':  {w:0, s:0, t:1, pts:2,  up:false},
 };
 
-let currentRankingTab = 'promo';
+let currentRankingTab = 'total';
 
 function switchRankingTab(tab){
   currentRankingTab = tab;
