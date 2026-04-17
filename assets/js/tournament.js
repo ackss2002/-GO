@@ -995,6 +995,19 @@ function saveResult(){
       else{ST.guestScores[name].t++;ST.guestScores[name].pts+=2;}
     }
   });
+    // 출석부 자동 기록 (토너먼트 결과 최종 확정 시점에만 기록)
+    if(ST.week.date && ST.week.players && ST.week.players.length>0){
+      var att;
+      try{ att=JSON.parse(localStorage.getItem('ttgo_attendance')||'{"dates":[],"records":{}}'); }catch(e){ att={dates:[],records:{}}; }
+      if(!att.dates.includes(ST.week.date)){ att.dates.push(ST.week.date); att.dates.sort(); }
+      ST.week.players.forEach(function(name){
+        if(!MNAMES.includes(name)) return;
+        if(!att.records[name]) att.records[name]={};
+        att.records[name][ST.week.date]=true;
+      });
+      localStorage.setItem('ttgo_attendance', JSON.stringify(att));
+      if(typeof db!=='undefined') db.ref('ttgo_attendance').set(att);
+    }
     saveST();
     saveHistory();
     document.getElementById('t-result-display').textContent = '저장 완료! 우승: ' + win + ' (+5점) · 준우승: ' + sec + (trd ? ' · 공동3위: '+ [trd,trd2].filter(Boolean).join(', ') : '');
