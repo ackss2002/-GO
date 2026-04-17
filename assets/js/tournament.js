@@ -945,8 +945,10 @@ function saveResult(){
   const trd2=document.getElementById('t-third2')?document.getElementById('t-third2').value.trim():'';
   const lky =document.getElementById('t-lucky').value.trim();
   if(!win||!sec){alert('우승/준우승은 필수입니다.');return;}
-  if(!confirm(`우승: ${win}\n준우승: ${sec}\n공동3위: ${[trd,trd2].filter(Boolean).join(', ')||'없음'}\n행운상: ${lky||'없음'}\n\n승점을 반영할까요?`))return;
-  ST.final={win,second:sec,third:trd,third2:trd2,lucky:lky};
+
+  // 전체화면 최종 확인 모달
+  function proceedSave(){
+    ST.final={win,second:sec,third:trd,third2:trd2,lucky:lky};
 
   const exts = getExternals();
   const extNames = exts.map(e=>e.name);
@@ -993,8 +995,52 @@ function saveResult(){
       else{ST.guestScores[name].t++;ST.guestScores[name].pts+=2;}
     }
   });
-  saveST();
-  saveHistory(); // 히스토리 자동 저장
-  document.getElementById('t-result-display').textContent = '저장 완료! 우승: ' + win + ' (+5점) · 준우승: ' + sec + (trd ? ' · 공동3위: '+ [trd,trd2].filter(Boolean).join(', ') : '');
-  alert('승점 반영 완료! 경기 기록에 저장되었습니다.');
+    saveST();
+    saveHistory();
+    document.getElementById('t-result-display').textContent = '저장 완료! 우승: ' + win + ' (+5점) · 준우승: ' + sec + (trd ? ' · 공동3위: '+ [trd,trd2].filter(Boolean).join(', ') : '');
+    alert('승점 반영 완료! 경기 기록에 저장되었습니다.');
+  }
+
+  // 전체화면 최종 확인 모달 표시
+  if(!document.getElementById('save-result-modal')){
+    const m = document.createElement('div');
+    m.id = 'save-result-modal';
+    m.style = 'position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:13000;background:rgba(0,0,0,0.7);';
+    document.body.appendChild(m);
+  }
+  const modal = document.getElementById('save-result-modal');
+  const thirds = [trd,trd2].filter(Boolean).join(', ') || '없음';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:24px;max-width:400px;width:92%;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+      <div style="text-align:center;font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:20px;">🏆 최종 결과 확인</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#fff9c4;border-radius:10px;">
+          <span style="font-size:28px;">🥇</span>
+          <div><div style="font-size:11px;color:#888;">우승 (+5점)</div><div style="font-size:18px;font-weight:700;">${escapeHtml(win)}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f5f5f5;border-radius:10px;">
+          <span style="font-size:28px;">🥈</span>
+          <div><div style="font-size:11px;color:#888;">준우승 (+3점)</div><div style="font-size:18px;font-weight:700;">${escapeHtml(sec)}</div></div>
+        </div>
+        ${trd ? `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:#fff3e0;border-radius:10px;">
+          <span style="font-size:28px;">🥉</span>
+          <div><div style="font-size:11px;color:#888;">공동3위 (+2점)</div><div style="font-size:18px;font-weight:700;">${escapeHtml(thirds)}</div></div>
+        </div>` : ''}
+        ${lky ? `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:#e8f5e9;border-radius:10px;">
+          <span style="font-size:28px;">🎁</span>
+          <div><div style="font-size:11px;color:#888;">행운상</div><div style="font-size:16px;font-weight:700;">${escapeHtml(lky)}</div></div>
+        </div>` : ''}
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('save-result-modal').style.display='none';"
+          style="flex:1;padding:14px;border-radius:10px;border:1px solid #ddd;background:white;font-size:15px;cursor:pointer;font-weight:600;">취소</button>
+        <button id="save-result-confirm-btn"
+          style="flex:2;padding:14px;border-radius:10px;border:none;background:#e94560;color:white;font-size:15px;font-weight:700;cursor:pointer;">승점 반영 확정</button>
+      </div>
+    </div>`;
+  modal.style.display = 'flex';
+  document.getElementById('save-result-confirm-btn').onclick = function(){
+    modal.style.display = 'none';
+    proceedSave();
+  };
 }

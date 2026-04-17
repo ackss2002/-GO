@@ -15,15 +15,26 @@ function initScores(){
 }
 
 function resetAll(){
-  if(!confirm('이번주 선수 선택, 조 편성, 경기 결과, 토너먼트를 모두 초기화할까요?\n(누적 승점은 유지됩니다)')) return;
-  const savedTemps = ST.week.tempPlayers||[];
-  ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[],tempPlayers:savedTemps};
-  ST.doubles = {pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
-  ST.final = {win:'',second:'',third:'',third2:'',lucky:''};
-  ST.tournament = {};
-  saveST();
-  renderDash();
-  renderLeague();
+  function doReset(){
+    const savedTemps = ST.week.tempPlayers||[];
+    ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[],tempPlayers:savedTemps};
+    ST.doubles = {pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
+    ST.final = {win:'',second:'',third:'',third2:'',lucky:''};
+    ST.tournament = {};
+    saveST();
+    renderDash();
+    renderLeague();
+  }
+  if(typeof window.showConfirmModal === 'function'){
+    window.showConfirmModal(
+      '⚠️ 이번주 선수 선택, 조 편성, 경기 결과, 토너먼트가 모두 삭제됩니다.\n\n누적 승점은 유지됩니다.\n\n정말 초기화하시겠습니까?',
+      doReset,
+      {title:'🗑 이번주 초기화', confirmText:'초기화', danger:true}
+    );
+  } else {
+    if(!confirm('이번주 선수 선택, 조 편성, 경기 결과, 토너먼트를 모두 초기화할까요?\n(누적 승점은 유지됩니다)')) return;
+    doReset();
+  }
 }
 
 function switchTab(name,el){
