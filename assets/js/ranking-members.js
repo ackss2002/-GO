@@ -81,7 +81,7 @@ function renderRanking(){
       const upTag=p.up?'<span class="pill pill-amber" style="margin-left:4px;">↑승급</span>':'';
       const exTag=p.isEx?'<span class="pill" style="margin-left:4px;background:#ffebee;color:#c62828;font-size:10px;">탈퇴</span>':'';
       const dormTag=p.isDormant?'<span class="pill" style="margin-left:4px;background:#eceff1;color:#607d8b;font-size:10px;">휴면</span>':'';
-      const promoLabel=`<span style="font-size:11px;color:#888;margin-left:4px;">(승급 ${p.promoPts}pt)</span>`;
+      const promoLabel=`<span style="font-size:11px;color:#aaa;margin-left:3px;">(${p.promoPts})</span>`;
 
       return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
         <td><strong>${escapeHtml(p.name)}</strong>${exTag}${dormTag}</td>
