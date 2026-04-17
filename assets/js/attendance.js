@@ -182,7 +182,7 @@ function renderAttendance(){
     <th style="background:#1a1a2e;color:white;padding:6px 8px;border:1px solid #555;text-align:center;min-width:36px;">순위</th>
     <th style="background:#1a1a2e;color:white;padding:6px 10px;border:1px solid #555;text-align:left;min-width:80px;">이름</th>
     ${dates.map(d=>`<th style="background:#e3f2fd;color:#1a1a2e;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:70px;font-size:11px;">
-      ${d.slice(5)}<br><small onclick="removeAttendanceDate('${jsEscape(d)}')" style="color:#e94560;cursor:pointer;font-size:10px;">✕</small>
+      ${d.slice(5)}${window.isAdminMode?`<br><small onclick="removeAttendanceDate('${jsEscape(d)}')" style="color:#e94560;cursor:pointer;font-size:10px;">✕</small>`:''}
     </th>`).join('')}
     <th style="background:#fff9c4;padding:6px 8px;border:1px solid #bbb;text-align:center;min-width:50px;">합계</th>
   </tr>`;
