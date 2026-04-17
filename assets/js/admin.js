@@ -121,15 +121,14 @@ const Q1_SCORES = {
   '김영서':  {w:0, s:0, t:1, pts:2,  up:false},
 };
 
-let currentQuarter = 2;
+let currentRankingTab = 'promo';
 
-function switchQuarter(q){
-  currentQuarter = q;
-  // 탭 스타일
-  ['1','2','all'].forEach(id=>{
+function switchRankingTab(tab){
+  currentRankingTab = tab;
+  ['promo','total','quarter'].forEach(id=>{
     const btn = document.getElementById('qtab-'+id);
     if(!btn) return;
-    const active = String(q)===String(id);
+    const active = tab===id;
     btn.style.fontWeight = active?'700':'400';
     btn.style.color = active?'#e94560':'#888';
     btn.style.borderBottom = active?'2px solid #e94560':'2px solid transparent';

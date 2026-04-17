@@ -131,7 +131,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
       <div id="dash-results"></div>
     </div>
     <div class="card">
-      <div class="card-title">2분기 승점 TOP 5</div>
+      <div class="card-title">승급 포인트 TOP 5</div>
       <div id="dash-top5"></div>
     </div>
   </div>
@@ -296,13 +296,13 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 <!-- 누적 순위 -->
 <div id="ranking" class="section">
-  <div class="notice">랭킹 포인트: 우승 5점 / 준우승 3점 / 3위 2점 · 10점 달성 시 1부수 승급 + 잔여 포인트 소멸 (승급 부수 제한 없음)</div>
-  
-  <!-- 분기 탭 -->
+  <div class="notice">랭킹 포인트: 우승 5점 / 준우승 3점 / 3위 2점 · 10점 달성 시 1부수 승급 + 포인트 리셋 (새 출발) · 역대 누적은 영구 보존</div>
+
+  <!-- 랭킹 탭 -->
   <div style="display:flex;gap:8px;margin-bottom:14px;border-bottom:2px solid #e0e0e0;padding-bottom:0;">
-    <button id="qtab-1" onclick="switchQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">1분기</button>
-    <button id="qtab-2" onclick="switchQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">2분기</button>
-    <button id="qtab-all" onclick="switchQuarter('all')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">전체</button>
+    <button id="qtab-promo" onclick="switchRankingTab('promo')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">승급현황</button>
+    <button id="qtab-total" onclick="switchRankingTab('total')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">역대누적</button>
+    <button id="qtab-quarter" onclick="switchRankingTab('quarter')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">이번분기</button>
   </div>
 
   <div id="upgrade-card" class="card"></div>
@@ -444,7 +444,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
           <div style="font-size:20px;">🥉</div><div style="font-weight:700;font-size:15px;">+2점</div><div style="font-size:12px;color:#888;">공동3위</div>
         </div>
         <div style="padding:10px 16px;background:#e8f5e9;border-radius:8px;text-align:center;min-width:120px;">
-          <div style="font-size:20px;">⬆️</div><div style="font-weight:700;font-size:15px;">10점 달성</div><div style="font-size:12px;color:#888;">1부수 승급 + 승점 소멸</div>
+          <div style="font-size:20px;">⬆️</div><div style="font-weight:700;font-size:15px;">10점 달성</div><div style="font-size:12px;color:#888;">1부수 승급 + 포인트 리셋</div>
         </div>
       </div>
     </div>

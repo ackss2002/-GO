@@ -90,8 +90,18 @@ function getSorted(){
     ...exts.map(m=>({...m, isExt:true}))
   ];
   if(!ST.scores) ST.scores={};
-  return allMembers.map(m=>{const s=ST.scores[m.name]||{w:0,s:0,t:0,pts:0};return{name:m.name,isExt:m.isExt,...s};})
-    .filter(p=>p.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
+  return allMembers.map(m=>{
+    const q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[m.name]) || {up:false};
+    const sc = ST.scores[m.name]||{w:0,s:0,t:0,pts:0};
+    let pts;
+    if(q1.up || sc.up){
+      pts = sc.pts||0;
+    } else {
+      const co = (ST.carryOver||{})[m.name]||{pts:0};
+      pts = (co.pts||0)+(sc.pts||0);
+    }
+    return{name:m.name,isExt:m.isExt,...sc,pts};
+  }).filter(p=>p.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
 }
 
 // 페이지 로드 시 리그 UI 자동 복원
