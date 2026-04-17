@@ -10,21 +10,30 @@ function getPromotionPts(name){
   }
 }
 
-// 역대 누적 포인트 (절대 리셋 없음, w/s/t 총합으로 계산)
+// 1분기 포인트
+function getQ1Pts(name){
+  const q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[name]) || {w:0,s:0,t:0,pts:0};
+  const w=q1.w||0, s=q1.s||0, t=q1.t||0;
+  return {w,s,t,pts:w*5+s*3+t*2, up:q1.up||false};
+}
+
+// 2분기 포인트 (ST.scores 기준)
+function getQ2Pts(name){
+  const sc = (ST.scores||{})[name] || {w:0,s:0,t:0};
+  const w=sc.w||0, s=sc.s||0, t=sc.t||0;
+  return {w,s,t,pts:w*5+s*3+t*2, up:sc.up||false};
+}
+
+// 역대 누적 포인트 (1분기+2분기 합산, 절대 리셋 없음)
 function getTotalPts(name){
   const q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[name]) || {w:0,s:0,t:0};
   const sc = (ST.scores||{})[name] || {w:0,s:0,t:0};
   const w=(q1.w||0)+(sc.w||0);
   const s=(q1.s||0)+(sc.s||0);
   const t=(q1.t||0)+(sc.t||0);
-  return {w,s,t,pts:w*5+s*3+t*2};
-}
-
-// 이번 분기 포인트 (ST.scores w/s/t 기준)
-function getQuarterPts(name){
-  const sc = (ST.scores||{})[name] || {w:0,s:0,t:0};
-  const w=sc.w||0, s=sc.s||0, t=sc.t||0;
-  return {w,s,t,pts:w*5+s*3+t*2};
+  const q1up = q1.up||false;
+  const scup = sc.up||false;
+  return {w,s,t,pts:w*5+s*3+t*2, up:q1up||scup};
 }
 
 function renderRanking(){
@@ -37,32 +46,18 @@ function renderRanking(){
     ...exMems.map(m=>({...m,isEx:true,isDormant:false}))
   ];
 
-  const tab = (typeof currentRankingTab!=='undefined' ? currentRankingTab : null) || 'promo';
+  const tab = (typeof currentRankingTab!=='undefined' ? currentRankingTab : null) || 'total';
 
   let title, getData;
-  if(tab==='promo'){
-    title='승급 포인트 현황 (10점 → 승급)';
-    getData=function(m){
-      const pts=getPromotionPts(m.name);
-      const sc=(ST.scores||{})[m.name]||{w:0,s:0,t:0};
-      const q1=(typeof Q1_SCORES!=='undefined'&&Q1_SCORES[m.name])||{up:false};
-      return{pts,w:sc.w||0,s:sc.s||0,t:sc.t||0,up:q1.up||sc.up||false};
-    };
-  } else if(tab==='total'){
-    title='역대 누적 랭킹 포인트';
-    getData=function(m){
-      const d=getTotalPts(m.name);
-      const q1=(typeof Q1_SCORES!=='undefined'&&Q1_SCORES[m.name])||{up:false};
-      const sc=(ST.scores||{})[m.name]||{};
-      return{...d,up:q1.up||sc.up||false};
-    };
+  if(tab==='q1'){
+    title='1분기 랭킹 포인트';
+    getData=function(m){ return getQ1Pts(m.name); };
+  } else if(tab==='q2'){
+    title='2분기 랭킹 포인트';
+    getData=function(m){ return getQ2Pts(m.name); };
   } else {
-    title='이번 분기 랭킹 포인트';
-    getData=function(m){
-      const d=getQuarterPts(m.name);
-      const sc=(ST.scores||{})[m.name]||{};
-      return{...d,up:sc.up||false};
-    };
+    title='역대 누적 랭킹 포인트 (1분기+2분기)';
+    getData=function(m){ return getTotalPts(m.name); };
   }
 
   var rankingTitle=document.getElementById('ranking-title');
@@ -70,8 +65,9 @@ function renderRanking(){
 
   const all=allMembers.map(m=>{
     const d=getData(m);
+    const promoPts=getPromotionPts(m.name);
     const buDisplay=m.bu!==m.total?m.bu+'('+m.total+')':String(m.bu);
-    return{name:m.name,gender:m.g,bu:buDisplay,isExt:m.isExt,isEx:m.isEx,isDormant:m.isDormant,...d};
+    return{name:m.name,gender:m.g,bu:buDisplay,isExt:m.isExt,isEx:m.isEx,isDormant:m.isDormant,...d,promoPts};
   }).sort((a,b)=>b.pts-a.pts||b.w-a.w||b.s-a.s);
 
   const bgs=['rank-1','rank-2','rank-3'];
@@ -85,22 +81,13 @@ function renderRanking(){
       const upTag=p.up?'<span class="pill pill-amber" style="margin-left:4px;">↑승급</span>':'';
       const exTag=p.isEx?'<span class="pill" style="margin-left:4px;background:#ffebee;color:#c62828;font-size:10px;">탈퇴</span>':'';
       const dormTag=p.isDormant?'<span class="pill" style="margin-left:4px;background:#eceff1;color:#607d8b;font-size:10px;">휴면</span>':'';
+      const promoLabel=`<span style="font-size:11px;color:#888;margin-left:4px;">(승급 ${p.promoPts}pt)</span>`;
 
-      // 승급현황 탭: 미승급자에게 진행도 바 표시
-      let promoBar='';
-      if(tab==='promo'&&!p.up&&p.pts>0){
-        const pct=Math.min(100,Math.round((p.pts/10)*100));
-        promoBar=`<div style="display:inline-block;vertical-align:middle;margin-left:6px;width:50px;height:4px;background:#eee;border-radius:2px;"><div style="height:4px;background:#e94560;border-radius:2px;width:${pct}%;"></div></div>`;
-      }
-
-      const promoPts = tab==='total' ? getPromotionPts(p.name) : null;
-      const promoLabel = (tab==='total' && promoPts!==null)
-        ? `<span style="font-size:11px;color:#888;margin-left:4px;">(승급 ${promoPts}pt)</span>` : '';
       return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
         <td><strong>${escapeHtml(p.name)}</strong>${exTag}${dormTag}</td>
         <td>${escapeHtml(p.gender)}</td><td>${escapeHtml(String(p.bu))}</td>
         <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td>
-        <td><strong>${p.pts}점</strong>${promoLabel}${upTag}${promoBar}</td>
+        <td><strong>${p.pts}점</strong>${promoLabel}${upTag}</td>
         <td></td></tr>`;
     }).join('')||'<tr><td colspan="9" style="color:#888;text-align:center;">데이터 없음</td></tr>';
   }

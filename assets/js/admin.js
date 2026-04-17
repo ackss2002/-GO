@@ -125,7 +125,7 @@ let currentRankingTab = 'total';
 
 function switchRankingTab(tab){
   currentRankingTab = tab;
-  ['promo','total','quarter'].forEach(id=>{
+  ['q1','q2','total'].forEach(id=>{
     const btn = document.getElementById('qtab-'+id);
     if(!btn) return;
     const active = tab===id;
