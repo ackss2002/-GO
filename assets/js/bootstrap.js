@@ -28,6 +28,8 @@ function setAdminMode(isAdmin) {
   const lockBtn = document.getElementById('lock-btn');
   if (badge) badge.style.display = isAdmin ? '' : 'none';
   if (lockBtn) lockBtn.textContent = isAdmin ? '🔓' : '🔒';
+  // 출석부 재렌더링 (✕ 버튼 표시 여부 반영)
+  if (typeof renderAttendance === 'function') renderAttendance();
 }
 
 // 페이지 로드 시 운영자 모드 복원
