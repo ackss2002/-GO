@@ -975,8 +975,6 @@ function renderMembersAdminUI(currentUser) {
   var isAdmin = !!window.isAdminMode;
 
   var buFilter = area.dataset.buFilter || 'all';
-  var searchQ  = area.dataset.search  || '';
-  var wasFocused = document.activeElement && document.activeElement.id === 'member-search-input';
 
   // 항상 localStorage에서 최신 데이터 읽기
   try { var _lm = localStorage.getItem('ttgo_members'); if(_lm){ window.MEMBERS = JSON.parse(_lm); MEMBERS = window.MEMBERS; } } catch(e){}
@@ -992,13 +990,11 @@ function renderMembersAdminUI(currentUser) {
     .sort((a,b) => Number(a) - Number(b));
 
   function matchFilter(m) {
-    var okBu = buFilter === 'all' || String(m.total) === buFilter;
-    var okQ  = !searchQ || (m.name||'').includes(searchQ);
-    return okBu && okQ;
+    return buFilter === 'all' || String(m.total) === buFilter;
   }
   var fM  = allM.filter(matchFilter);
   var fD  = allD.filter(matchFilter);
-  var fEx = allEx.filter(m => !searchQ || (m.name||'').includes(searchQ));
+  var fEx = allEx.slice();
 
   // 부수별 배지 색상
   function buColor(bu) {
@@ -1148,12 +1144,6 @@ function renderMembersAdminUI(currentUser) {
     </div>` : ''}
 
   </div>`;
-
-  // 검색 중 포커스 복원
-  if (wasFocused) {
-    var inp = document.getElementById('member-search-input');
-    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
-  }
 }
 
 // 회원 정보 수정(운영진만)
