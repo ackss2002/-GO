@@ -47,12 +47,22 @@ function showPlayerTooltip(name, el){
   var tot = getTotalPts(name);
   var rows = [];
 
-  // Q1 리그 입상 (날짜 미상 → 1분기로 표기)
+  // Q1 리그 입상 (날짜별 기록 우선, 없으면 집계 표시)
   var q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[name]) || null;
   if(q1){
-    for(var i=0;i<(q1.w||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥇',result:'우승',pts:5});
-    for(var i=0;i<(q1.s||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥈',result:'준우승',pts:3});
-    for(var i=0;i<(q1.t||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥉',result:'3위',pts:2});
+    var placements = (typeof Q1_LEAGUE_PLACEMENTS!=='undefined' && Q1_LEAGUE_PLACEMENTS[name]) || null;
+    if(placements && placements.length){
+      placements.forEach(function(p){
+        var dateTxt = p.date.slice(5).replace('-','/');
+        if(p.r==='w') rows.push({date:dateTxt,type:'1분기 리그',icon:'🥇',result:'우승',pts:5});
+        else if(p.r==='s') rows.push({date:dateTxt,type:'1분기 리그',icon:'🥈',result:'준우승',pts:3});
+        else if(p.r==='t') rows.push({date:dateTxt,type:'1분기 리그',icon:'🥉',result:'3위',pts:2});
+      });
+    } else {
+      for(var i=0;i<(q1.w||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥇',result:'우승',pts:5});
+      for(var i=0;i<(q1.s||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥈',result:'준우승',pts:3});
+      for(var i=0;i<(q1.t||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥉',result:'3위',pts:2});
+    }
   }
 
   // Q1 교류전 입상
