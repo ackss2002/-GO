@@ -110,15 +110,21 @@ function showLockMsg(msg){
 }
 
 
+// Q1 리그전 성적만 (교류전 제외)
 const Q1_SCORES = {
-  '이원호':  {w:2, s:1, t:0, pts:13, up:true},  // 13점 달성 → 4부 승급
-  '김덕기':  {w:2, s:0, t:1, pts:12, up:true},  // 12점 달성 → 4부 승급
-  '안치국':  {w:1, s:0, t:1, pts:7,  up:false},
-  '이미진':  {w:1, s:0, t:0, pts:5,  up:false},
-  '최양님':  {w:1, s:0, t:0, pts:5,  up:false},
-  '이상건':  {w:0, s:0, t:2, pts:4,  up:false},
-  '이진규':  {w:1, s:1, t:1, pts:10, up:true},   // 4/1 교류전 우승 +5 → 10점 달성 → 승급
-  '김영서':  {w:0, s:0, t:1, pts:2,  up:false},
+  '이원호':  {w:2, s:1, t:0, up:true},
+  '김덕기':  {w:2, s:0, t:1, up:true},
+  '안치국':  {w:1, s:0, t:1, up:false},
+  '이미진':  {w:1, s:0, t:0, up:false},
+  '최양님':  {w:1, s:0, t:0, up:false},
+  '이상건':  {w:0, s:0, t:2, up:false},
+  '이진규':  {w:0, s:1, t:1, up:true},   // 리그: 준우승1·3위1 / 교류전 우승+5 → 총10pt 승급
+  '김영서':  {w:0, s:0, t:1, up:false},
+};
+
+// Q1 교류전 입상 성적
+const Q1_EXCHANGE_SCORES = {
+  '이진규':  {w:1, s:0, t:0},  // 4/1 송강 우승
 };
 
 let currentRankingTab = 'total';

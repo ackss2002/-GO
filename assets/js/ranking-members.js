@@ -6,14 +6,17 @@ function getPromotionPts(name){
     return sc.pts||0;
   } else {
     const co = (ST.carryOver||{})[name]||{pts:0};
-    return (co.pts||0)+(sc.pts||0);
+    const ex = (typeof Q1_EXCHANGE_SCORES!=='undefined' && Q1_EXCHANGE_SCORES[name]) || {w:0,s:0,t:0};
+    const exPts = (ex.w||0)*5+(ex.s||0)*3+(ex.t||0)*2;
+    return (co.pts||0)+(sc.pts||0)+exPts;
   }
 }
 
-// 1분기 포인트
+// 1분기 포인트 (리그 + 교류전 합산)
 function getQ1Pts(name){
-  const q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[name]) || {w:0,s:0,t:0,pts:0};
-  const w=q1.w||0, s=q1.s||0, t=q1.t||0;
+  const q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[name]) || {w:0,s:0,t:0};
+  const ex = (typeof Q1_EXCHANGE_SCORES!=='undefined' && Q1_EXCHANGE_SCORES[name]) || {w:0,s:0,t:0};
+  const w=(q1.w||0)+(ex.w||0), s=(q1.s||0)+(ex.s||0), t=(q1.t||0)+(ex.t||0);
   return {w,s,t,pts:w*5+s*3+t*2, up:q1.up||false};
 }
 
@@ -24,13 +27,14 @@ function getQ2Pts(name){
   return {w,s,t,pts:w*5+s*3+t*2, up:sc.up||false};
 }
 
-// 역대 누적 포인트 (1분기+2분기 합산, 절대 리셋 없음)
+// 역대 누적 포인트 (Q1리그 + Q1교류전 + Q2 합산, 절대 리셋 없음)
 function getTotalPts(name){
   const q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[name]) || {w:0,s:0,t:0};
+  const ex = (typeof Q1_EXCHANGE_SCORES!=='undefined' && Q1_EXCHANGE_SCORES[name]) || {w:0,s:0,t:0};
   const sc = (ST.scores||{})[name] || {w:0,s:0,t:0};
-  const w=(q1.w||0)+(sc.w||0);
-  const s=(q1.s||0)+(sc.s||0);
-  const t=(q1.t||0)+(sc.t||0);
+  const w=(q1.w||0)+(ex.w||0)+(sc.w||0);
+  const s=(q1.s||0)+(ex.s||0)+(sc.s||0);
+  const t=(q1.t||0)+(ex.t||0)+(sc.t||0);
   return {w,s,t,pts:w*5+s*3+t*2, up:(q1.up||false)||(sc.up||false)};
 }
 
@@ -40,20 +44,23 @@ var _tooltip = null;
 function showPlayerTooltip(name, el){
   hidePlayerTooltip();
 
-  // Q1 요약 (Q1_SCORES 합계)
+  // Q1 요약 (리그 + 교류전 분리)
   var q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[name]) || null;
+  var q1ex = (typeof Q1_EXCHANGE_SCORES!=='undefined' && Q1_EXCHANGE_SCORES[name]) || null;
   var q1Html = '';
-  if(q1 && (q1.w||q1.s||q1.t)){
-    var parts = [];
-    if(q1.w) parts.push('🥇 우승 '+q1.w+'회');
-    if(q1.s) parts.push('🥈 준우승 '+q1.s+'회');
-    if(q1.t) parts.push('🥉 3위 '+q1.t+'회');
-    var q1pts = (q1.w||0)*5+(q1.s||0)*3+(q1.t||0)*2;
+  var q1lParts=[], q1eParts=[];
+  if(q1){ if(q1.w) q1lParts.push('🥇 우승 '+q1.w+'회'); if(q1.s) q1lParts.push('🥈 준우승 '+q1.s+'회'); if(q1.t) q1lParts.push('🥉 3위 '+q1.t+'회'); }
+  if(q1ex){ if(q1ex.w) q1eParts.push('🥇 우승 '+q1ex.w+'회'); if(q1ex.s) q1eParts.push('🥈 준우승 '+q1ex.s+'회'); if(q1ex.t) q1eParts.push('🥉 3위 '+q1ex.t+'회'); }
+  if(q1lParts.length||q1eParts.length){
+    var q1tot = ((q1&&q1.w||0)+(q1ex&&q1ex.w||0))*5+((q1&&q1.s||0)+(q1ex&&q1ex.s||0))*3+((q1&&q1.t||0)+(q1ex&&q1ex.t||0))*2;
+    var inner = '';
+    if(q1lParts.length) inner += '<div style="font-size:11px;color:#aaa;margin-bottom:2px;">리그</div><div style="font-size:12px;color:#333;margin-bottom:4px;">'+q1lParts.join(' · ')+'</div>';
+    if(q1eParts.length) inner += '<div style="font-size:11px;color:#aaa;margin-bottom:2px;">교류전</div><div style="font-size:12px;color:#333;">'+q1eParts.join(' · ')+'</div>';
     q1Html = '<div style="margin-bottom:10px;">'
       +'<div style="font-size:11px;font-weight:700;color:#888;letter-spacing:.5px;margin-bottom:5px;">Q1</div>'
-      +'<div style="background:#f8f9fa;border-radius:8px;padding:8px 10px;font-size:12px;color:#333;">'
-      +parts.join(' · ')
-      +'<span style="float:right;color:#e94560;font-weight:700;">+'+q1pts+'pt</span></div>'
+      +'<div style="background:#f8f9fa;border-radius:8px;padding:8px 10px;position:relative;">'
+      +inner
+      +'<span style="position:absolute;top:8px;right:10px;color:#e94560;font-weight:700;font-size:12px;">+'+q1tot+'pt</span></div>'
       +'</div>';
   }
 
