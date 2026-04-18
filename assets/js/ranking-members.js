@@ -31,9 +31,93 @@ function getTotalPts(name){
   const w=(q1.w||0)+(sc.w||0);
   const s=(q1.s||0)+(sc.s||0);
   const t=(q1.t||0)+(sc.t||0);
-  const q1up = q1.up||false;
-  const scup = sc.up||false;
-  return {w,s,t,pts:w*5+s*3+t*2, up:q1up||scup};
+  return {w,s,t,pts:w*5+s*3+t*2, up:(q1.up||false)||(sc.up||false)};
+}
+
+// ── 선수 상세 팝업 ──
+var _tooltip = null;
+
+function buildPlayerTimeline(name){
+  var items = [];
+
+  // 리그/토너먼트 결과 (경기 기록에서)
+  var hist = (typeof getHistory==='function') ? getHistory() : [];
+  hist.forEach(function(r){
+    var f = r.final || {};
+    var d = r.date || '';
+    var label, pts, icon;
+    if(f.win === name)                          { icon='🥇'; label='우승';    pts=5; }
+    else if(f.second === name)                  { icon='🥈'; label='준우승';  pts=3; }
+    else if(f.third === name || f.third2===name){ icon='🥉'; label='공동3위'; pts=2; }
+    else if((r.players||[]).includes(name))     { icon='▸';  label='참가';   pts=0; }
+    else return;
+    items.push({d, icon, label, pts, kind:'league'});
+  });
+
+  // Q1 교류전 출석
+  var eAtt = (typeof Q1_EXCHANGE_ATT!=='undefined' && Q1_EXCHANGE_ATT[name]) || [];
+  (typeof Q1_EXCHANGE_DATES!=='undefined' ? Q1_EXCHANGE_DATES : []).forEach(function(d,i){
+    if(eAtt[i]){
+      items.push({d, icon:'🤝', label:'교류전 ('+Q1_EXCHANGE_TEAMS[i]+')', pts:0, kind:'exchange'});
+    }
+  });
+
+  items.sort(function(a,b){ return a.d.localeCompare(b.d); });
+  return items;
+}
+
+function showPlayerTooltip(name, el){
+  hidePlayerTooltip();
+  var items = buildPlayerTimeline(name);
+
+  if(!_tooltip){
+    _tooltip = document.createElement('div');
+    _tooltip.id = 'player-tt';
+    _tooltip.style.cssText = [
+      'position:fixed;z-index:9500;background:#fff;',
+      'border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);',
+      'padding:16px 18px;min-width:230px;max-width:290px;',
+      'font-size:13px;line-height:1.5;'
+    ].join('');
+    document.body.appendChild(_tooltip);
+    document.addEventListener('click', function(e){
+      if(_tooltip && !_tooltip.contains(e.target)) hidePlayerTooltip();
+    }, true);
+  }
+
+  var rows = items.length ? items.map(function(r){
+    var dateTxt = r.d.slice(5).replace('-','/');
+    var ptsTxt = r.pts > 0
+      ? '<span style="color:#e94560;font-weight:700;margin-left:6px;">+'+r.pts+'pt</span>'
+      : '';
+    var kindColor = r.kind==='exchange' ? '#e65100' : '#1b5e20';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f5f5f5;">'
+      +'<span>'+r.icon+' <span style="color:#aaa;font-size:11px;">'+dateTxt+'</span> '
+      +'<span style="color:'+kindColor+';">'+escapeHtml(r.label)+'</span></span>'
+      +ptsTxt+'</div>';
+  }).join('')
+  : '<div style="color:#bbb;text-align:center;padding:10px 0;font-size:12px;">기록 없음</div>';
+
+  _tooltip.innerHTML =
+    '<div style="font-weight:700;font-size:14px;color:#1a1a2e;'
+    +'border-bottom:2px solid #e94560;padding-bottom:8px;margin-bottom:10px;">'
+    +escapeHtml(name)+'</div>'
+    +rows;
+
+  // 위치 계산
+  var rect = el.getBoundingClientRect();
+  var top = rect.bottom + 6;
+  var left = rect.left;
+  if(left + 295 > window.innerWidth) left = window.innerWidth - 300;
+  if(left < 8) left = 8;
+  if(top + 300 > window.innerHeight) top = rect.top - 10 - _tooltip.offsetHeight;
+  _tooltip.style.top = top+'px';
+  _tooltip.style.left = left+'px';
+  _tooltip.style.display = 'block';
+}
+
+function hidePlayerTooltip(){
+  if(_tooltip) _tooltip.style.display = 'none';
 }
 
 function renderRanking(){
@@ -84,7 +168,10 @@ function renderRanking(){
       const promoLabel=`<span style="font-size:11px;color:#aaa;margin-left:3px;">(${p.promoPts})</span>`;
 
       return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
-        <td><strong>${escapeHtml(p.name)}</strong>${exTag}${dormTag}</td>
+        <td style="cursor:pointer;" onclick="showPlayerTooltip('${escapeHtml(p.name)}',this)">
+          <strong>${escapeHtml(p.name)}</strong>${exTag}${dormTag}
+          <span style="font-size:10px;color:#ccc;margin-left:2px;">▾</span>
+        </td>
         <td>${escapeHtml(p.gender)}</td><td>${escapeHtml(String(p.bu))}</td>
         <td>${p.w||0}</td><td>${p.s||0}</td><td>${p.t||0}</td>
         <td><strong>${p.pts}점</strong>${promoLabel}${upTag}</td>
