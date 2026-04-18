@@ -37,80 +37,100 @@ function getTotalPts(name){
 // ── 선수 상세 팝업 ──
 var _tooltip = null;
 
-function buildPlayerTimeline(name){
-  var items = [];
+function showPlayerTooltip(name, el){
+  hidePlayerTooltip();
 
-  // 리그/토너먼트 결과 (경기 기록에서)
+  // Q1 요약 (Q1_SCORES 합계)
+  var q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[name]) || null;
+  var q1Html = '';
+  if(q1 && (q1.w||q1.s||q1.t)){
+    var parts = [];
+    if(q1.w) parts.push('🥇 우승 '+q1.w+'회');
+    if(q1.s) parts.push('🥈 준우승 '+q1.s+'회');
+    if(q1.t) parts.push('🥉 3위 '+q1.t+'회');
+    var q1pts = (q1.w||0)*5+(q1.s||0)*3+(q1.t||0)*2;
+    q1Html = '<div style="margin-bottom:10px;">'
+      +'<div style="font-size:11px;font-weight:700;color:#888;letter-spacing:.5px;margin-bottom:5px;">Q1</div>'
+      +'<div style="background:#f8f9fa;border-radius:8px;padding:8px 10px;font-size:12px;color:#333;">'
+      +parts.join(' · ')
+      +'<span style="float:right;color:#e94560;font-weight:700;">+'+q1pts+'pt</span></div>'
+      +'</div>';
+  }
+
+  // Q2 경기 (history에서 날짜별)
   var hist = (typeof getHistory==='function') ? getHistory() : [];
+  var q2Rows = [];
   hist.forEach(function(r){
     var f = r.final || {};
     var d = r.date || '';
-    var label, pts, icon;
-    if(f.win === name)                          { icon='🥇'; label='우승';    pts=5; }
-    else if(f.second === name)                  { icon='🥈'; label='준우승';  pts=3; }
-    else if(f.third === name || f.third2===name){ icon='🥉'; label='공동3위'; pts=2; }
-    else if((r.players||[]).includes(name))     { icon='▸';  label='참가';   pts=0; }
+    var icon, label, pts;
+    if(f.win===name)                           { icon='🥇'; label='우승';    pts=5; }
+    else if(f.second===name)                   { icon='🥈'; label='준우승';  pts=3; }
+    else if(f.third===name||f.third2===name)   { icon='🥉'; label='공동3위'; pts=2; }
+    else if((r.players||[]).includes(name))    { icon='▸';  label='참가';    pts=0; }
     else return;
-    items.push({d, icon, label, pts, kind:'league'});
+    var dateTxt = d.slice(5).replace('-','/');
+    var ptsTxt = pts>0 ? '<span style="color:#e94560;font-weight:700;">+'+pts+'pt</span>' : '';
+    q2Rows.push('<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f5f5f5;">'
+      +'<span style="color:#888;font-size:11px;min-width:36px;">'+dateTxt+'</span>'
+      +'<span style="flex:1;margin-left:6px;">'+icon+' '+label+'</span>'
+      +ptsTxt+'</div>');
   });
+  var q2Html = '';
+  if(q2Rows.length){
+    q2Html = '<div style="margin-bottom:10px;">'
+      +'<div style="font-size:11px;font-weight:700;color:#888;letter-spacing:.5px;margin-bottom:5px;">Q2</div>'
+      +q2Rows.join('')+'</div>';
+  }
 
-  // Q1 교류전 출석
+  // 교류전
   var eAtt = (typeof Q1_EXCHANGE_ATT!=='undefined' && Q1_EXCHANGE_ATT[name]) || [];
+  var exRows = [];
   (typeof Q1_EXCHANGE_DATES!=='undefined' ? Q1_EXCHANGE_DATES : []).forEach(function(d,i){
-    if(eAtt[i]){
-      items.push({d, icon:'🤝', label:'교류전 ('+Q1_EXCHANGE_TEAMS[i]+')', pts:0, kind:'exchange'});
-    }
+    if(!eAtt[i]) return;
+    var dateTxt = d.slice(5).replace('-','/');
+    exRows.push('<div style="display:flex;align-items:center;padding:4px 0;border-bottom:1px solid #f5f5f5;">'
+      +'<span style="color:#888;font-size:11px;min-width:36px;">'+dateTxt+'</span>'
+      +'<span style="flex:1;margin-left:6px;color:#e65100;">🤝 '+escapeHtml(Q1_EXCHANGE_TEAMS[i])+'</span>'
+      +'</div>');
   });
+  var exHtml = '';
+  if(exRows.length){
+    exHtml = '<div>'
+      +'<div style="font-size:11px;font-weight:700;color:#888;letter-spacing:.5px;margin-bottom:5px;">교류전</div>'
+      +exRows.join('')+'</div>';
+  }
 
-  items.sort(function(a,b){ return a.d.localeCompare(b.d); });
-  return items;
-}
+  // 시즌 합계
+  var tot = getTotalPts(name);
+  var seasonHtml = '<div style="background:#1a1a2e;border-radius:8px;padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">'
+    +'<span style="color:#aaa;font-size:11px;font-weight:700;letter-spacing:.5px;">SEASON TOTAL</span>'
+    +'<span style="color:#fff;font-weight:700;font-size:15px;">'+tot.pts+'pt</span>'
+    +'</div>';
 
-function showPlayerTooltip(name, el){
-  hidePlayerTooltip();
-  var items = buildPlayerTimeline(name);
+  var body = seasonHtml + q1Html + q2Html + exHtml ||
+    '<div style="color:#bbb;text-align:center;padding:10px 0;font-size:12px;">기록 없음</div>';
 
   if(!_tooltip){
     _tooltip = document.createElement('div');
     _tooltip.id = 'player-tt';
-    _tooltip.style.cssText = [
-      'position:fixed;z-index:9500;background:#fff;',
-      'border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);',
-      'padding:16px 18px;min-width:230px;max-width:290px;',
-      'font-size:13px;line-height:1.5;'
-    ].join('');
+    _tooltip.style.cssText = 'position:fixed;z-index:9500;background:#fff;border-radius:14px;'
+      +'box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:16px 18px;min-width:230px;max-width:280px;font-size:13px;line-height:1.6;';
     document.body.appendChild(_tooltip);
     document.addEventListener('click', function(e){
       if(_tooltip && !_tooltip.contains(e.target)) hidePlayerTooltip();
     }, true);
   }
 
-  var rows = items.length ? items.map(function(r){
-    var dateTxt = r.d.slice(5).replace('-','/');
-    var ptsTxt = r.pts > 0
-      ? '<span style="color:#e94560;font-weight:700;margin-left:6px;">+'+r.pts+'pt</span>'
-      : '';
-    var kindColor = r.kind==='exchange' ? '#e65100' : '#1b5e20';
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f5f5f5;">'
-      +'<span>'+r.icon+' <span style="color:#aaa;font-size:11px;">'+dateTxt+'</span> '
-      +'<span style="color:'+kindColor+';">'+escapeHtml(r.label)+'</span></span>'
-      +ptsTxt+'</div>';
-  }).join('')
-  : '<div style="color:#bbb;text-align:center;padding:10px 0;font-size:12px;">기록 없음</div>';
-
   _tooltip.innerHTML =
-    '<div style="font-weight:700;font-size:14px;color:#1a1a2e;'
-    +'border-bottom:2px solid #e94560;padding-bottom:8px;margin-bottom:10px;">'
-    +escapeHtml(name)+'</div>'
-    +rows;
+    '<div style="font-weight:700;font-size:14px;color:#1a1a2e;border-bottom:2px solid #e94560;padding-bottom:8px;margin-bottom:12px;">'
+    +escapeHtml(name)+'</div>'+body;
 
-  // 위치 계산
   var rect = el.getBoundingClientRect();
   var top = rect.bottom + 6;
   var left = rect.left;
-  if(left + 295 > window.innerWidth) left = window.innerWidth - 300;
+  if(left + 290 > window.innerWidth) left = window.innerWidth - 295;
   if(left < 8) left = 8;
-  if(top + 300 > window.innerHeight) top = rect.top - 10 - _tooltip.offsetHeight;
   _tooltip.style.top = top+'px';
   _tooltip.style.left = left+'px';
   _tooltip.style.display = 'block';
