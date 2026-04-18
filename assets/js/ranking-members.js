@@ -64,10 +64,10 @@ function showPlayerTooltip(name, el){
     var f = r.final || {};
     var d = r.date || '';
     var icon, label, pts;
-    if(f.win===name)                           { icon='🥇'; label='우승';    pts=5; }
-    else if(f.second===name)                   { icon='🥈'; label='준우승';  pts=3; }
-    else if(f.third===name||f.third2===name)   { icon='🥉'; label='공동3위'; pts=2; }
-    else if((r.players||[]).includes(name))    { icon='▸';  label='참가';    pts=0; }
+    if(f.win===name)                           { icon='🥇'; label='우승';   pts=5; }
+    else if(f.second===name)                   { icon='🥈'; label='준우승'; pts=3; }
+    else if(f.third===name||f.third2===name)   { icon='🥉'; label='3위';    pts=2; }
+    else if((r.players||[]).includes(name))    { icon='▸';  label='참가';   pts=0; }
     else return;
     var dateTxt = d.slice(5).replace('-','/');
     var ptsTxt = pts>0 ? '<span style="color:#e94560;font-weight:700;">+'+pts+'pt</span>' : '';
