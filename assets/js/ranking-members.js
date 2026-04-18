@@ -47,21 +47,23 @@ function showPlayerTooltip(name, el){
   var tot = getTotalPts(name);
   var rows = [];
 
-  // Q1 리그 입상 (날짜 미상 → Q1으로 표기)
+  // Q1 리그 입상 (날짜 미상 → 1분기로 표기)
   var q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[name]) || null;
   if(q1){
-    for(var i=0;i<(q1.w||0);i++) rows.push({date:'Q1',type:'리그',icon:'🥇',result:'우승',pts:5});
-    for(var i=0;i<(q1.s||0);i++) rows.push({date:'Q1',type:'리그',icon:'🥈',result:'준우승',pts:3});
-    for(var i=0;i<(q1.t||0);i++) rows.push({date:'Q1',type:'리그',icon:'🥉',result:'3위',pts:2});
+    for(var i=0;i<(q1.w||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥇',result:'우승',pts:5});
+    for(var i=0;i<(q1.s||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥈',result:'준우승',pts:3});
+    for(var i=0;i<(q1.t||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥉',result:'3위',pts:2});
   }
 
   // Q1 교류전 입상
   var exRes = (typeof Q1_EXCHANGE_RESULTS!=='undefined') ? Q1_EXCHANGE_RESULTS : [];
+  var exTeams = (typeof Q1_EXCHANGE_TEAMS!=='undefined') ? Q1_EXCHANGE_TEAMS : [];
   (typeof Q1_EXCHANGE_DATES!=='undefined' ? Q1_EXCHANGE_DATES : []).forEach(function(d,i){
     var res=exRes[i]||{}, dateTxt=d.slice(5).replace('-','/');
-    if(res.win===name)         rows.push({date:dateTxt,type:'교류전',icon:'🥇',result:'우승',pts:5});
-    else if(res.second===name) rows.push({date:dateTxt,type:'교류전',icon:'🥈',result:'준우승',pts:3});
-    else if(res.third===name)  rows.push({date:dateTxt,type:'교류전',icon:'🥉',result:'3위',pts:2});
+    var teamName=(exTeams[i]||'교류')+'전';
+    if(res.win===name)         rows.push({date:dateTxt,type:teamName,icon:'🥇',result:'우승',pts:5});
+    else if(res.second===name) rows.push({date:dateTxt,type:teamName,icon:'🥈',result:'준우승',pts:3});
+    else if(res.third===name)  rows.push({date:dateTxt,type:teamName,icon:'🥉',result:'3위',pts:2});
   });
 
   // Q2 경기 (복식 제외, 입상만)
@@ -69,23 +71,23 @@ function showPlayerTooltip(name, el){
   hist.forEach(function(r){
     if((r.type||'')==='복식') return;
     var f=r.final||{}, dateTxt=(r.date||'').slice(5).replace('-','/');
-    if(f.win===name)                         rows.push({date:dateTxt,type:'Q2 리그',icon:'🥇',result:'우승',pts:5});
-    else if(f.second===name)                 rows.push({date:dateTxt,type:'Q2 리그',icon:'🥈',result:'준우승',pts:3});
-    else if(f.third===name||f.third2===name) rows.push({date:dateTxt,type:'Q2 리그',icon:'🥉',result:'3위',pts:2});
+    if(f.win===name)                         rows.push({date:dateTxt,type:'2분기 리그',icon:'🥇',result:'우승',pts:5});
+    else if(f.second===name)                 rows.push({date:dateTxt,type:'2분기 리그',icon:'🥈',result:'준우승',pts:3});
+    else if(f.third===name||f.third2===name) rows.push({date:dateTxt,type:'2분기 리그',icon:'🥉',result:'3위',pts:2});
   });
 
   // 테이블 헤더
   var thead = '<div style="display:flex;padding:4px 0 6px;border-bottom:1px solid #e0e0e0;margin-bottom:2px;">'
-    +'<span style="color:#bbb;font-size:10px;width:36px;">날짜</span>'
-    +'<span style="color:#bbb;font-size:10px;width:60px;">종류</span>'
+    +'<span style="color:#bbb;font-size:10px;width:40px;">날짜</span>'
+    +'<span style="color:#bbb;font-size:10px;width:72px;">종류</span>'
     +'<span style="color:#bbb;font-size:10px;flex:1;">성적</span>'
     +'<span style="color:#bbb;font-size:10px;width:32px;text-align:right;">점수</span>'
     +'</div>';
 
   var tbody = rows.length ? rows.map(function(r){
     return '<div style="display:flex;align-items:center;padding:6px 0;border-bottom:1px solid #f5f5f5;">'
-      +'<span style="color:#aaa;font-size:11px;width:36px;">'+r.date+'</span>'
-      +'<span style="color:#888;font-size:11px;width:60px;">'+r.type+'</span>'
+      +'<span style="color:#aaa;font-size:11px;width:40px;">'+r.date+'</span>'
+      +'<span style="color:#888;font-size:11px;width:72px;">'+r.type+'</span>'
       +'<span style="font-size:13px;font-weight:600;flex:1;">'+r.icon+' '+r.result+'</span>'
       +'<span style="color:#e94560;font-weight:700;font-size:12px;width:32px;text-align:right;">+'+r.pts+'</span>'
       +'</div>';
