@@ -64,29 +64,31 @@ function showPlayerTooltip(name, el){
       +'</div>';
   }
 
-  // Q2 경기 (history에서 날짜별)
+  // Q2 경기 (history에서 날짜별, 복식 제외, 입상만)
   var hist = (typeof getHistory==='function') ? getHistory() : [];
   var q2Rows = [];
   hist.forEach(function(r){
+    if((r.type||'')==='복식') return;  // 복식 제외
     var f = r.final || {};
     var d = r.date || '';
     var icon, label, pts;
-    if(f.win===name)                           { icon='🥇'; label='우승';   pts=5; }
-    else if(f.second===name)                   { icon='🥈'; label='준우승'; pts=3; }
-    else if(f.third===name||f.third2===name)   { icon='🥉'; label='3위';    pts=2; }
-    else if((r.players||[]).includes(name))    { icon='▸';  label='참가';   pts=0; }
-    else return;
+    if(f.win===name)                         { icon='🥇'; label='우승';   pts=5; }
+    else if(f.second===name)                 { icon='🥈'; label='준우승'; pts=3; }
+    else if(f.third===name||f.third2===name) { icon='🥉'; label='3위';    pts=2; }
+    else return;  // 입상 없으면 표시 안함
     var dateTxt = d.slice(5).replace('-','/');
-    var ptsTxt = pts>0 ? '<span style="color:#e94560;font-weight:700;">+'+pts+'pt</span>' : '';
-    q2Rows.push('<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f5f5f5;">'
-      +'<span style="color:#888;font-size:11px;min-width:36px;">'+dateTxt+'</span>'
-      +'<span style="flex:1;margin-left:6px;">'+icon+' '+label+'</span>'
-      +ptsTxt+'</div>');
+    q2Rows.push(
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#f8f9fa;border-radius:8px;margin-bottom:4px;">'
+      +'<span style="color:#888;font-size:11px;min-width:34px;">'+dateTxt+'</span>'
+      +'<span style="flex:1;margin-left:6px;font-weight:600;">'+icon+' '+label+'</span>'
+      +'<span style="color:#e94560;font-weight:700;font-size:12px;">+'+pts+'pt</span>'
+      +'</div>'
+    );
   });
   var q2Html = '';
   if(q2Rows.length){
     q2Html = '<div style="margin-bottom:10px;">'
-      +'<div style="font-size:11px;font-weight:700;color:#888;letter-spacing:.5px;margin-bottom:5px;">Q2</div>'
+      +'<div style="font-size:11px;font-weight:700;color:#888;letter-spacing:.5px;margin-bottom:6px;">Q2</div>'
       +q2Rows.join('')+'</div>';
   }
 
@@ -96,19 +98,20 @@ function showPlayerTooltip(name, el){
   var exRes = (typeof Q1_EXCHANGE_RESULTS!=='undefined') ? Q1_EXCHANGE_RESULTS : [];
   (typeof Q1_EXCHANGE_DATES!=='undefined' ? Q1_EXCHANGE_DATES : []).forEach(function(d,i){
     if(!eAtt[i]) return;
-    var dateTxt = d.slice(5).replace('-','/');
     var res = exRes[i] || {};
-    var resultIcon='', resultTxt='';
-    if(res.win===name)    { resultIcon='🥇'; resultTxt='우승'; }
-    else if(res.second===name) { resultIcon='🥈'; resultTxt='준우승'; }
-    else if(res.third===name)  { resultIcon='🥉'; resultTxt='3위'; }
-    var resultHtml = resultTxt
-      ? '<span style="color:#e94560;font-weight:700;font-size:12px;">'+resultIcon+' '+resultTxt+'</span>'
-      : '<span style="color:#aaa;font-size:11px;">참가</span>';
-    exRows.push('<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f5f5f5;">'
-      +'<span><span style="color:#888;font-size:11px;">'+dateTxt+'</span>'
-      +' <span style="color:#e65100;">🤝 '+escapeHtml(Q1_EXCHANGE_TEAMS[i])+'</span></span>'
-      +resultHtml+'</div>');
+    var icon='', label='', pts=0;
+    if(res.win===name)         { icon='🥇'; label='우승';   pts=5; }
+    else if(res.second===name) { icon='🥈'; label='준우승'; pts=3; }
+    else if(res.third===name)  { icon='🥉'; label='3위';    pts=2; }
+    else return;  // 입상 없으면 표시 안함
+    var dateTxt = d.slice(5).replace('-','/');
+    exRows.push(
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#fff3e0;border-radius:8px;margin-bottom:4px;">'
+      +'<span style="color:#888;font-size:11px;min-width:34px;">'+dateTxt+'</span>'
+      +'<span style="flex:1;margin-left:6px;font-weight:600;color:#e65100;">🤝 '+escapeHtml(Q1_EXCHANGE_TEAMS[i])+'</span>'
+      +'<span style="font-weight:700;font-size:12px;">'+icon+' '+label+'</span>'
+      +'</div>'
+    );
   });
   var exHtml = '';
   if(exRows.length){
