@@ -86,13 +86,22 @@ function showPlayerTooltip(name, el){
   // 교류전
   var eAtt = (typeof Q1_EXCHANGE_ATT!=='undefined' && Q1_EXCHANGE_ATT[name]) || [];
   var exRows = [];
+  var exRes = (typeof Q1_EXCHANGE_RESULTS!=='undefined') ? Q1_EXCHANGE_RESULTS : [];
   (typeof Q1_EXCHANGE_DATES!=='undefined' ? Q1_EXCHANGE_DATES : []).forEach(function(d,i){
     if(!eAtt[i]) return;
     var dateTxt = d.slice(5).replace('-','/');
-    exRows.push('<div style="display:flex;align-items:center;padding:4px 0;border-bottom:1px solid #f5f5f5;">'
-      +'<span style="color:#888;font-size:11px;min-width:36px;">'+dateTxt+'</span>'
-      +'<span style="flex:1;margin-left:6px;color:#e65100;">🤝 '+escapeHtml(Q1_EXCHANGE_TEAMS[i])+'</span>'
-      +'</div>');
+    var res = exRes[i] || {};
+    var resultIcon='', resultTxt='';
+    if(res.win===name)    { resultIcon='🥇'; resultTxt='우승'; }
+    else if(res.second===name) { resultIcon='🥈'; resultTxt='준우승'; }
+    else if(res.third===name)  { resultIcon='🥉'; resultTxt='3위'; }
+    var resultHtml = resultTxt
+      ? '<span style="color:#e94560;font-weight:700;font-size:12px;">'+resultIcon+' '+resultTxt+'</span>'
+      : '<span style="color:#aaa;font-size:11px;">참가</span>';
+    exRows.push('<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f5f5f5;">'
+      +'<span><span style="color:#888;font-size:11px;">'+dateTxt+'</span>'
+      +' <span style="color:#e65100;">🤝 '+escapeHtml(Q1_EXCHANGE_TEAMS[i])+'</span></span>'
+      +resultHtml+'</div>');
   });
   var exHtml = '';
   if(exRows.length){
