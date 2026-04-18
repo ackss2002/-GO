@@ -112,7 +112,7 @@ function showLockMsg(msg){
 
 // Q1 리그전 성적만 (교류전 제외)
 const Q1_SCORES = {
-  '이원호':  {w:2, s:1, t:0, up:true},
+  '이원호':  {w:2, s:0, t:0, up:true},
   '김덕기':  {w:2, s:0, t:1, up:true},
   '안치국':  {w:1, s:0, t:1, up:false},
   '이미진':  {w:1, s:0, t:0, up:false},
@@ -124,7 +124,9 @@ const Q1_SCORES = {
 
 // Q1 교류전 입상 성적
 const Q1_EXCHANGE_SCORES = {
-  '이진규':  {w:1, s:0, t:0},  // 4/1 송강 우승
+  '이원호':  {w:0, s:1, t:0},  // 02/10 LG 준우승
+  '김덕기':  {w:1, s:0, t:0},  // 03/05 한전 우승
+  '이진규':  {w:1, s:1, t:0},  // 03/18 푸르미 준우승 + 04/01 송강 우승
 };
 
 let currentRankingTab = 'total';
