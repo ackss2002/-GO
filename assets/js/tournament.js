@@ -271,37 +271,52 @@ function buildBracket(grpNames, results, size, strict){
     if(slot !== undefined) bracket[slot] = name;
   });
 
-  // 1라운드(첫 매치)에서 같은 조끼리 만나지 않도록 가능한 경우 교환
-  try{
-    const grpMap = {};
-    if(results && Array.isArray(results)){
-      results.forEach(function(r, idx){
-        (r.players||[]).forEach(function(p){ if(p && p.name) grpMap[p.name]=r.g; });
-      });
-    }
-    const pairs = size/2;
-    for(let i=0;i<pairs;i++){
-      const aIdx = i*2, bIdx = i*2+1;
-      const a = bracket[aIdx], b = bracket[bIdx];
-      if(!a || !b || a==='BYE' || b==='BYE') continue;
-      if(grpMap[a] && grpMap[b] && grpMap[a]===grpMap[b]){
-        // 같은 조 충돌: 시드 보호를 위해 가장 낮은 시드(뒤쪽 페어)부터 교환 시도
-        for(let j=pairs-1;j>i;j--){
-          const cIdx = j*2, dIdx = j*2+1;
-          const c = bracket[cIdx], d = bracket[dIdx];
-          // 시도: b<->d (낮은 시드 위치 우선)
-          const ok2 = d && d!=='BYE' && (!grpMap[a] || !grpMap[d] || grpMap[a]!==grpMap[d]);
-          const ok2b = (!grpMap[b] || !grpMap[c] || grpMap[b]!==grpMap[c]);
-          if(ok2 && ok2b){ bracket[bIdx]=d; bracket[dIdx]=b; break; }
-          // 시도: b<->c
-          const ok1 = c && c!=='BYE' && (!grpMap[a] || !grpMap[c] || grpMap[a]!==grpMap[c]);
-          const ok1b = (!grpMap[b] || !grpMap[d] || grpMap[b]!==grpMap[d]);
-          if(ok1 && ok1b){ bracket[bIdx]=c; bracket[cIdx]=b; break; }
+  // 조 맵 구성
+  const grpMap = {};
+  if(results && Array.isArray(results)){
+    results.forEach(function(r){
+      (r.players||[]).forEach(function(p){ if(p && p.name) grpMap[p.name]=r.g; });
+    });
+  }
+
+  // 같은 조끼리 해당 섹션 내에서 만나지 않도록 교환 (halves→quarters→pairs 순)
+  // sectionSize: 이 크기의 구역 안에 같은 조 선수가 2명 이상이면 교환 시도
+  function fixLevel(sectionSize){
+    const numSec = size / sectionSize;
+    for(let sec=0; sec<numSec; sec++){
+      const s = sec*sectionSize, e = s+sectionSize;
+      for(let i=s; i<e; i++){
+        if(!bracket[i]||bracket[i]==='BYE') continue;
+        for(let j=i+1; j<e; j++){
+          if(!bracket[j]||bracket[j]==='BYE') continue;
+          if(grpMap[bracket[i]]&&grpMap[bracket[j]]&&grpMap[bracket[i]]===grpMap[bracket[j]]){
+            let swapped=false;
+            for(let os=0; os<numSec&&!swapped; os++){
+              if(os===sec) continue;
+              const os_s=os*sectionSize;
+              for(let k=os_s; k<os_s+sectionSize&&!swapped; k++){
+                if(!bracket[k]||bracket[k]==='BYE') continue;
+                const nj=bracket[k], nk=bracket[j];
+                const secSlots  = Array.from({length:sectionSize},(_,x)=>s+x).filter(x=>x!==j);
+                const osSlots   = Array.from({length:sectionSize},(_,x)=>os_s+x).filter(x=>x!==k);
+                const okNj = secSlots.every(x=>!(bracket[x]!=='BYE'&&grpMap[bracket[x]]&&grpMap[nj]&&grpMap[bracket[x]]===grpMap[nj]));
+                const okNk = osSlots.every(x=>!(bracket[x]!=='BYE'&&grpMap[bracket[x]]&&grpMap[nk]&&grpMap[bracket[x]]===grpMap[nk]));
+                if(okNj&&okNk){ bracket[j]=nj; bracket[k]=nk; swapped=true; }
+              }
+            }
+          }
         }
       }
     }
-    // ITTF Strict 모드: 조당 인원이 많으면 반쪽 분리가 불가능하여 오히려 시드 배치를 망가뜨리므로 제거됨
-  }catch(e){ /* 안전하게 무시 */ }
+  }
+
+  try{
+    // 큰 구역(반)부터 작은 구역(페어)까지 순서대로 적용
+    // 4강: halves(2) / 8강: halves(4)→pairs(2) / 16강: halves(8)→quarters(4)→pairs(2) / 32강: 동일
+    let sec = Math.floor(size/2);
+    while(sec >= 2){ fixLevel(sec); sec = Math.floor(sec/2); }
+  }catch(e){}
+
   return bracket;
 }
 function genTestTournament(){
