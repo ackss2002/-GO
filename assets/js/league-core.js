@@ -23,6 +23,7 @@ function resetAll(){
     saveST();
     renderDash();
     renderLeague();
+    restoreLeagueUI();
   }
   if(typeof window.showConfirmModal === 'function'){
     window.showConfirmModal(
@@ -118,18 +119,28 @@ function getSorted(){
 function restoreLeagueUI(){
   var hasGroups = ST.week && ST.week.groups && ST.week.groups.some(function(g){return g.length>0;});
   var hasPlayers = ST.week && ST.week.players && ST.week.players.length>0;
-  if(hasPlayers){
-    // 선수 확정 상태 복원 — 조편성 섹션 표시
-    var s2=document.getElementById('s2');
-    if(s2) s2.style.display='block';
-    renderGroupAssign();
+  var s2=document.getElementById('s2');
+  var s3=document.getElementById('s3');
+  var s4=document.getElementById('s4');
+  var stepPairs=document.getElementById('step-pairs');
+  var sPairs=document.getElementById('s-pairs');
+  if(!hasPlayers){
+    if(s2) s2.style.display='none';
+    if(s3) s3.style.display='none';
+    if(s4) s4.style.display='none';
+    if(stepPairs) stepPairs.style.display='none';
+    if(sPairs) sPairs.style.display='none';
+    return;
   }
-  if(hasGroups){
-    // 조편성 확정 상태 복원 — 경기표 섹션 표시
-    var s3=document.getElementById('s3');
-    if(s3) s3.style.display='block';
-    renderMatches();
+  if(s2) s2.style.display='block';
+  renderGroupAssign();
+  if(!hasGroups){
+    if(s3) s3.style.display='none';
+    if(s4) s4.style.display='none';
+    return;
   }
+  if(s3) s3.style.display='block';
+  renderMatches();
 }
 
 // 리그
