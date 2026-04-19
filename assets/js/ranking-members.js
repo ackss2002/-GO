@@ -143,6 +143,73 @@ function hidePlayerTooltip(){
   if(_tooltip) _tooltip.style.display = 'none';
 }
 
+function showGuestTooltip(name, el){
+  hidePlayerTooltip();
+
+  var q1g = (typeof Q1_GUEST_SCORES!=='undefined') ? Q1_GUEST_SCORES : {};
+  var q1 = q1g[name]||{w:0,s:0,t:0,pts:0};
+  var q2 = (ST.guestScores&&ST.guestScores[name])||{w:0,s:0,t:0,pts:0};
+  var totalPts = (q1.pts||0)+(q2.pts||0);
+
+  var rows = [];
+  var hist = (typeof getHistory==='function') ? getHistory() : [];
+  hist.forEach(function(r){
+    var f=r.final||{}, dateTxt=(r.date||'').slice(5).replace('-','/');
+    var typeTxt = r.type||'리그';
+    if(f.win===name)                         rows.push({date:dateTxt,type:typeTxt,icon:'🥇',result:'우승',pts:5});
+    else if(f.second===name)                 rows.push({date:dateTxt,type:typeTxt,icon:'🥈',result:'준우승',pts:3});
+    else if(f.third===name||f.third2===name) rows.push({date:dateTxt,type:typeTxt,icon:'🥉',result:'3위',pts:2});
+  });
+
+  var thead = '<div style="display:flex;padding:4px 0 6px;border-bottom:1px solid #e0e0e0;margin-bottom:2px;">'
+    +'<span style="color:#bbb;font-size:10px;width:40px;">날짜</span>'
+    +'<span style="color:#bbb;font-size:10px;width:72px;">종류</span>'
+    +'<span style="color:#bbb;font-size:10px;flex:1;">성적</span>'
+    +'<span style="color:#bbb;font-size:10px;width:32px;text-align:right;">점수</span>'
+    +'</div>';
+
+  var tbody = rows.length ? rows.map(function(r){
+    return '<div style="display:flex;align-items:center;padding:6px 0;border-bottom:1px solid #f5f5f5;">'
+      +'<span style="color:#aaa;font-size:11px;width:40px;">'+r.date+'</span>'
+      +'<span style="color:#888;font-size:11px;width:72px;">'+r.type+'</span>'
+      +'<span style="font-size:13px;font-weight:600;flex:1;">'+r.icon+' '+r.result+'</span>'
+      +'<span style="color:#e94560;font-weight:700;font-size:12px;width:32px;text-align:right;">+'+r.pts+'</span>'
+      +'</div>';
+  }).join('')
+  : '<div style="color:#bbb;text-align:center;padding:12px 0;font-size:12px;">입상 기록 없음</div>';
+
+  if(!_tooltip){
+    _tooltip = document.createElement('div');
+    _tooltip.id = 'player-tt';
+    _tooltip.style.cssText = 'position:fixed;z-index:9999;background:#fff;border-radius:14px;'
+      +'box-shadow:0 4px 6px rgba(0,0,0,0.1),0 10px 40px rgba(0,0,0,0.2);'
+      +'border:1px solid #eee;padding:14px 16px;min-width:250px;max-width:290px;font-size:13px;';
+    document.body.appendChild(_tooltip);
+    document.addEventListener('click', function(e){
+      if(_tooltip && !_tooltip.contains(e.target)) hidePlayerTooltip();
+    }, true);
+  }
+
+  _tooltip.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;'
+    +'padding-bottom:8px;margin-bottom:8px;border-bottom:2px solid #1565C0;">'
+    +'<span style="font-weight:700;font-size:15px;color:#1a1a2e;">'+escapeHtml(name)+'</span>'
+    +'<span style="font-weight:700;font-size:14px;color:#1565C0;">시즌 '+totalPts+'pt</span>'
+    +'</div>'+thead+tbody;
+
+  var rect = el.getBoundingClientRect();
+  var h = Math.min(rows.length*38+80, 300);
+  var top = rect.bottom + 8;
+  if(top + h > window.innerHeight) top = rect.top - h - 8;
+  if(top < 8) top = 8;
+  var left = rect.left;
+  if(left + 295 > window.innerWidth) left = window.innerWidth - 300;
+  if(left < 8) left = 8;
+  _tooltip.style.top = top+'px';
+  _tooltip.style.left = left+'px';
+  _tooltip.style.display = 'block';
+}
+
 function renderRanking(){
   let exMems=[], dormMems=[];
   try{ exMems=JSON.parse(localStorage.getItem('ttgo_ex_members')||'[]'); }catch(e){}
@@ -229,7 +296,10 @@ function renderRanking(){
         if(i>0&&g.pts<guests[i-1].pts) grank=i+1;
         const bg=grank<=3?bgs[grank-1]:'rank-n';
         return `<tr><td><span class="rank-badge ${bg}">${grank}</span></td>
-          <td><strong>${escapeHtml(g.name)}</strong></td><td>${escapeHtml(String(g.bu))}부</td>
+          <td style="cursor:pointer;" onclick="showGuestTooltip('${escapeHtml(g.name)}',this)">
+            <strong>${escapeHtml(g.name)}</strong>
+            <span style="font-size:10px;color:#ccc;margin-left:2px;">▾</span>
+          </td><td>${escapeHtml(String(g.bu))}부</td>
           <td>${g.w}</td><td>${g.s}</td><td>${g.t}</td><td><strong>${g.pts}점</strong></td></tr>`;
       }).join('')
       :'<tr><td colspan="7" style="color:#888;text-align:center;">게스트 랭킹 포인트 없음</td></tr>';
