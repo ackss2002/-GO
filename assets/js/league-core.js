@@ -217,9 +217,22 @@ function addTempPlayer(){
 }
 
 function removeTempPlayer(name){
-  ST.guests=(ST.guests||[]).filter(p=>p.name!==name);
-  ST.week.players=ST.week.players.filter(p=>p!==name);
-  saveST(); renderLeague();
+  if(typeof window.showConfirmModal==='function'){
+    window.showConfirmModal(
+      escapeHtml(name)+'을(를) 게스트 목록에서 삭제하시겠습니까?',
+      function(){
+        ST.guests=(ST.guests||[]).filter(p=>p.name!==name);
+        ST.week.players=ST.week.players.filter(p=>p!==name);
+        saveST(); renderLeague();
+      },
+      {title:'게스트 삭제', confirmText:'삭제', danger:true}
+    );
+  } else {
+    if(!confirm(name+'을(를) 게스트 목록에서 삭제하시겠습니까?')) return;
+    ST.guests=(ST.guests||[]).filter(p=>p.name!==name);
+    ST.week.players=ST.week.players.filter(p=>p!==name);
+    saveST(); renderLeague();
+  }
 }
 
 function onTypeChange(){
