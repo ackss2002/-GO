@@ -141,7 +141,7 @@ const Q1_EXCHANGE_SCORES = {
 };
 
 // Q1 게스트 입상 성적 (하드코딩)
-const Q1_GUEST_SCORES = {
+var Q1_GUEST_SCORES = {
   '김정연': {bu:3, w:1, s:0, t:0, pts:5},   // 01/09 리그 우승
   '이병찬': {bu:5, w:0, s:1, t:0, pts:3},   // 01/09 리그 준우승
   '이현구': {bu:7, w:0, s:0, t:1, pts:2},   // 01/09 리그 3위
