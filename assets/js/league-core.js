@@ -158,7 +158,7 @@ function renderLeague(){
   let html = `<div style="font-size:11px;color:#1a1a2e;font-weight:700;margin-bottom:6px;">🏓 정회원 (${MEMBERS.length}명)</div>`;
   html += sortedMembers.map(function(m){
     const sel = ps.includes(m.name) ? 'selected' : '';
-    const style = (!isAdmin && ps.includes(m.name)) ? 'opacity:0.5;cursor:default;' : '';
+    const style = (!window.isAdminMode && ps.includes(m.name)) ? 'opacity:0.5;cursor:default;' : '';
     const label = escapeHtml(m.name) + (m.bu!==m.total ? escapeHtml(m.bu+'('+m.total+')') : escapeHtml(m.total));
     return `<span class="player-chip ${sel}" onclick="toggleP('${jsEscape(m.name)}')" style="${style}">${label}</span>`;
   }).join('');
@@ -173,9 +173,9 @@ function renderLeague(){
     if(guest){
       const sel = ps.includes(guest.name);
       return `<span class="player-chip ${sel?'selected':''}" onclick="toggleP('${jsEscape(guest.name)}')"
-        style="${sel?'background:#546e7a;color:white;border-color:#546e7a;':'background:#eceff1;border-color:#90a4ae;color:#546e7a;'}${!isAdmin&&sel?'opacity:0.5;cursor:default;':''}">${escapeHtml(guest.name)}${escapeHtml(guest.total)}${isAdmin?` <small onclick="removeTempPlayer('${jsEscape(guest.name)}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small>`:''}</span>`;
+        style="${sel?'background:#546e7a;color:white;border-color:#546e7a;':'background:#eceff1;border-color:#90a4ae;color:#546e7a;'}${!window.isAdminMode&&sel?'opacity:0.5;cursor:default;':''}">${escapeHtml(guest.name)}${escapeHtml(guest.total)}${window.isAdminMode?` <small onclick="removeTempPlayer('${jsEscape(guest.name)}');event.stopPropagation();" style="color:#e94560;cursor:pointer;margin-left:2px;">✕</small>`:''}</span>`;
     } else {
-      return `<span class="player-chip" style="background:#eceff1;border:1px dashed #90a4ae;color:#b0bec5;cursor:${isAdmin?'pointer':'default'};" ${isAdmin?`onclick="document.getElementById('temp-combo').focus()"`:''}>+ 추가</span>`;
+      return `<span class="player-chip" style="background:#eceff1;border:1px dashed #90a4ae;color:#b0bec5;cursor:${window.isAdminMode?'pointer':'default'};" ${window.isAdminMode?`onclick="document.getElementById('temp-combo').focus()"`:''}>+ 추가</span>`;
     }
   });
   html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${guestSlots.join('')}</div>`;
