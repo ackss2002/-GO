@@ -16,8 +16,7 @@ function initScores(){
 
 function resetAll(){
   function doReset(){
-    const savedTemps = ST.week.tempPlayers||[];
-    ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[],tempPlayers:savedTemps};
+    ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
     ST.doubles = {pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
     ST.final = {win:'',second:'',third:'',third2:'',lucky:''};
     ST.tournament = {};
@@ -141,7 +140,7 @@ function renderLeague(){
   const isDoubles = ST.week.type==='복식';
   const nms = (ST.doubles&&ST.doubles.nonMembers)||[];
   const exts = getExternals();
-  const temps = ST.week.tempPlayers||[];
+  const temps = ST.guests||[];
 
   // 정회원 명단을 부수(숫자 낮은 순)로 정렬하고, 정회원 수도 표시
   const sortedMembers = [...MEMBERS].sort((a, b) => a.total - b.total);
@@ -194,9 +193,9 @@ function addTempPlayer(){
   if(MNAMES.includes(name)||getExternals().find(e=>e.name===name)){
     alert('이미 회원 명단에 있습니다. 위에서 선택하세요.'); return;
   }
-  if(!ST.week.tempPlayers) ST.week.tempPlayers=[];
-  if(ST.week.tempPlayers.find(p=>p.name===name)){ alert('이미 추가됐습니다.'); return; }
-  ST.week.tempPlayers.push({name, total:bu, g:'', temp:true});
+  if(!ST.guests) ST.guests=[];
+  if(ST.guests.find(p=>p.name===name)){ alert('이미 추가됐습니다.'); return; }
+  ST.guests.push({name, total:bu, g:'', temp:true});
   ST.week.players.push(name);
   saveST(); renderLeague();
   // 추가 후 입력란 초기화 + 한글 키보드 유지
@@ -207,7 +206,7 @@ function addTempPlayer(){
 }
 
 function removeTempPlayer(name){
-  ST.week.tempPlayers=(ST.week.tempPlayers||[]).filter(p=>p.name!==name);
+  ST.guests=(ST.guests||[]).filter(p=>p.name!==name);
   ST.week.players=ST.week.players.filter(p=>p!==name);
   saveST(); renderLeague();
 }
