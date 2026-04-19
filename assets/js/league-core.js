@@ -1040,7 +1040,15 @@ function openScorePopup(gi, ri, ci){
     [ia,ib].forEach(function(inp){
       if(!inp) return;
       inp.addEventListener('input',function(){ inp.value=inp.value.replace(/[^0-9]/g,''); });
-      inp.addEventListener('touchstart',function(){ inp.focus(); if(/iPhone|iPad|iPod/i.test(navigator.userAgent)) setTimeout(function(){inp.value='';},300); },{passive:true});
+      if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
+        inp.addEventListener('touchstart',function(){
+          inp.focus();
+          var prev=inp.value;
+          inp._cleared=false;
+          setTimeout(function(){ prev=inp.value; inp.value=''; inp._cleared=true; inp._prev=prev; },300);
+        },{passive:true});
+        inp.addEventListener('blur',function(){ if(inp._cleared&&inp.value==='') inp.value=inp._prev||''; });
+      }
       if(!('ontouchstart' in window)){
         inp.addEventListener('mousedown',function(){ setTimeout(function(){inp.select();},0); });
       }
