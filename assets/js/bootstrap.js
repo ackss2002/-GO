@@ -265,13 +265,13 @@ restoreLeagueUI();
   if(!ST.guestScores) ST.guestScores={};
 
   var guests=[
-    {name:'김정연', bu:7, w:1, s:0, t:0, pts:5},   // 01/09 리그 우승
+    {name:'김정연', bu:3, w:1, s:0, t:0, pts:5},   // 01/09 리그 우승
     {name:'이병찬', bu:5, w:0, s:1, t:0, pts:3},   // 01/09 리그 준우승
     {name:'이현구', bu:7, w:0, s:0, t:1, pts:2},   // 01/09 리그 3위 (04/10 준우승은 기존 반영)
-    {name:'이희숙', bu:7, w:0, s:1, t:0, pts:3},   // 01/16 리그 준우승
-    {name:'김종화', bu:7, w:0, s:1, t:0, pts:3},   // 02/06 리그 준우승
-    {name:'황동후', bu:7, w:0, s:1, t:0, pts:3},   // 02/13 리그 준우승
-    {name:'조충기', bu:7, w:0, s:0, t:1, pts:2},   // 02/13 리그 3위
+    {name:'이희숙', bu:9, w:0, s:1, t:0, pts:3},   // 01/16 리그 준우승
+    {name:'김종화', bu:6, w:0, s:1, t:0, pts:3},   // 02/06 리그 준우승
+    {name:'황동후', bu:5, w:0, s:1, t:0, pts:3},   // 02/13 리그 준우승
+    {name:'조충기', bu:6, w:0, s:0, t:1, pts:2},   // 02/13 리그 3위
     {name:'박한순', bu:8, w:0, s:1, t:1, pts:5},   // 02/27 준우승 + 03/27 3위
     {name:'민경숙', bu:7, w:0, s:0, t:1, pts:2},   // 02/27 리그 3위
     {name:'임계수', bu:6, w:1, s:1, t:0, pts:8},   // 03/13 리그 준우승 + 03/18 푸르미 우승
@@ -294,6 +294,18 @@ restoreLeagueUI();
 
   saveST();
   localStorage.setItem('ttgo_q1guest_v1','done');
+})();
+
+// Q1 게스트 부수 정정 마이그레이션
+(function migrateQ1GuestBu(){
+  if(localStorage.getItem('ttgo_q1guest_bu_v1')) return;
+  if(!ST.guestScores) ST.guestScores={};
+  var buFix={김정연:3,이희숙:9,김종화:6,황동후:5,조충기:6,민경숙:7};
+  Object.keys(buFix).forEach(function(name){
+    if(ST.guestScores[name]) ST.guestScores[name].bu=buFix[name];
+  });
+  saveST();
+  localStorage.setItem('ttgo_q1guest_bu_v1','done');
 })();
 
 // Q1 경기 결과 히스토리 마이그레이션 (결과만)
