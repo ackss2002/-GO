@@ -371,8 +371,8 @@ function loadFromFirebase(){
     }
     // carryOver는 고정 역사 데이터 → 항상 정확한 값으로 보장
     ST.carryOver = {
-      '김영서':{w:0,s:0,t:1,pts:2}, '안치국':{w:1,s:0,t:0,pts:5},
-      '이상건':{w:0,s:1,t:1,pts:5},
+      '김영서':{w:0,s:0,t:1,pts:2}, '안치국':{w:1,s:0,t:1,pts:7},
+      '이상건':{w:0,s:1,t:1,pts:4},
       '최양님':{w:1,s:0,t:0,pts:5}, '이미진':{w:1,s:0,t:0,pts:5},
       // 이진규: Q1 교류전 8pt (푸르미 준우승+송강 우승) → 미승급, getPromotionPts에서 exPts로 자동 계산
     };
