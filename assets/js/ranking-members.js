@@ -76,9 +76,11 @@ function showPlayerTooltip(name, el){
     else if(res.third===name)  rows.push({date:dateTxt,type:teamName,icon:'🥉',result:'3위',pts:2});
   });
 
-  // Q2 경기 (복식 제외, 입상만)
+  // Q2 경기 (2026-04-10 이후, 복식 제외, 입상만)
+  var Q2_START = '2026-04-10';
   var hist = (typeof getHistory==='function') ? getHistory() : [];
   hist.forEach(function(r){
+    if((r.date||'') < Q2_START) return;
     if((r.type||'')==='복식') return;
     var f=r.final||{}, dateTxt=(r.date||'').slice(5).replace('-','/');
     if(f.win===name)                         rows.push({date:dateTxt,type:'2분기 리그',icon:'🥇',result:'우승',pts:5});
