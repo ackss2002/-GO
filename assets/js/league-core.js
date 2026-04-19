@@ -1055,6 +1055,13 @@ function saveScorePopup(gi, ri, ci){
   const elB = document.getElementById(`g${gi}r${ci}c${ri}`);
   if(elA){ elA.value = valA; if(valA!==''){validateScore(gi,ri,ci); styleScoreCell(gi,ri,ci);} else { elA.style.background='transparent'; } }
   if(elB){ elB.value = valB; if(valB!==''){validateScore(gi,ci,ri); styleScoreCell(gi,ci,ri);} else { elB.style.background='transparent'; } }
+  // 두 칸 다 비면 게임 태그 done 해제
+  if(valA===''&&valB===''){
+    document.querySelectorAll(`[id^="gt${gi}_"]`).forEach(function(tag){
+      const tr=parseInt(tag.dataset.r), tc=parseInt(tag.dataset.c);
+      if((tr===ri&&tc===ci)||(tr===ci&&tc===ri)) tag.classList.remove('done');
+    });
+  }
   realtimeCalc(gi);
   document.getElementById('score-input-modal').style.display = 'none';
 }
