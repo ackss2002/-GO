@@ -1015,13 +1015,13 @@ function openScorePopup(gi, ri, ci){
       <div style="text-align:center;font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:20px;">점수 입력</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:24px;">
         <div style="text-align:center;flex:1;">
-          <div style="font-size:13px;color:#546e7a;font-weight:600;margin-bottom:8px;">${escapeHtml(playerA)}</div>
+          <div style="font-size:16px;color:#1a1a2e;font-weight:700;margin-bottom:8px;">${escapeHtml(playerA)}</div>
           <input type="number" id="popup-score-a" min="0" max="${max}" value="${valA}" inputmode="numeric"
             style="width:72px;height:64px;font-size:30px;font-weight:700;text-align:center;border:2px solid #1565C0;border-radius:10px;color:#1a1a2e;">
         </div>
         <div style="font-size:22px;font-weight:700;color:#bbb;padding-top:20px;">:</div>
         <div style="text-align:center;flex:1;">
-          <div style="font-size:13px;color:#546e7a;font-weight:600;margin-bottom:8px;">${escapeHtml(playerB)}</div>
+          <div style="font-size:16px;color:#1a1a2e;font-weight:700;margin-bottom:8px;">${escapeHtml(playerB)}</div>
           <input type="number" id="popup-score-b" min="0" max="${max}" value="${valB}" inputmode="numeric"
             style="width:72px;height:64px;font-size:30px;font-weight:700;text-align:center;border:2px solid #e94560;border-radius:10px;color:#1a1a2e;">
         </div>
