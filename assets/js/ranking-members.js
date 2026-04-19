@@ -300,8 +300,8 @@ function renderRanking(){
           <td style="cursor:pointer;" onclick="showGuestTooltip('${escapeHtml(g.name)}',this)">
             <strong>${escapeHtml(g.name)}</strong>
             <span style="font-size:10px;color:#ccc;margin-left:2px;">▾</span>
-          </td><td>${escapeHtml(g.gender)}</td><td>${escapeHtml(String(g.bu))}부</td>
-          <td>${g.w}</td><td>${g.s}</td><td>${g.t}</td><td><strong>${g.pts}점</strong></td></tr>`;
+          </td><td>${escapeHtml(g.gender)}</td><td>${escapeHtml(String(g.bu))}</td>
+          <td>${g.w}</td><td>${g.s}</td><td>${g.t}</td><td><strong>${g.pts}점</strong></td><td></td></tr>`;
       }).join('')
       :'<tr><td colspan="7" style="color:#888;text-align:center;">게스트 랭킹 포인트 없음</td></tr>';
   }
