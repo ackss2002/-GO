@@ -259,6 +259,38 @@ restoreLeagueUI();
   localStorage.setItem('ttgo_m0410v2','done');
 })();
 
+// Q1 경기 결과 히스토리 마이그레이션 (결과만)
+(function migrateQ1History(){
+  if(localStorage.getItem('ttgo_q1hist_v1')) return;
+  var history=[];
+  try{ history=JSON.parse(localStorage.getItem('ttgo_history')||'[]'); }catch(e){}
+
+  var records=[
+    {date:'2026-01-09',type:'금요리그',final:{win:'김정연',second:'이병찬',third:'이현구',lucky:''}},
+    {date:'2026-01-16',type:'금요리그',final:{win:'최양님',second:'이희숙',third:'김덕기',lucky:'안치국, 이현구'}},
+    {date:'2026-02-06',type:'금요리그',final:{win:'김덕기',second:'김종화',third:'김영서',lucky:'김영서'}},
+    {date:'2026-02-10',type:'LG 교류전',final:{win:'김정만',second:'이원호',third:'한결',lucky:'정희남'}},
+    {date:'2026-02-13',type:'금요리그',final:{win:'이원호',second:'황동후',third:'조충기',lucky:'이봄희'}},
+    {date:'2026-02-27',type:'금요리그',final:{win:'이미진',second:'박한순',third:'민경숙',lucky:'안경식, 정정순'}},
+    {date:'2026-03-05',type:'한전 교류전',final:{win:'김덕기',second:'정용찬',third:'안치국',lucky:'박대근'}},
+    {date:'2026-03-13',type:'금요리그',final:{win:'이원호',second:'임계수',third:'이상건',lucky:'이운희'}},
+    {date:'2026-03-18',type:'푸르미 교류전',final:{win:'임계수',second:'이진규',third:'임근숙',lucky:'이운희'}},
+    {date:'2026-03-27',type:'금요리그',final:{win:'안치국',second:'이상건',third:'박한순',lucky:''}},
+    {date:'2026-04-01',type:'송강 교류전',final:{win:'이진규',second:'김재홍',third:'신정민',lucky:'여인국'}},
+  ];
+
+  records.forEach(function(r){
+    var rec={date:r.date,week:'',type:r.type,set:'',players:[],groups:[],results:[],final:Object.assign({third2:''},r.final),savedAt:Date.now()};
+    var idx=history.findIndex(function(h){return h.date===r.date;});
+    if(idx>=0) history[idx]=rec; else history.push(rec);
+  });
+
+  history.sort(function(a,b){ return b.date.localeCompare(a.date); });
+  localStorage.setItem('ttgo_history', JSON.stringify(history));
+  if(typeof db!=='undefined') db.ref('ttgo_history').set(history);
+  localStorage.setItem('ttgo_q1hist_v1','done');
+})();
+
 // ── Firebase 연동 함수 ──
 function saveToFirebase(){
   if(typeof db === 'undefined') return;
