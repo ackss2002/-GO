@@ -813,7 +813,7 @@ function renderMatches(){
         </tbody>
       </table>
       </div>
-      <div style="margin-top:8px;">${ord.map((m,idx)=>`<span id="gt${gi}_${idx}" class="game-tag" onclick="this.classList.toggle('done')" style="font-size:11px;padding:2px 7px;cursor:pointer;" data-r="${m[0]-1}" data-c="${m[1]-1}"><b style="color:#e94560;">${idx+1}</b> ${escapeHtml(grp[m[0]-1])}:${escapeHtml(grp[m[1]-1])}</span>`).join('')}</div>
+      <div style="margin-top:8px;">${ord.map((m,idx)=>`<span id="gt${gi}_${idx}" class="game-tag" onclick="toggleGameTag(this,event)" style="font-size:11px;padding:2px 7px;cursor:pointer;" data-r="${m[0]-1}" data-c="${m[1]-1}"><b style="color:#e94560;">${idx+1}</b> ${escapeHtml(grp[m[0]-1])}:${escapeHtml(grp[m[1]-1])}</span>`).join('')}</div>
     </div>`;
   });
   document.getElementById('league-matches').innerHTML=html;
@@ -885,7 +885,7 @@ function renderMatchesDoubles(){
           </tr>`).join('')}
         </tbody>
       </table></div>
-      <div style="margin-top:8px;">${ord.map((m,idx)=>`<span id="gt${gi}_${idx}" class="game-tag" onclick="this.classList.toggle('done')" style="font-size:11px;padding:2px 7px;cursor:pointer;" data-r="${m[0]-1}" data-c="${m[1]-1}"><b style="color:#e94560;">${idx+1}</b> ${escapeHtml(teamNames[m[0]-1])}:${escapeHtml(teamNames[m[1]-1])}</span>`).join('')}</div>
+      <div style="margin-top:8px;">${ord.map((m,idx)=>`<span id="gt${gi}_${idx}" class="game-tag" onclick="toggleGameTag(this,event)" style="font-size:11px;padding:2px 7px;cursor:pointer;" data-r="${m[0]-1}" data-c="${m[1]-1}"><b style="color:#e94560;">${idx+1}</b> ${escapeHtml(teamNames[m[0]-1])}:${escapeHtml(teamNames[m[1]-1])}</span>`).join('')}</div>
     </div>`;
   });
   document.getElementById('league-matches').innerHTML=html;
@@ -979,6 +979,18 @@ function printSortedMembersByBu() {
   regulars.forEach(m => console.log(`${m.name} (${m.bu})`));
   console.log('게스트 (부수 낮은 순):');
   guests.forEach(m => console.log(`${m.name} (${m.bu})`));
+}
+
+function toggleGameTag(el, e){
+  const ri = parseInt(el.dataset.r), ci = parseInt(el.dataset.c);
+  // 경기 태그가 속한 조 찾기
+  const tagId = el.id; // gt{gi}_{idx}
+  const gi = parseInt(tagId.replace('gt','').split('_')[0]);
+  const aEl = document.getElementById(`g${gi}r${ri}c${ci}`);
+  const bEl = document.getElementById(`g${gi}r${ci}c${ri}`);
+  const hasScore = (aEl&&aEl.value!=='')||(bEl&&bEl.value!=='');
+  if(hasScore && el.classList.contains('done')) return; // 점수 있으면 취소 불가
+  el.classList.toggle('done');
 }
 
 function openScorePopup(gi, ri, ci){
