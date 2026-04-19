@@ -291,10 +291,10 @@ function buildBracket(grpNames, results, size, strict){
           if(!bracket[j]||bracket[j]==='BYE') continue;
           if(grpMap[bracket[i]]&&grpMap[bracket[j]]&&grpMap[bracket[i]]===grpMap[bracket[j]]){
             let swapped=false;
-            for(let os=0; os<numSec&&!swapped; os++){
+            for(let os=numSec-1; os>=0&&!swapped; os--){
               if(os===sec) continue;
               const os_s=os*sectionSize;
-              for(let k=os_s; k<os_s+sectionSize&&!swapped; k++){
+              for(let k=os_s+sectionSize-1; k>=os_s&&!swapped; k--){
                 if(!bracket[k]||bracket[k]==='BYE') continue;
                 const nj=bracket[k], nk=bracket[j];
                 const secSlots  = Array.from({length:sectionSize},(_,x)=>s+x).filter(x=>x!==j);
