@@ -10,7 +10,14 @@ function renderRanking(){
   let scores, title;
   const q = currentQuarter||1;
   if(q===1){
-    scores = Q1_SCORES;
+    // Q1: 리그+교류전 합산
+    scores = {};
+    allMembers.forEach(m=>{
+      const lg = (typeof Q1_SCORES!=='undefined'&&Q1_SCORES[m.name])||{w:0,s:0,t:0,up:false};
+      const ex = (typeof Q1_EXCHANGE_SCORES!=='undefined'&&Q1_EXCHANGE_SCORES[m.name])||{w:0,s:0,t:0};
+      const w=(lg.w||0)+(ex.w||0), s=(lg.s||0)+(ex.s||0), t=(lg.t||0)+(ex.t||0);
+      scores[m.name] = {w, s, t, pts:w*5+s*3+t*2, up:lg.up||false};
+    });
     title = '1분기 랭킹 포인트 순위';
   } else if(q===2){
     // 2분기: 승급자는 승급 이후 점수만, 미승급자는 이월+교류전+2분기 전체
