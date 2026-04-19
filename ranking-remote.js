@@ -94,40 +94,25 @@ function renderRanking(){
     upgradeCard.innerHTML='';
   }
 
-  // 게스트 순위 (정회원 명단에 없는 사람은 모두 게스트로 간주)
+  // 게스트 순위
   var guestRankingTbody = document.getElementById('guest-ranking-tbody');
   const guestScores = ST.guestScores||{};
-  // 정회원, 휴면, 탈퇴 회원 이름 모두 수집
-  let memberNames = [];
-  try {
-    memberNames = (MEMBERS||[]).map(m=>m.name)
-      .concat((typeof DORMANT!=='undefined' ? DORMANT : []).map(m=>m.name));
-    if(typeof EX_MEMBERS_SAVED!=='undefined' && Array.isArray(EX_MEMBERS_SAVED)) {
-      memberNames = memberNames.concat(EX_MEMBERS_SAVED.map(m=>m.name));
-    }
-  } catch(e) {}
-
-  // 게스트: 정회원 명단에 없는 사람만 필터
-  const guests = Object.keys(guestScores)
-    .filter(name => memberNames.indexOf(name) === -1)
-    .map(name => {
-      const s = guestScores[name];
-      return {name, bu:s.bu||'?', w:s.w||0, s:s.s||0, t:s.t||0, pts:s.pts||0};
-    })
-    .filter(g => g.pts > 0)
-    .sort((a, b) => b.pts - a.pts || b.w - a.w);
-  let grank = 1;
+  const guests = Object.keys(guestScores).map(name=>{
+    const s = guestScores[name];
+    return {name, bu:s.bu||'?', w:s.w||0, s:s.s||0, t:s.t||0, pts:s.pts||0};
+  }).filter(g=>g.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
+  let grank=1;
   if (guestRankingTbody) {
     guestRankingTbody.innerHTML = guests.length ?
-      guests.map((g, i) => {
-        if (i > 0 && g.pts < guests[i - 1].pts) grank = i + 1;
-        const bg = grank <= 3 ? bgs[grank - 1] : 'rank-n';
-        return `<tr><td><span class="rank-badge ${bg}">${grank}</span></td>
-          <td><strong>${escapeHtml(g.name)}</strong></td><td>${escapeHtml(String(g.bu))}부</td>
-          <td>${g.w}</td><td>${g.s}</td><td>${g.t}</td><td><strong>${g.pts}점</strong></td></tr>`;
-      }).join('')
-      : '<tr><td colspan="7" style="color:#888;text-align:center;">게스트 랭킹 포인트 없음</td></tr>';
-  }
+      guests.map((g,i)=>{
+      if(i>0&&g.pts<guests[i-1].pts) grank=i+1;
+      const bg=grank<=3?bgs[grank-1]:'rank-n';
+      return `<tr><td><span class="rank-badge ${bg}">${grank}</span></td>
+        <td><strong>${escapeHtml(g.name)}</strong></td><td>${escapeHtml(String(g.bu))}부</td>
+        <td>${g.w}</td><td>${g.s}</td><td>${g.t}</td><td><strong>${g.pts}점</strong></td></tr>`;
+    }).join('')
+    : '<tr><td colspan="7" style="color:#888;text-align:center;">게스트 랭킹 포인트 없음</td></tr>';
+}
 
 // 회원 관리
 function renderMembers(){
