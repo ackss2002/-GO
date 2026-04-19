@@ -533,18 +533,6 @@ function setupRealtimeSync(){
     if(t==='history' && typeof renderHistory==='function') renderHistory();
   });
 
-  // 연결 상태 표시
-  db.ref('.info/connected').on('value', function(snap){
-    var el = document.getElementById('conn-status');
-    if(!el) return;
-    if(snap.val() === true){
-      el.textContent = '🟢 연결';
-      el.style.background = '#2e7d32';
-    } else {
-      el.textContent = '🔴 오프라인';
-      el.style.background = '#c62828';
-    }
-  });
 }
 
 // 앱 시작 시 Firebase 로드는 SDK 초기화 후 실행 (하단 script에서)
