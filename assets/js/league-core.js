@@ -1037,16 +1037,13 @@ function openScorePopup(gi, ri, ci){
   setTimeout(function(){
     const ia=document.getElementById('popup-score-a');
     const ib=document.getElementById('popup-score-b');
-    function addSelectOnFocus(inp){
+    [ia,ib].forEach(function(inp){
       if(!inp) return;
-      if(!('ontouchstart' in window)){
-        inp.addEventListener('focus',function(){ setTimeout(function(){inp.select();},0); });
-      }
       inp.addEventListener('input',function(){ inp.value=inp.value.replace(/[^0-9]/g,''); });
-    }
-    addSelectOnFocus(ia);
-    addSelectOnFocus(ib);
-    if(ia) ia.focus();
+      if(!('ontouchstart' in window)){
+        inp.addEventListener('mousedown',function(){ setTimeout(function(){inp.select();},0); });
+      }
+    });
   }, 100);
   // A 입력 후 엔터/탭 → B로 포커스
   setTimeout(function(){
