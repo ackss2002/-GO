@@ -1039,7 +1039,9 @@ function openScorePopup(gi, ri, ci){
     const ib=document.getElementById('popup-score-b');
     function addSelectOnFocus(inp){
       if(!inp) return;
-      inp.addEventListener('focus',function(){ setTimeout(function(){inp.select();},0); });
+      if(!('ontouchstart' in window)){
+        inp.addEventListener('focus',function(){ setTimeout(function(){inp.select();},0); });
+      }
       inp.addEventListener('input',function(){ inp.value=inp.value.replace(/[^0-9]/g,''); });
     }
     addSelectOnFocus(ia);
