@@ -287,7 +287,8 @@ function renderRanking(){
     const q1 = q1g[name]||{w:0,s:0,t:0,pts:0};
     const q2 = q2g[name]||{w:0,s:0,t:0,pts:0};
     const bu = (q2g[name]&&q2g[name].bu) || (q1g[name]&&q1g[name].bu) || '?';
-    return{name,bu,w:(q1.w||0)+(q2.w||0),s:(q1.s||0)+(q2.s||0),t:(q1.t||0)+(q2.t||0),pts:(q1.pts||0)+(q2.pts||0)};
+    const gender = (q1g[name]&&q1g[name].g) || (q2g[name]&&q2g[name].g) || '남';
+    return{name,gender,bu,w:(q1.w||0)+(q2.w||0),s:(q1.s||0)+(q2.s||0),t:(q1.t||0)+(q2.t||0),pts:(q1.pts||0)+(q2.pts||0)};
   }).filter(g=>g.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
   let grank=1;
   if(guestRankingTbody){
@@ -299,7 +300,7 @@ function renderRanking(){
           <td style="cursor:pointer;" onclick="showGuestTooltip('${escapeHtml(g.name)}',this)">
             <strong>${escapeHtml(g.name)}</strong>
             <span style="font-size:10px;color:#ccc;margin-left:2px;">▾</span>
-          </td><td>${escapeHtml(String(g.bu))}부</td>
+          </td><td>${escapeHtml(g.gender)}</td><td>${escapeHtml(String(g.bu))}부</td>
           <td>${g.w}</td><td>${g.s}</td><td>${g.t}</td><td><strong>${g.pts}점</strong></td></tr>`;
       }).join('')
       :'<tr><td colspan="7" style="color:#888;text-align:center;">게스트 랭킹 포인트 없음</td></tr>';
