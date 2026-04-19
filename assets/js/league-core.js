@@ -1040,7 +1040,7 @@ function openScorePopup(gi, ri, ci){
     [ia,ib].forEach(function(inp){
       if(!inp) return;
       inp.addEventListener('input',function(){ inp.value=inp.value.replace(/[^0-9]/g,''); });
-      inp.addEventListener('touchstart',function(){ inp.focus(); },{passive:true});
+      inp.addEventListener('touchstart',function(){ inp.focus(); setTimeout(function(){inp.select();},300); },{passive:true});
       if(!('ontouchstart' in window)){
         inp.addEventListener('mousedown',function(){ setTimeout(function(){inp.select();},0); });
       }
