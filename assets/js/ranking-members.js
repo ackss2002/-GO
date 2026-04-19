@@ -211,12 +211,16 @@ function renderRanking(){
       :'';
   }
 
-  // 게스트 순위
+  // 게스트 순위 (Q1 하드코딩 + Q2 실시간 합산)
   var guestRankingTbody=document.getElementById('guest-ranking-tbody');
-  const guestScores=ST.guestScores||{};
-  const guests=Object.keys(guestScores).map(name=>{
-    const s=guestScores[name];
-    return{name,bu:s.bu||'?',w:s.w||0,s:s.s||0,t:s.t||0,pts:s.pts||0};
+  const q1g = (typeof Q1_GUEST_SCORES!=='undefined') ? Q1_GUEST_SCORES : {};
+  const q2g = ST.guestScores||{};
+  const allGuestNames = new Set([...Object.keys(q1g), ...Object.keys(q2g)]);
+  const guests=[...allGuestNames].map(name=>{
+    const q1 = q1g[name]||{w:0,s:0,t:0,pts:0};
+    const q2 = q2g[name]||{w:0,s:0,t:0,pts:0};
+    const bu = (q2g[name]&&q2g[name].bu) || (q1g[name]&&q1g[name].bu) || '?';
+    return{name,bu,w:(q1.w||0)+(q2.w||0),s:(q1.s||0)+(q2.s||0),t:(q1.t||0)+(q2.t||0),pts:(q1.pts||0)+(q2.pts||0)};
   }).filter(g=>g.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
   let grank=1;
   if(guestRankingTbody){
