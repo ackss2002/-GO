@@ -470,10 +470,8 @@ function setupRealtimeSync(){
     if(!data) return;
     var stData = data.ST || (data.scores !== undefined ? data : null);
     if(!stData) return;
-    var co = ST.carryOver;   // 고정 역사 데이터 보존
-    var week = ST.week;      // 진행 중인 조편성/경기 데이터 보존 (덮어쓰기 방지)
+    var co = ST.carryOver;
     Object.assign(ST, stData);
-    ST.week = week;
     if(co) ST.carryOver = co;
     if(!ST.scores) ST.scores={};
     if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
@@ -484,6 +482,7 @@ function setupRealtimeSync(){
     if(!ST.tournament) ST.tournament={};
     localStorage.setItem('ttgo_v3', JSON.stringify(ST));
     renderDash();
+    if(typeof renderLeague==='function') renderLeague();
     if(typeof renderRanking==='function') renderRanking();
     var t = localStorage.getItem('ttgo_active_tab');
     if(t==='tournament' && typeof renderTournamentTab==='function') renderTournamentTab();
