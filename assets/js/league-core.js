@@ -1037,9 +1037,15 @@ function openScorePopup(gi, ri, ci){
   setTimeout(function(){
     const ia=document.getElementById('popup-score-a');
     const ib=document.getElementById('popup-score-b');
-    if(ia){ia.focus();ia.select();}
-    if(ia) ia.addEventListener('focus',function(){ia.select();});
-    if(ib) ib.addEventListener('focus',function(){ib.select();});
+    function addSelectOnFocus(inp){
+      if(!inp) return;
+      // iOS: touchstart로 focus + select 분리 (동시에 하면 키보드 안 올라옴)
+      inp.addEventListener('touchstart',function(e){ e.preventDefault(); inp.focus(); setTimeout(function(){inp.select();},0); },{passive:false});
+      inp.addEventListener('mousedown',function(){ setTimeout(function(){inp.select();},0); });
+    }
+    addSelectOnFocus(ia);
+    addSelectOnFocus(ib);
+    if(ia){ia.focus(); setTimeout(function(){ia.select();},50);}
   }, 100);
   // A 입력 후 엔터/탭 → B로 포커스
   setTimeout(function(){
