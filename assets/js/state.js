@@ -38,6 +38,16 @@ function saveST(){ localStorage.setItem('ttgo_v3', JSON.stringify(ST)); if(typeo
 var MNAMES = MEMBERS.map(m=>m.name);
 var INIT_SCORES = {};
 
+// 고정 게스트 목록 — 단일 소스 (여기만 수정할 것)
+var DEFAULT_TEMP_PLAYERS = [
+  {name:'양정모', total:5, g:'남', temp:true},
+  {name:'이효준', total:7, g:'남', temp:true},
+  {name:'이현구', total:7, g:'남', temp:true},
+  {name:'한상미', total:8, g:'여', temp:true},
+  {name:'김문숙', total:8, g:'여', temp:true},
+  {name:'전아현', total:10, g:'여', temp:true},
+];
+
 // Q1 이월 승급 포인트 — 단일 소스 (여기만 수정할 것)
 var CARRY_OVER_DATA = {
   '김영서':{w:0,s:0,t:1,pts:2},

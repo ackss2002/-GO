@@ -371,6 +371,9 @@ function loadFromFirebase(){
     }
     // carryOver 단일 소스: state.js의 CARRY_OVER_DATA
     ST.carryOver = CARRY_OVER_DATA;
+    // 게스트 기본값: 없으면 DEFAULT_TEMP_PLAYERS로 채움
+    if(!ST.week.tempPlayers || !ST.week.tempPlayers.length)
+      ST.week.tempPlayers = DEFAULT_TEMP_PLAYERS.slice();
     if(!ST.scores) ST.scores = {};
     // 최양님 승급 상태 항상 보장 (4/10 우승 w:1 보존, pts만 리셋)
     ST.scores['최양님'] = {w:1, s:0, t:0, pts:0, up:true};
