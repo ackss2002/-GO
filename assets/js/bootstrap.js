@@ -352,7 +352,7 @@ function saveToFirebase(){
 
 function loadFromFirebase(){
   if(typeof db === 'undefined') return;
-  db.ref('ttgo').once('value').then(function(snapshot){
+  db.ref('ttgo').on('value', function(snapshot){
     const data = snapshot.val();
     if(!data) return;
     // format1: saveST()가 raw ST 직접 저장 → data.scores 존재
