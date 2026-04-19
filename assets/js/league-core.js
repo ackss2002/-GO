@@ -799,10 +799,10 @@ function renderMatches(){
             </td>
             ${grp.map((_,ci)=>ri===ci?
               `<td style="background:#e0e0e0;border:1px solid #bbb;min-width:54px;"></td>`:
-              `<td style="border:1px solid #bbb;padding:2px;text-align:center;min-width:54px;">
+              `<td style="border:1px solid #bbb;padding:2px;text-align:center;min-width:54px;cursor:pointer;" onclick="openScorePopup(${gi},${ri},${ci})">
                 <input type="number" id="g${gi}r${ri}c${ci}" min="0" max="${getMaxScore()}" placeholder=""
-                  oninput="validateScore(${gi},${ri},${ci}); realtimeCalc(${gi}); styleScoreCell(${gi},${ri},${ci})"
-                  style="width:44px;text-align:center;border:none;background:transparent;font-size:15px;font-weight:700;padding:2px;color:#1a1a2e;">
+                  readonly
+                  style="width:44px;text-align:center;border:none;background:transparent;font-size:15px;font-weight:700;padding:2px;color:#1a1a2e;pointer-events:none;cursor:pointer;">
               </td>`
             ).join('')}
             <td style="text-align:center;padding:6px;border:1px solid #bbb;font-weight:700;" id="g${gi}w${ri}">-</td>
@@ -979,6 +979,72 @@ function printSortedMembersByBu() {
   regulars.forEach(m => console.log(`${m.name} (${m.bu})`));
   console.log('게스트 (부수 낮은 순):');
   guests.forEach(m => console.log(`${m.name} (${m.bu})`));
+}
+
+function openScorePopup(gi, ri, ci){
+  if(isTournamentInProgress()){ alert('토너먼트 진행 중에는 점수를 수정할 수 없습니다.'); return; }
+  const grp = ST.week.groups[gi];
+  const playerA = grp[ri], playerB = grp[ci];
+  const elA = document.getElementById(`g${gi}r${ri}c${ci}`);
+  const elB = document.getElementById(`g${gi}r${ci}c${ri}`);
+  const valA = elA ? elA.value : '';
+  const valB = elB ? elB.value : '';
+  const max = getMaxScore();
+
+  let modal = document.getElementById('score-input-modal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'score-input-modal';
+    modal.style = 'position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:12000;background:rgba(0,0,0,0.6);';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+      <div style="text-align:center;font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:20px;">점수 입력</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:24px;">
+        <div style="text-align:center;flex:1;">
+          <div style="font-size:13px;color:#546e7a;font-weight:600;margin-bottom:8px;">${escapeHtml(playerA)}</div>
+          <input type="number" id="popup-score-a" min="0" max="${max}" value="${valA}" inputmode="numeric"
+            style="width:72px;height:64px;font-size:30px;font-weight:700;text-align:center;border:2px solid #1565C0;border-radius:10px;color:#1a1a2e;">
+        </div>
+        <div style="font-size:22px;font-weight:700;color:#bbb;padding-top:20px;">:</div>
+        <div style="text-align:center;flex:1;">
+          <div style="font-size:13px;color:#546e7a;font-weight:600;margin-bottom:8px;">${escapeHtml(playerB)}</div>
+          <input type="number" id="popup-score-b" min="0" max="${max}" value="${valB}" inputmode="numeric"
+            style="width:72px;height:64px;font-size:30px;font-weight:700;text-align:center;border:2px solid #e94560;border-radius:10px;color:#1a1a2e;">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('score-input-modal').style.display='none';"
+          style="flex:1;padding:14px;border-radius:10px;border:1px solid #ddd;background:white;font-size:15px;cursor:pointer;font-weight:600;">취소</button>
+        <button onclick="saveScorePopup(${gi},${ri},${ci})"
+          style="flex:2;padding:14px;border-radius:10px;border:none;background:#1565C0;color:white;font-size:15px;font-weight:700;cursor:pointer;">저장</button>
+      </div>
+    </div>`;
+  modal.style.display = 'flex';
+  setTimeout(function(){ const inp=document.getElementById('popup-score-a'); if(inp){inp.focus();inp.select();} }, 100);
+  // A 입력 후 엔터/탭 → B로 포커스
+  setTimeout(function(){
+    const ia=document.getElementById('popup-score-a');
+    if(ia) ia.addEventListener('keydown', function(e){
+      if(e.key==='Enter'||e.key==='Tab'){ e.preventDefault(); const ib=document.getElementById('popup-score-b'); if(ib){ib.focus();ib.select();} }
+    });
+    const ib=document.getElementById('popup-score-b');
+    if(ib) ib.addEventListener('keydown', function(e){
+      if(e.key==='Enter'){ e.preventDefault(); saveScorePopup(gi,ri,ci); }
+    });
+  }, 150);
+}
+
+function saveScorePopup(gi, ri, ci){
+  const valA = document.getElementById('popup-score-a').value;
+  const valB = document.getElementById('popup-score-b').value;
+  const elA = document.getElementById(`g${gi}r${ri}c${ci}`);
+  const elB = document.getElementById(`g${gi}r${ci}c${ri}`);
+  if(elA){ elA.value = valA; validateScore(gi,ri,ci); styleScoreCell(gi,ri,ci); }
+  if(elB){ elB.value = valB; validateScore(gi,ci,ri); styleScoreCell(gi,ci,ri); }
+  realtimeCalc(gi);
+  document.getElementById('score-input-modal').style.display = 'none';
 }
 
 // =========================
