@@ -1053,8 +1053,8 @@ function saveScorePopup(gi, ri, ci){
   const valB = document.getElementById('popup-score-b').value;
   const elA = document.getElementById(`g${gi}r${ri}c${ci}`);
   const elB = document.getElementById(`g${gi}r${ci}c${ri}`);
-  if(elA){ elA.value = valA; validateScore(gi,ri,ci); styleScoreCell(gi,ri,ci); }
-  if(elB){ elB.value = valB; validateScore(gi,ci,ri); styleScoreCell(gi,ci,ri); }
+  if(elA){ elA.value = valA; if(valA!==''){validateScore(gi,ri,ci); styleScoreCell(gi,ri,ci);} else { elA.style.background='transparent'; } }
+  if(elB){ elB.value = valB; if(valB!==''){validateScore(gi,ci,ri); styleScoreCell(gi,ci,ri);} else { elB.style.background='transparent'; } }
   realtimeCalc(gi);
   document.getElementById('score-input-modal').style.display = 'none';
 }
