@@ -38,6 +38,16 @@ function saveST(){ localStorage.setItem('ttgo_v3', JSON.stringify(ST)); if(typeo
 var MNAMES = MEMBERS.map(m=>m.name);
 var INIT_SCORES = {};
 
+// Q1 이월 승급 포인트 — 단일 소스 (여기만 수정할 것)
+var CARRY_OVER_DATA = {
+  '김영서':{w:0,s:0,t:1,pts:2},
+  '안치국':{w:1,s:0,t:1,pts:7},
+  '이상건':{w:0,s:1,t:1,pts:4},
+  '이진규':{w:0,s:1,t:1,pts:5},
+  '최양님':{w:1,s:0,t:0,pts:5},
+  '이미진':{w:1,s:0,t:0,pts:5},
+};
+
 var ST = loadST();
 // [방어코드] ST.week가 undefined면 항상 기본값으로 초기화
 if (!ST.week) {
@@ -49,14 +59,7 @@ function loadST(){
   try{ const s=localStorage.getItem('ttgo_v3');if(s)return JSON.parse(s); }catch(e){}
   return {
     scores:{},  // 2분기 순수 획득분만
-    carryOver:{ // 1분기 이월 승점 (별도 보관)
-      '김영서':{w:0,s:0,t:1,pts:2},
-      '안치국':{w:1,s:0,t:1,pts:7},
-      '이상건':{w:0,s:0,t:2,pts:4},
-      '이진규':{w:0,s:1,t:1,pts:5},
-      '최양님':{w:1,s:0,t:0,pts:5},
-      '이미진':{w:1,s:0,t:0,pts:5},
-    },
+    carryOver: CARRY_OVER_DATA,
     week:{date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]},
     doubles:{pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]},
     final:{win:'',second:'',third:'',third2:'',lucky:''},
@@ -66,14 +69,7 @@ function loadST(){
 
 // ST.carryOver 없으면 세팅, ST.scores에서 이월분 제거
 function ensureCarryOver(){
-  const co = {
-    '김영서':{w:0,s:0,t:1,pts:2},
-    '안치국':{w:1,s:0,t:1,pts:7},
-    '이상건':{w:0,s:0,t:2,pts:4},
-    '이진규':{w:0,s:1,t:1,pts:5},
-    '최양님':{w:1,s:0,t:0,pts:5},
-    '이미진':{w:1,s:0,t:0,pts:5},
-  };
+  const co = CARRY_OVER_DATA;
   if(!ST.carryOver || !Object.keys(ST.carryOver).length){
     ST.carryOver = co;
     // 기존 ST.scores에서 이월분 완전 제거 (순수 2분기 획득분만 남김)
