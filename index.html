@@ -6,6 +6,7 @@
 <title>탁구치GO 금요리그</title>
 <style>
 .admin-only { display: none; }
+body.admin-mode .admin-only { display: revert; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif; background: #f5f5f5; color: #1a1a1a; }
 .header { background: #1a1a2e; color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
@@ -130,7 +131,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
       <div id="dash-results"></div>
     </div>
     <div class="card">
-      <div class="card-title">2분기 승점 TOP 5</div>
+      <div class="card-title">승급 포인트 TOP 5</div>
       <div id="dash-top5"></div>
     </div>
   </div>
@@ -248,9 +249,6 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
           <option value="16">16강</option>
           <option value="32">32강</option>
         </select>
-        <label style="margin-left:12px;font-size:13px;display:inline-flex;align-items:center;gap:6px;">
-          <input type="checkbox" id="t-ittf-strict" checked style="transform:scale(0.95);"> ITTF Strict
-        </label>
         <button class="btn btn-primary btn-sm" onclick="genTournament()">대진 생성</button>
 
       </div>
@@ -298,20 +296,21 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 <!-- 누적 순위 -->
 <div id="ranking" class="section">
-  <div class="notice">랭킹 포인트: 우승 5점 / 준우승 3점 / 3위 2점 · 10점 달성 시 1부수 승급 + 잔여 포인트 소멸 (승급 부수 제한 없음)</div>
-  
-  <!-- 분기 탭 -->
+  <div class="notice">랭킹 포인트: 우승 5점 / 준우승 3점 / 3위 2점 · 10점 달성 시 1부수 승급 + 포인트 리셋 (새 출발) · 역대 누적은 영구 보존</div>
+
+  <!-- 랭킹 탭 -->
   <div style="display:flex;gap:8px;margin-bottom:14px;border-bottom:2px solid #e0e0e0;padding-bottom:0;">
-    <button id="qtab-1" onclick="switchQuarter(1)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">1분기</button>
-    <button id="qtab-2" onclick="switchQuarter(2)" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">2분기</button>
-    <button id="qtab-all" onclick="switchQuarter('all')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">전체</button>
+    <button id="qtab-q1" onclick="switchRankingTab('q1')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">Q1</button>
+    <button id="qtab-q2" onclick="switchRankingTab('q2')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:400;color:#888;border-bottom:2px solid transparent;cursor:pointer;">Q2</button>
+    <button id="qtab-total" onclick="switchRankingTab('total')" style="padding:8px 20px;border:none;background:none;font-size:13px;font-weight:700;color:#e94560;border-bottom:2px solid #e94560;cursor:pointer;">RANKINGS</button>
   </div>
 
   <div id="upgrade-card" class="card"></div>
   <div class="card">
     <div class="card-title" id="ranking-title">1분기 승점 순위</div>
     <div style="overflow-x:auto;">
-    <table>
+    <table style="table-layout:fixed;width:auto;min-width:100%;">
+      <colgroup><col style="width:50px"><col style="width:110px"><col style="width:50px"><col style="width:55px"><col style="width:55px"><col style="width:65px"><col style="width:55px"><col style="width:95px"><col style="width:55px"></colgroup>
       <thead><tr><th>순위</th><th>이름</th><th>성별</th><th>부수</th><th>우승</th><th>준우승</th><th>3위</th><th>랭킹 포인트</th><th>비고</th></tr></thead>
       <tbody id="ranking-tbody"></tbody>
     </table>
@@ -321,8 +320,9 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   <div class="card" id="guest-ranking-card">
     <div class="card-title">🎫 게스트 랭킹 포인트 순위</div>
     <div style="overflow-x:auto;">
-    <table>
-      <thead><tr><th>순위</th><th>이름</th><th>부수</th><th>우승</th><th>준우승</th><th>3위</th><th>랭킹 포인트</th></tr></thead>
+    <table style="table-layout:fixed;width:auto;min-width:100%;">
+      <colgroup><col style="width:50px"><col style="width:110px"><col style="width:50px"><col style="width:55px"><col style="width:55px"><col style="width:65px"><col style="width:55px"><col style="width:95px"><col style="width:55px"></colgroup>
+      <thead><tr><th>순위</th><th>이름</th><th>성별</th><th>부수</th><th>우승</th><th>준우승</th><th>3위</th><th>랭킹 포인트</th><th>비고</th></tr></thead>
       <tbody id="guest-ranking-tbody"></tbody>
     </table>
     </div>
@@ -446,7 +446,32 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
           <div style="font-size:20px;">🥉</div><div style="font-weight:700;font-size:15px;">+2점</div><div style="font-size:12px;color:#888;">공동3위</div>
         </div>
         <div style="padding:10px 16px;background:#e8f5e9;border-radius:8px;text-align:center;min-width:120px;">
-          <div style="font-size:20px;">⬆️</div><div style="font-weight:700;font-size:15px;">10점 달성</div><div style="font-size:12px;color:#888;">1부수 승급 + 승점 소멸</div>
+          <div style="font-size:20px;">⬆️</div><div style="font-weight:700;font-size:15px;">10점 달성</div><div style="font-size:12px;color:#888;">1부수 승급 + 포인트 리셋</div>
+        </div>
+        <div style="padding:10px 16px;background:#e3f2fd;border-radius:8px;text-align:center;min-width:120px;">
+          <div style="font-size:20px;">📊</div><div style="font-weight:700;font-size:15px;">RANKINGS</div><div style="font-size:12px;color:#888;">시즌 누적 · 리셋 없음</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;padding:10px 12px;background:#f8f9fa;border-radius:8px;font-size:12px;color:#555;line-height:1.6;">
+        💡 <strong>승급 포인트</strong>는 10점 달성 시 승급 후 리셋됩니다 (새 부수에서 새 출발).<br>
+        💡 <strong>RANKINGS</strong>는 1년 동안 쌓인 전분기 누적 포인트입니다 (연말 시즌 종료 시 리셋).
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:10px;">📋 누적 순위 탭 설명</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:#f8f9fa;border-radius:8px;border-left:4px solid #e94560;">
+          <span style="font-weight:700;font-size:14px;color:#e94560;min-width:36px;">Q1</span>
+          <span style="font-size:13px;color:#555;">1분기 경기 결과만 반영한 포인트 순위</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:#f8f9fa;border-radius:8px;border-left:4px solid #e94560;">
+          <span style="font-weight:700;font-size:14px;color:#e94560;min-width:36px;">Q2</span>
+          <span style="font-size:13px;color:#555;">2분기 경기 결과만 반영한 포인트 순위</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:#1a1a2e;border-radius:8px;border-left:4px solid #e94560;">
+          <span style="font-weight:700;font-size:14px;color:#e94560;min-width:80px;">RANKINGS</span>
+          <span style="font-size:13px;color:#eee;">전분기 합산 시즌 최종 순위 · 점수 옆 <strong style="color:#aaa;">(N)</strong>은 현재 승급 포인트</span>
         </div>
       </div>
     </div>
@@ -459,8 +484,12 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
           <div style="padding:8px 12px;font-size:13px;color:#555;">A. 네! Firebase 실시간 연동으로 입력 즉시 모든 회원에게 반영됩니다.</div>
         </div>
         <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f5f5f5;padding:8px 12px;font-weight:700;font-size:13px;">Q. 승급하면 점수가 사라지나요?</div>
+          <div style="padding:8px 12px;font-size:13px;color:#555;">A. 승급 포인트(N)는 리셋되고 새 부수에서 다시 시작합니다. 하지만 RANKINGS 탭의 시즌 누적 포인트는 그대로 유지됩니다.</div>
+        </div>
+        <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
           <div style="background:#f5f5f5;padding:8px 12px;font-weight:700;font-size:13px;">Q. 게스트는 승점이 있나요?</div>
-          <div style="padding:8px 12px;font-size:13px;color:#555;">A. 네! 게스트도 승점이 누적되며 누적 순위 탭의 게스트 섹션에서 확인할 수 있습니다.</div>
+          <div style="padding:8px 12px;font-size:13px;color:#555;">A. 네! 게스트도 승점이 누적되며 RANKINGS 탭 하단 게스트 섹션에서 확인할 수 있습니다.</div>
         </div>
         <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
           <div style="background:#f5f5f5;padding:8px 12px;font-weight:700;font-size:13px;">Q. 이번주 초기화는 언제 하나요?</div>

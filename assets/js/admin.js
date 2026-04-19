@@ -96,10 +96,13 @@ function updateAdminUI(){
   const lockBtn = document.getElementById('lock-btn');
   adminBadge.style.display = isAdminUser?'inline':'none';
   lockBtn.textContent = isAdminUser?'🔓':'🔒';
-  const adminBtns = document.querySelectorAll('.admin-only');
-  adminBtns.forEach(btn=>{ btn.style.display = isAdminUser ? 'inline-flex' : 'none'; });
+  document.body.classList.toggle('admin-mode', isAdminUser);
+  // window.isAdminMode 동기화 (renderMembersAdminUI 등에서 사용)
+  window.isAdminMode = isAdminUser;
+  localStorage.setItem('ttgo_admin_mode', isAdminUser ? '1' : '0');
   // 선수 칩 상태 업데이트
   renderLeague();
+  if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
 }
 
 function showLockMsg(msg){
@@ -107,26 +110,64 @@ function showLockMsg(msg){
 }
 
 
+// Q1 리그전 성적 (복식 01/23·02/20·03/20 제외)
 const Q1_SCORES = {
-  '이원호':  {w:2, s:1, t:0, pts:13, up:true},  // 13점 달성 → 4부 승급
-  '김덕기':  {w:2, s:0, t:1, pts:12, up:true},  // 12점 달성 → 4부 승급
-  '안치국':  {w:1, s:0, t:1, pts:7,  up:false},
-  '이미진':  {w:1, s:0, t:0, pts:5,  up:false},
-  '최양님':  {w:1, s:0, t:0, pts:5,  up:false},
-  '이상건':  {w:0, s:0, t:2, pts:4,  up:false},
-  '이진규':  {w:0, s:1, t:1, pts:5,  up:false},
-  '김영서':  {w:0, s:0, t:1, pts:2,  up:false},
+  '이원호':  {w:2, s:0, t:0, up:true},   // 02/13 우승+03/13 우승=10pt, 교류전 3pt → 13pt 승급
+  '최양님':  {w:1, s:0, t:0, up:false},  // 01/16 우승=5pt
+  '김덕기':  {w:1, s:0, t:1, up:true},   // 01/16 3위+02/06 우승=7pt, 교류전 5pt → 12pt 승급
+  '안치국':  {w:1, s:0, t:0, up:false},  // 03/27 우승=5pt, 교류전 한전 3위 2pt → 7pt
+  '이미진':  {w:1, s:0, t:0, up:false},  // 02/27 우승=5pt
+  '이상건':  {w:0, s:1, t:1, up:false},  // 03/13 3위+03/27 준우승=5pt
+  '김영서':  {w:0, s:0, t:1, up:false},  // 02/06 3위=2pt
 };
 
-let currentQuarter = 2;
+// Q1 리그 날짜별 입상 기록
+const Q1_LEAGUE_PLACEMENTS = {
+  '이원호':  [{date:'2026-02-13',r:'w'},{date:'2026-03-13',r:'w'}],
+  '최양님':  [{date:'2026-01-16',r:'w'}],
+  '김덕기':  [{date:'2026-01-16',r:'t'},{date:'2026-02-06',r:'w'}],
+  '안치국':  [{date:'2026-03-27',r:'w'}],
+  '이미진':  [{date:'2026-02-27',r:'w'}],
+  '이상건':  [{date:'2026-03-13',r:'t'},{date:'2026-03-27',r:'s'}],
+  '김영서':  [{date:'2026-02-06',r:'t'}],
+};
 
-function switchQuarter(q){
-  currentQuarter = q;
-  // 탭 스타일
-  ['1','2','all'].forEach(id=>{
+// Q1 교류전 입상 성적
+const Q1_EXCHANGE_SCORES = {
+  '이원호':  {w:0, s:1, t:0},  // 02/10 LG 준우승
+  '김덕기':  {w:1, s:0, t:0},  // 03/05 한전 우승
+  '안치국':  {w:0, s:0, t:1},  // 03/05 한전 3위
+  '이진규':  {w:1, s:1, t:0},  // 03/18 푸르미 준우승 + 04/01 송강 우승
+};
+
+// Q1 게스트 입상 성적 (하드코딩)
+var Q1_GUEST_SCORES = {
+  '김정연': {g:'여', bu:3, w:1, s:0, t:0, pts:5},   // 01/09 리그 우승
+  '이병찬': {g:'남', bu:5, w:0, s:1, t:0, pts:3},   // 01/09 리그 준우승
+  '이현구': {g:'남', bu:7, w:0, s:0, t:1, pts:2},   // 01/09 리그 3위
+  '이희숙': {g:'여', bu:9, w:0, s:1, t:0, pts:3},   // 01/16 리그 준우승
+  '김종화': {g:'남', bu:6, w:0, s:1, t:0, pts:3},   // 02/06 리그 준우승
+  '황동후': {g:'남', bu:5, w:0, s:1, t:0, pts:3},   // 02/13 리그 준우승
+  '조충기': {g:'남', bu:6, w:0, s:0, t:1, pts:2},   // 02/13 리그 3위
+  '박한순': {g:'여', bu:8, w:0, s:1, t:1, pts:5},   // 02/27 준우승 + 03/27 3위
+  '민경숙': {g:'여', bu:7, w:0, s:0, t:1, pts:2},   // 02/27 리그 3위
+  '임계수': {g:'남', bu:6, w:1, s:1, t:0, pts:8},   // 03/13 리그 준우승 + 03/18 푸르미 우승
+  '김정만': {g:'남', bu:6, w:1, s:0, t:0, pts:5},   // 02/10 LG 우승
+  '한결':   {g:'남', bu:3, w:0, s:0, t:1, pts:2},   // 02/10 LG 3위
+  '정용찬': {g:'남', bu:6, w:0, s:1, t:0, pts:3},   // 03/05 한전 준우승
+  '임근숙': {g:'여', bu:9, w:0, s:0, t:1, pts:2},   // 03/18 푸르미 3위
+  '김재홍': {g:'남', bu:6, w:0, s:1, t:0, pts:3},   // 04/01 송강 준우승
+  '신정민': {g:'남', bu:4, w:0, s:0, t:1, pts:2},   // 04/01 송강 3위
+};
+
+let currentRankingTab = 'total';
+
+function switchRankingTab(tab){
+  currentRankingTab = tab;
+  ['q1','q2','total'].forEach(id=>{
     const btn = document.getElementById('qtab-'+id);
     if(!btn) return;
-    const active = String(q)===String(id);
+    const active = tab===id;
     btn.style.fontWeight = active?'700':'400';
     btn.style.color = active?'#e94560':'#888';
     btn.style.borderBottom = active?'2px solid #e94560':'2px solid transparent';

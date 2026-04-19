@@ -10,14 +10,22 @@ function renderRanking(){
   let scores, title;
   const q = currentQuarter||1;
   if(q===1){
-    scores = Q1_SCORES;
+    // Q1: 리그+교류전 합산
+    scores = {};
+    allMembers.forEach(m=>{
+      const lg = (typeof Q1_SCORES!=='undefined'&&Q1_SCORES[m.name])||{w:0,s:0,t:0,up:false};
+      const ex = (typeof Q1_EXCHANGE_SCORES!=='undefined'&&Q1_EXCHANGE_SCORES[m.name])||{w:0,s:0,t:0};
+      const w=(lg.w||0)+(ex.w||0), s=(lg.s||0)+(ex.s||0), t=(lg.t||0)+(ex.t||0);
+      scores[m.name] = {w, s, t, pts:w*5+s*3+t*2, up:lg.up||false};
+    });
     title = '1분기 랭킹 포인트 순위';
   } else if(q===2){
-    // 2분기: 승급자는 승급 이후 점수만, 미승급자는 이월+2분기 전체
+    // 2분기: 승급자는 승급 이후 점수만, 미승급자는 이월+교류전+2분기 전체
     scores = {};
     allMembers.forEach(m=>{
       const co = (ST.carryOver||{})[m.name]||{w:0,s:0,t:0,pts:0};
       const q2 = (ST.scores||{})[m.name]||{w:0,s:0,t:0,pts:0};
+      const q1obj = (typeof Q1_SCORES!=='undefined'&&Q1_SCORES[m.name])||{up:false};
       // 승급 여부 판단 (2분기 내 승급자는 q2.up===true)
       if(q2.up){
         // 승급자는 2분기 점수 리셋: 승급 이후 실적만 반영 (carryOver 제외)
@@ -29,26 +37,29 @@ function renderRanking(){
           up: true
         };
       } else {
-        // 미승급자는 이월+2분기 전체
+        // 미승급자는 이월+Q1교류전+2분기 전체 (Q1승급자는 교류전 제외 — 이미 리셋됨)
+        const ex = (!q1obj.up&&typeof Q1_EXCHANGE_SCORES!=='undefined'&&Q1_EXCHANGE_SCORES[m.name])||{w:0,s:0,t:0};
+        const exPts = (ex.w||0)*5+(ex.s||0)*3+(ex.t||0)*2;
         scores[m.name] = {
           w:(co.w||0)+(q2.w||0),
           s:(co.s||0)+(q2.s||0),
           t:(co.t||0)+(q2.t||0),
-          pts:(co.pts||0)+(q2.pts||0),
+          pts:(co.pts||0)+exPts+(q2.pts||0),
           up: false
         };
       }
     });
     title = '2분기 랭킹 포인트 순위';
   } else {
-    // 전체: 횟수 합산 → 실제 획득 총점으로 계산 (승급 리셋 무시)
+    // 전체: Q1리그+Q1교류전+Q2 합산 (승급 리셋 무시)
     scores = {};
     allMembers.forEach(m=>{
-      const q1 = Q1_SCORES[m.name]||{w:0,s:0,t:0,pts:0};
-      const q2 = (ST.scores||{})[m.name]||{w:0,s:0,t:0,pts:0};
-      const w = (q1.w||0)+(q2.w||0);
-      const s = (q1.s||0)+(q2.s||0);
-      const t = (q1.t||0)+(q2.t||0);
+      const q1 = (typeof Q1_SCORES!=='undefined'&&Q1_SCORES[m.name])||{w:0,s:0,t:0};
+      const ex = (typeof Q1_EXCHANGE_SCORES!=='undefined'&&Q1_EXCHANGE_SCORES[m.name])||{w:0,s:0,t:0};
+      const q2 = (ST.scores||{})[m.name]||{w:0,s:0,t:0};
+      const w = (q1.w||0)+(ex.w||0)+(q2.w||0);
+      const s = (q1.s||0)+(ex.s||0)+(q2.s||0);
+      const t = (q1.t||0)+(ex.t||0)+(q2.t||0);
       scores[m.name] = {
         w: w, s: s, t: t,
         pts: w*5 + s*3 + t*2,

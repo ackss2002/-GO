@@ -15,15 +15,26 @@ function initScores(){
 }
 
 function resetAll(){
-  if(!confirm('이번주 선수 선택, 조 편성, 경기 결과, 토너먼트를 모두 초기화할까요?\n(누적 승점은 유지됩니다)')) return;
-  const savedTemps = ST.week.tempPlayers||[];
-  ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[],tempPlayers:savedTemps};
-  ST.doubles = {pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
-  ST.final = {win:'',second:'',third:'',third2:'',lucky:''};
-  ST.tournament = {};
-  saveST();
-  renderDash();
-  renderLeague();
+  function doReset(){
+    const savedTemps = ST.week.tempPlayers||[];
+    ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[],tempPlayers:savedTemps};
+    ST.doubles = {pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
+    ST.final = {win:'',second:'',third:'',third2:'',lucky:''};
+    ST.tournament = {};
+    saveST();
+    renderDash();
+    renderLeague();
+  }
+  if(typeof window.showConfirmModal === 'function'){
+    window.showConfirmModal(
+      '⚠️ 이번주 선수 선택, 조 편성, 경기 결과, 토너먼트가 모두 삭제됩니다.\n\n누적 승점은 유지됩니다.\n\n정말 초기화하시겠습니까?',
+      doReset,
+      {title:'🗑 이번주 초기화', confirmText:'초기화', danger:true}
+    );
+  } else {
+    if(!confirm('이번주 선수 선택, 조 편성, 경기 결과, 토너먼트를 모두 초기화할까요?\n(누적 승점은 유지됩니다)')) return;
+    doReset();
+  }
 }
 
 function switchTab(name,el){
@@ -35,7 +46,8 @@ function switchTab(name,el){
   if(name==='dashboard') renderDash();
   if(name==='ranking') renderRanking();
   if(name==='members') {
-    if (typeof renderMembers === 'function') renderMembers();
+    if (typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+    else if (typeof renderMembers === 'function') renderMembers();
   }
   if(name==='league') renderLeague();
   if(name==='tournament') renderTournamentTab();
@@ -89,8 +101,18 @@ function getSorted(){
     ...exts.map(m=>({...m, isExt:true}))
   ];
   if(!ST.scores) ST.scores={};
-  return allMembers.map(m=>{const s=ST.scores[m.name]||{w:0,s:0,t:0,pts:0};return{name:m.name,isExt:m.isExt,...s};})
-    .filter(p=>p.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
+  return allMembers.map(m=>{
+    const q1 = (typeof Q1_SCORES!=='undefined' && Q1_SCORES[m.name]) || {up:false};
+    const sc = ST.scores[m.name]||{w:0,s:0,t:0,pts:0};
+    let pts;
+    if(q1.up || sc.up){
+      pts = sc.pts||0;
+    } else {
+      const co = (ST.carryOver||{})[m.name]||{pts:0};
+      pts = (co.pts||0)+(sc.pts||0);
+    }
+    return{name:m.name,isExt:m.isExt,...sc,pts};
+  }).filter(p=>p.pts>0).sort((a,b)=>b.pts-a.pts||b.w-a.w);
 }
 
 // 페이지 로드 시 리그 UI 자동 복원
@@ -964,8 +986,6 @@ function renderMembersAdminUI(currentUser) {
   var isAdmin = !!window.isAdminMode;
 
   var buFilter = area.dataset.buFilter || 'all';
-  var searchQ  = area.dataset.search  || '';
-  var wasFocused = document.activeElement && document.activeElement.id === 'member-search-input';
 
   // 항상 localStorage에서 최신 데이터 읽기
   try { var _lm = localStorage.getItem('ttgo_members'); if(_lm){ window.MEMBERS = JSON.parse(_lm); MEMBERS = window.MEMBERS; } } catch(e){}
@@ -981,13 +1001,11 @@ function renderMembersAdminUI(currentUser) {
     .sort((a,b) => Number(a) - Number(b));
 
   function matchFilter(m) {
-    var okBu = buFilter === 'all' || String(m.total) === buFilter;
-    var okQ  = !searchQ || (m.name||'').includes(searchQ);
-    return okBu && okQ;
+    return buFilter === 'all' || String(m.total) === buFilter;
   }
   var fM  = allM.filter(matchFilter);
   var fD  = allD.filter(matchFilter);
-  var fEx = allEx.filter(m => !searchQ || (m.name||'').includes(searchQ));
+  var fEx = allEx.slice();
 
   // 부수별 배지 색상
   function buColor(bu) {
@@ -1064,11 +1082,11 @@ function renderMembersAdminUI(currentUser) {
         ${btn('완전삭제', `deleteExMember('${jsEscape(m.name)}')`,      '#f3e5f5', '#7b1fa2', '#7b1fa2')}
       </div>` : ''}
     </div>`).join('')
-    : '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">검색 결과가 없습니다.</div>';
+    : '<div style="padding:20px;text-align:center;color:#ccc;font-size:13px;">표시할 회원이 없습니다.</div>';
 
   // 카운트 배지 (필터 중일 때 "N / 전체 M명" 표시)
   function countBadge(filtered, all, bgFilter, bgAll, colorAll) {
-    if (buFilter !== 'all' || searchQ)
+    if (buFilter !== 'all')
       return `<span style="background:${bgFilter};color:#fff;border-radius:20px;padding:2px 12px;font-size:12px;font-weight:700;">${filtered}명</span>
               <span style="background:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);border-radius:20px;padding:2px 10px;font-size:11px;">전체 ${all}명</span>`;
     return `<span style="background:${bgAll};color:${colorAll};border-radius:20px;padding:2px 14px;font-size:12px;font-weight:700;">${all}명</span>`;
@@ -1097,18 +1115,6 @@ function renderMembersAdminUI(currentUser) {
       </div>
     </div>
 
-    <!-- 검색창 -->
-    <div style="position:relative;margin-bottom:12px;">
-      <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;">🔍</span>
-      <input id="member-search-input" type="text" placeholder="이름 검색..."
-        value="${escapeHtml(searchQ)}"
-        oninput="document.getElementById('admin-members-area').dataset.search=this.value;renderMembersAdminUI(window.currentUser||'');"
-        style="width:100%;box-sizing:border-box;padding:10px 14px 10px 38px;
-               border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;
-               transition:border-color .2s;"
-        onfocus="this.style.borderColor='#1a1a2e'" onblur="this.style.borderColor='#e0e0e0'">
-    </div>
-
     <!-- 부수 필터 -->
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">${filterBtns}</div>
 
@@ -1118,6 +1124,7 @@ function renderMembersAdminUI(currentUser) {
         <span style="color:#fff;font-weight:700;font-size:14px;">정회원</span>
         <div style="display:flex;gap:6px;align-items:center;">
           ${countBadge(fM.length, allM.length, '#e94560', '#e94560', '#fff')}
+          ${isAdmin ? `<button onclick="window.showAddMemberModal()" style="padding:5px 12px;font-size:12px;font-weight:700;border-radius:8px;border:none;background:#e94560;color:white;cursor:pointer;">+ 신규 추가</button>` : ''}
         </div>
       </div>
       ${memberRows}
@@ -1148,12 +1155,6 @@ function renderMembersAdminUI(currentUser) {
     </div>` : ''}
 
   </div>`;
-
-  // 검색 중 포커스 복원
-  if (wasFocused) {
-    var inp = document.getElementById('member-search-input');
-    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
-  }
 }
 
 // 회원 정보 수정(운영진만)

@@ -28,6 +28,8 @@ function setAdminMode(isAdmin) {
   const lockBtn = document.getElementById('lock-btn');
   if (badge) badge.style.display = isAdmin ? '' : 'none';
   if (lockBtn) lockBtn.textContent = isAdmin ? '🔓' : '🔒';
+  // 출석부 재렌더링 (✕ 버튼 표시 여부 반영)
+  if (typeof renderAttendance === 'function') renderAttendance();
 }
 
 // 페이지 로드 시 운영자 모드 복원
@@ -67,13 +69,7 @@ window.addEventListener('load', function(){
   }catch(e){ console.error('restore tab error', e); }
 });
 
-// 자물쇠 버튼 클릭 시 토글
-window.toggleAdmin = function() {
-  window.isAdminMode = !window.isAdminMode;
-  setAdminMode(window.isAdminMode);
-  // 운영자 모드 진입 시 currentUser 자동 세팅
-  if (window.isAdminMode && !window.currentUser) window.currentUser = '안치국';
-};
+// 자물쇠 버튼 클릭은 admin.js의 toggleAdmin()이 처리 (PIN 인증 포함)
 // =========================
 // 회원관리 데이터/운영진 기본값 보장 및 안내 메시지 보강
 // =========================
@@ -263,6 +259,87 @@ restoreLeagueUI();
   localStorage.setItem('ttgo_m0410v2','done');
 })();
 
+// Q1 게스트 랭킹포인트 마이그레이션
+(function migrateQ1GuestScores(){
+  if(localStorage.getItem('ttgo_q1guest_v1')) return;
+  if(!ST.guestScores) ST.guestScores={};
+
+  var guests=[
+    {name:'김정연', bu:3, w:1, s:0, t:0, pts:5},   // 01/09 리그 우승
+    {name:'이병찬', bu:5, w:0, s:1, t:0, pts:3},   // 01/09 리그 준우승
+    {name:'이현구', bu:7, w:0, s:0, t:1, pts:2},   // 01/09 리그 3위 (04/10 준우승은 기존 반영)
+    {name:'이희숙', bu:9, w:0, s:1, t:0, pts:3},   // 01/16 리그 준우승
+    {name:'김종화', bu:6, w:0, s:1, t:0, pts:3},   // 02/06 리그 준우승
+    {name:'황동후', bu:5, w:0, s:1, t:0, pts:3},   // 02/13 리그 준우승
+    {name:'조충기', bu:6, w:0, s:0, t:1, pts:2},   // 02/13 리그 3위
+    {name:'박한순', bu:8, w:0, s:1, t:1, pts:5},   // 02/27 준우승 + 03/27 3위
+    {name:'민경숙', bu:7, w:0, s:0, t:1, pts:2},   // 02/27 리그 3위
+    {name:'임계수', bu:6, w:1, s:1, t:0, pts:8},   // 03/13 리그 준우승 + 03/18 푸르미 우승
+    {name:'김정만', bu:6, w:1, s:0, t:0, pts:5},   // 02/10 LG 우승
+    {name:'한결',   bu:3, w:0, s:0, t:1, pts:2},   // 02/10 LG 3위
+    {name:'정용찬', bu:6, w:0, s:1, t:0, pts:3},   // 03/05 한전 준우승
+    {name:'임근숙', bu:9, w:0, s:0, t:1, pts:2},   // 03/18 푸르미 3위
+    {name:'김재홍', bu:6, w:0, s:1, t:0, pts:3},   // 04/01 송강 준우승
+    {name:'신정민', bu:4, w:0, s:0, t:1, pts:2},   // 04/01 송강 3위
+  ];
+
+  guests.forEach(function(g){
+    if(!ST.guestScores[g.name]) ST.guestScores[g.name]={w:0,s:0,t:0,pts:0,bu:g.bu};
+    ST.guestScores[g.name].w+=g.w;
+    ST.guestScores[g.name].s+=g.s;
+    ST.guestScores[g.name].t+=g.t;
+    ST.guestScores[g.name].pts+=g.pts;
+    ST.guestScores[g.name].bu=g.bu;
+  });
+
+  saveST();
+  localStorage.setItem('ttgo_q1guest_v1','done');
+})();
+
+// Q1 게스트 부수 정정 마이그레이션
+(function migrateQ1GuestBu(){
+  if(localStorage.getItem('ttgo_q1guest_bu_v1')) return;
+  if(!ST.guestScores) ST.guestScores={};
+  var buFix={김정연:3,이희숙:9,김종화:6,황동후:5,조충기:6,민경숙:7};
+  Object.keys(buFix).forEach(function(name){
+    if(ST.guestScores[name]) ST.guestScores[name].bu=buFix[name];
+  });
+  saveST();
+  localStorage.setItem('ttgo_q1guest_bu_v1','done');
+})();
+
+// Q1 경기 결과 히스토리 마이그레이션 (결과만)
+(function migrateQ1History(){
+  if(localStorage.getItem('ttgo_q1hist_v1')) return;
+  var history=[];
+  try{ history=JSON.parse(localStorage.getItem('ttgo_history')||'[]'); }catch(e){}
+
+  var records=[
+    {date:'2026-01-09',type:'금요리그',final:{win:'김정연',second:'이병찬',third:'이현구',lucky:''}},
+    {date:'2026-01-16',type:'금요리그',final:{win:'최양님',second:'이희숙',third:'김덕기',lucky:'안치국, 이현구'}},
+    {date:'2026-02-06',type:'금요리그',final:{win:'김덕기',second:'김종화',third:'김영서',lucky:'김영서'}},
+    {date:'2026-02-10',type:'LG 교류전',final:{win:'김정만',second:'이원호',third:'한결',lucky:'정희남'}},
+    {date:'2026-02-13',type:'금요리그',final:{win:'이원호',second:'황동후',third:'조충기',lucky:'이봄희'}},
+    {date:'2026-02-27',type:'금요리그',final:{win:'이미진',second:'박한순',third:'민경숙',lucky:'안경식, 정정순'}},
+    {date:'2026-03-05',type:'한전 교류전',final:{win:'김덕기',second:'정용찬',third:'안치국',lucky:'박대근'}},
+    {date:'2026-03-13',type:'금요리그',final:{win:'이원호',second:'임계수',third:'이상건',lucky:'이운희'}},
+    {date:'2026-03-18',type:'푸르미 교류전',final:{win:'임계수',second:'이진규',third:'임근숙',lucky:'이운희'}},
+    {date:'2026-03-27',type:'금요리그',final:{win:'안치국',second:'이상건',third:'박한순',lucky:''}},
+    {date:'2026-04-01',type:'송강 교류전',final:{win:'이진규',second:'김재홍',third:'신정민',lucky:'여인국'}},
+  ];
+
+  records.forEach(function(r){
+    var rec={date:r.date,week:'',type:r.type,set:'',players:[],groups:[],results:[],final:Object.assign({third2:''},r.final),savedAt:Date.now()};
+    var idx=history.findIndex(function(h){return h.date===r.date;});
+    if(idx>=0) history[idx]=rec; else history.push(rec);
+  });
+
+  history.sort(function(a,b){ return b.date.localeCompare(a.date); });
+  localStorage.setItem('ttgo_history', JSON.stringify(history));
+  if(typeof db!=='undefined') db.ref('ttgo_history').set(history);
+  localStorage.setItem('ttgo_q1hist_v1','done');
+})();
+
 // ── Firebase 연동 함수 ──
 function saveToFirebase(){
   if(typeof db === 'undefined') return;
@@ -294,13 +371,14 @@ function loadFromFirebase(){
     }
     // carryOver는 고정 역사 데이터 → 항상 정확한 값으로 보장
     ST.carryOver = {
-      '김영서':{w:0,s:0,t:1,pts:2}, '안치국':{w:1,s:0,t:1,pts:7},
-      '이상건':{w:0,s:0,t:2,pts:4}, '이진규':{w:0,s:1,t:1,pts:5},
+      '김영서':{w:0,s:0,t:1,pts:2}, '안치국':{w:1,s:0,t:0,pts:5},
+      '이상건':{w:0,s:1,t:1,pts:5},
       '최양님':{w:1,s:0,t:0,pts:5}, '이미진':{w:1,s:0,t:0,pts:5},
+      // 이진규: Q1 교류전 8pt (푸르미 준우승+송강 우승) → 미승급, getPromotionPts에서 exPts로 자동 계산
     };
     if(!ST.scores) ST.scores = {};
-    // 최양님 승급 상태 항상 보장
-    ST.scores['최양님'] = {w:0, s:0, t:0, pts:0, up:true};
+    // 최양님 승급 상태 항상 보장 (4/10 우승 w:1 보존, pts만 리셋)
+    ST.scores['최양님'] = {w:1, s:0, t:0, pts:0, up:true};
     // 이원호 4월10일 3위 점수 — 없으면 복구
     if(!ST.scores['이원호'] || (!ST.scores['이원호'].t && !ST.scores['이원호'].w && !ST.scores['이원호'].s)){
       ST.scores['이원호'] = {w:0, s:0, t:1, pts:2};
@@ -316,63 +394,145 @@ function loadFromFirebase(){
     db.ref('ttgo_history').once('value').then(function(snap){
       if(snap.val()) localStorage.setItem('ttgo_history', JSON.stringify(snap.val()));
     });
-    // 회원 데이터: Firebase updatedAt vs localStorage updatedAt 비교 후 최신 데이터 사용
-    // Firebase가 더 최신이면(다른 기기에서 변경됨) Firebase 데이터로 덮어씀
+    // 회원 데이터: 항상 Firebase에서 로드 후 한 번에 렌더링 (멀티기기 동기화 보장)
     var fbMembersUpdatedAt = data.membersUpdatedAt || 0;
-    var localMembersUpdatedAt = parseInt(localStorage.getItem('ttgo_members_updatedAt')||'0', 10);
-    var needMembersFromFB = !localStorage.getItem('ttgo_members') || fbMembersUpdatedAt > localMembersUpdatedAt;
-    var needDormantFromFB = !localStorage.getItem('ttgo_dormant') || fbMembersUpdatedAt > localMembersUpdatedAt;
-    var needExFromFB      = !localStorage.getItem('ttgo_ex_members') || fbMembersUpdatedAt > localMembersUpdatedAt;
-    if(needMembersFromFB){
-      db.ref('members').once('value').then(function(snap){
-        var val = snap.val();
-        if(val && Array.isArray(val) && val.length > 0){
-          MEMBERS.length = 0;
-          val.forEach(function(m){ MEMBERS.push(m); });
-          window.MEMBERS = MEMBERS;
-          localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
-          localStorage.setItem('ttgo_members_updatedAt', String(fbMembersUpdatedAt||Date.now()));
-          renderMembers();
-          if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
-          if(typeof renderRanking==='function') renderRanking();
+    Promise.all([
+      db.ref('members').once('value'),
+      db.ref('dormant').once('value'),
+      db.ref('ex_members').once('value')
+    ]).then(function(snaps){
+      var mVal = snaps[0].val();
+      if(mVal && Array.isArray(mVal) && mVal.length > 0){
+        MEMBERS.length = 0;
+        mVal.forEach(function(m){ MEMBERS.push(m); });
+        window.MEMBERS = MEMBERS;
+        localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
+        localStorage.setItem('ttgo_members_updatedAt', String(fbMembersUpdatedAt||Date.now()));
+      }
+      var dVal = snaps[1].val();
+      if(dVal && Array.isArray(dVal)){
+        DORMANT.length = 0;
+        dVal.forEach(function(m){ DORMANT.push(m); });
+        window.DORMANT = DORMANT;
+        localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
+      }
+      var exVal = snaps[2].val();
+      if(exVal && Array.isArray(exVal) && exVal.length > 0){
+        // Firebase에 탈퇴 데이터 있음 → 로컬 덮어씌우기
+        window.EX_MEMBERS = exVal.slice();
+        localStorage.setItem('ttgo_ex_members', JSON.stringify(window.EX_MEMBERS));
+      } else if(!exVal && window.EX_MEMBERS && window.EX_MEMBERS.length > 0){
+        // Firebase에 탈퇴 데이터 없는데 로컬엔 있음 → Firebase로 동기화
+        try{ db.ref('ex_members').set(window.EX_MEMBERS); }catch(e){}
+      }
+      // Firebase 로드 완료 후 탈퇴 회원 복구 (db 준비된 상태에서 실행)
+      var knownRetired = [
+        {name:'김덕기',g:'남',bu:5,total:4},
+        {name:'한철호',g:'남',bu:6,total:6}
+      ];
+      var exArr = window.EX_MEMBERS || [];
+      var changed = false;
+      knownRetired.forEach(function(m){
+        var inMembers = MEMBERS.some(function(x){ return x.name===m.name; });
+        var inDormant = DORMANT.some(function(x){ return x.name===m.name; });
+        var inEx      = exArr.some(function(x){ return x.name===m.name; });
+        if(!inMembers && !inDormant && !inEx){
+          exArr.push({name:m.name,g:m.g,bu:m.bu,total:m.total,retiredAt:Date.now()});
+          changed = true;
         }
       });
-    }
-    if(needDormantFromFB){
-      db.ref('dormant').once('value').then(function(snap){
-        var val = snap.val();
-        if(val && Array.isArray(val)){
-          DORMANT.length = 0;
-          val.forEach(function(m){ DORMANT.push(m); });
-          window.DORMANT = DORMANT;
-          localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
-          if(typeof renderRanking==='function') renderRanking();
-        }
-      });
-    }
-    if(needExFromFB){
-      db.ref('ex_members').once('value').then(function(snap){
-        var val = snap.val();
-        if(val && Array.isArray(val)){
-          EX_MEMBERS.length = 0;
-          val.forEach(function(m){ EX_MEMBERS.push(m); });
-          window.EX_MEMBERS = EX_MEMBERS;
-          localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
-          renderMembers();
-          if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
-          if(typeof renderRanking==='function') renderRanking();
-        }
-      });
-    }
-    renderDash();
-    renderMembers();
-    renderLeague();
-    if(typeof renderRanking === 'function') renderRanking();
-    // 조편성 데이터가 있으면 자동 복원
-    restoreLeagueUI();
-    // 저장된 로그인 자동 복원
-    autoLoginCheck();
+      if(changed){
+        window.EX_MEMBERS = exArr;
+        localStorage.setItem('ttgo_ex_members', JSON.stringify(exArr));
+        try{ db.ref('ex_members').set(exArr); }catch(e){}
+      }
+      // 전체 렌더링
+      renderDash();
+      renderMembers();
+      if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+      renderLeague();
+      if(typeof renderRanking==='function') renderRanking();
+      restoreLeagueUI();
+      autoLoginCheck();
+      // 초기 로드 완료 후 실시간 동기화 리스너 설정
+      setupRealtimeSync();
+    });
   }).catch(function(e){ console.error('Firebase 로드 오류:', e); });
+}
+
+// 실시간 동기화: 다른 기기에서 변경 시 자동 반영
+var _realtimeSyncReady = false;
+function setupRealtimeSync(){
+  if(_realtimeSyncReady || typeof db === 'undefined') return;
+  _realtimeSyncReady = true;
+
+  // ST 데이터 (경기결과, 토너먼트, 순위)
+  db.ref('ttgo').on('value', function(snap){
+    var data = snap.val();
+    if(!data) return;
+    var stData = data.ST || (data.scores !== undefined ? data : null);
+    if(!stData) return;
+    var co = ST.carryOver;   // 고정 역사 데이터 보존
+    var week = ST.week;      // 진행 중인 조편성/경기 데이터 보존 (덮어쓰기 방지)
+    Object.assign(ST, stData);
+    ST.week = week;
+    if(co) ST.carryOver = co;
+    if(!ST.scores) ST.scores={};
+    if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
+    if(!ST.week.players) ST.week.players=[];
+    if(!ST.week.groups) ST.week.groups=[[],[],[],[]];
+    if(!ST.doubles) ST.doubles={pairs:[],nonMembers:[],groups:[[],[],[],[]],results:[]};
+    if(!ST.final) ST.final={win:'',second:'',third:'',third2:'',lucky:''};
+    if(!ST.tournament) ST.tournament={};
+    localStorage.setItem('ttgo_v3', JSON.stringify(ST));
+    renderDash();
+    if(typeof renderRanking==='function') renderRanking();
+    var t = localStorage.getItem('ttgo_active_tab');
+    if(t==='tournament' && typeof renderTournamentTab==='function') renderTournamentTab();
+    if(t==='history' && typeof renderHistory==='function') renderHistory();
+  });
+
+  // 회원 데이터
+  db.ref('members').on('value', function(snap){
+    var val = snap.val();
+    if(!val || !Array.isArray(val) || !val.length) return;
+    MEMBERS.length=0; val.forEach(function(m){MEMBERS.push(m);}); window.MEMBERS=MEMBERS;
+    localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
+    if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+    if(typeof renderRanking==='function') renderRanking();
+  });
+
+  db.ref('dormant').on('value', function(snap){
+    var val = snap.val();
+    if(!val || !Array.isArray(val)) return;
+    DORMANT.length=0; val.forEach(function(m){DORMANT.push(m);}); window.DORMANT=DORMANT;
+    localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
+    if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+  });
+
+  db.ref('ex_members').on('value', function(snap){
+    var val = snap.val();
+    window.EX_MEMBERS = (val && Array.isArray(val)) ? val.slice() : (window.EX_MEMBERS||[]);
+    localStorage.setItem('ttgo_ex_members', JSON.stringify(window.EX_MEMBERS));
+    if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+  });
+
+  // 출석부
+  db.ref('ttgo_attendance').on('value', function(snap){
+    if(!snap.val()) return;
+    localStorage.setItem('ttgo_attendance', JSON.stringify(snap.val()));
+    var t = localStorage.getItem('ttgo_active_tab');
+    if(t==='attendance' && typeof renderAttendance==='function') renderAttendance();
+  });
+
+  // 경기 기록
+  db.ref('ttgo_history').on('value', function(snap){
+    if(!snap.val()) return;
+    localStorage.setItem('ttgo_history', JSON.stringify(snap.val()));
+    var t = localStorage.getItem('ttgo_active_tab');
+    if(t==='history' && typeof renderHistory==='function') renderHistory();
+  });
+
 }
 
 // 앱 시작 시 Firebase 로드는 SDK 초기화 후 실행 (하단 script에서)
@@ -392,28 +552,7 @@ let EX_MEMBERS = (function(){
 // window.EX_MEMBERS 즉시 동기화 (line 95에서 []로 초기화됐으므로 덮어씀)
 window.EX_MEMBERS = EX_MEMBERS;
 
-// 탈퇴 회원 데이터 복구: MEMBERS에 없는데 EX_MEMBERS에도 없으면 탈퇴 목록에 추가
-(function recoverExMembers(){
-  var knownRetired = [
-    {name:'김덕기',g:'남',bu:5,total:4},
-    {name:'한철호',g:'남',bu:6,total:6}
-  ];
-  var changed = false;
-  knownRetired.forEach(function(m){
-    var inMembers  = MEMBERS.some(function(x){ return x.name===m.name; });
-    var inDormant  = DORMANT.some(function(x){ return x.name===m.name; });
-    var inEx       = EX_MEMBERS.some(function(x){ return x.name===m.name; });
-    if(!inMembers && !inDormant && !inEx){
-      EX_MEMBERS.push({...m, retiredAt: Date.now()});
-      changed = true;
-    }
-  });
-  if(changed){
-    window.EX_MEMBERS = EX_MEMBERS;
-    localStorage.setItem('ttgo_ex_members', JSON.stringify(EX_MEMBERS));
-    if(typeof db!=='undefined') try{ db.ref('ex_members').set(EX_MEMBERS); }catch(e){}
-  }
-})();
+// 탈퇴 회원 복구는 loadFromFirebase() 내부에서 Firebase 준비 후 실행됨
 
 // 운영진 여부 체크 함수
 function isAdmin(userName) {
@@ -636,6 +775,62 @@ window.showEditMemberModal = function(originalName){
   }catch(e){ console.error('showEditMemberModal error', e); alert('모달을 열 수 없습니다. 콘솔을 확인하세요.'); }
 };
 
+window.showAddMemberModal = function(){
+  try{
+    if(!document.getElementById('add-member-modal')){
+      const wrapper = document.createElement('div');
+      wrapper.id = 'add-member-modal';
+      wrapper.style = 'position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;z-index:12000;background:rgba(0,0,0,0.5);';
+      wrapper.innerHTML = `
+        <div style="background:white;border-radius:12px;padding:20px;max-width:420px;width:94%;box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+          <h3 style="margin:0 0 16px 0;font-size:18px;color:#1a1a2e;">신규 회원 추가</h3>
+          <div style="margin-bottom:6px;font-size:13px;color:#666;">이름</div>
+          <input id="add-member-name" type="text" placeholder="이름 입력" style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #ddd;border-radius:6px;margin-bottom:12px;font-size:14px;" />
+          <div style="margin-bottom:6px;font-size:13px;color:#666;">성별</div>
+          <select id="add-member-gender" style="width:100%;padding:9px;border:1px solid #ddd;border-radius:6px;margin-bottom:12px;font-size:14px;">
+            <option value="남">남</option>
+            <option value="여">여</option>
+          </select>
+          <div style="margin-bottom:6px;font-size:13px;color:#666;">부수</div>
+          <input id="add-member-bu" type="number" min="1" max="99" placeholder="예: 6" style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #ddd;border-radius:6px;margin-bottom:18px;font-size:14px;" />
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button id="add-member-cancel" style="padding:9px 16px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer;font-size:14px;">취소</button>
+            <button id="add-member-save" style="padding:9px 16px;border-radius:8px;border:none;background:#1a1a2e;color:white;cursor:pointer;font-size:14px;font-weight:700;">추가</button>
+          </div>
+        </div>`;
+      document.body.appendChild(wrapper);
+      document.getElementById('add-member-cancel').addEventListener('click', function(){ window.closeModal('add-member-modal'); });
+    }
+    // 입력 초기화
+    document.getElementById('add-member-name').value = '';
+    document.getElementById('add-member-bu').value = '';
+    document.getElementById('add-member-gender').value = '남';
+    window.openModal('add-member-modal');
+    // 저장 버튼 핸들러
+    const saveBtn = document.getElementById('add-member-save');
+    const newSave = saveBtn.cloneNode(true);
+    saveBtn.parentNode.replaceChild(newSave, saveBtn);
+    newSave.addEventListener('click', function(){
+      const name = (document.getElementById('add-member-name').value||'').trim();
+      const gender = document.getElementById('add-member-gender').value;
+      const bu = parseInt(document.getElementById('add-member-bu').value, 10);
+      if(!name){ alert('이름을 입력하세요.'); return; }
+      if(isNaN(bu) || bu < 1){ alert('유효한 부수를 입력하세요.'); return; }
+      if(MEMBERS.find(m=>m.name===name) || DORMANT.find(m=>m.name===name)){
+        alert('이미 존재하는 회원입니다.'); return;
+      }
+      MEMBERS.push({name, g:gender, bu, total:bu});
+      window.MEMBERS = MEMBERS;
+      // MNAMES 즉시 갱신 (출석 자동기록 등에 사용)
+      window.MNAMES = MEMBERS.map(function(m){ return m.name; });
+      syncAllMemberData();
+      window.closeModal('add-member-modal');
+      if(typeof renderMembersAdminUI === 'function') renderMembersAdminUI(window.currentUser||'');
+      alert(name + ' 님이 정회원으로 추가되었습니다.');
+    });
+  }catch(e){ console.error('showAddMemberModal error', e); }
+};
+
 // 기록(간단 로그) 추가
 function recordAdminAction(type, details){
   try{
@@ -675,11 +870,11 @@ window.showConfirmModal = function(message, onConfirm, options){
     o.innerHTML =
       '<div class="modal" role="dialog" aria-modal="true" ' +
         'style="max-width:380px;width:92%;border-radius:16px;padding:24px 22px;' +
-               'box-shadow:0 24px 60px rgba(0,0,0,0.28);">' +
+               'background:#fff;box-shadow:0 24px 60px rgba(0,0,0,0.28);">' +
         '<h3 style="margin:0 0 12px 0;font-size:17px;color:' + titleColor + ';">' +
           (options.title || '확인') +
         '</h3>' +
-        '<div style="color:#555;font-size:14px;line-height:1.7;">' +
+        '<div style="color:#333;font-size:14px;line-height:1.7;">' +
           message.replace(/\n/g,'<br/>') +
         '</div>' +
         '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">' +
@@ -688,7 +883,7 @@ window.showConfirmModal = function(message, onConfirm, options){
             'font-size:13px;font-weight:600;">취소</button>' +
           '<button class="btn-modal-confirm" style="padding:9px 20px;border-radius:8px;' +
             'border:none;background:' + confirmBg + ';color:#fff;cursor:pointer;' +
-            'font-size:13px;font-weight:700;">확인</button>' +
+            'font-size:13px;font-weight:700;">' + (options.confirmText || '확인') + '</button>' +
         '</div>' +
       '</div>';
     o.querySelector('.btn-modal-cancel').addEventListener('click', function(){
