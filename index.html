@@ -148,10 +148,8 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
       <span id="s1-status" style="font-size:12px;color:#888;"></span>
     </div>
     <div class="step-body" id="s1">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">
-        <div><label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">날짜</label><input type="date" id="league-date" onchange="onDateChange()" style="width:100%;font-family:inherit;font-size:14px;"></div>
-        <div><label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">주차</label>
-          <select id="league-week" onchange="autoSetType()"><option>1주차</option><option>2주차</option><option>3주차(복식)</option><option>4주차</option></select></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
+        <div><label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">날짜 <span style="color:#e94560;">*</span></label><input type="date" id="league-date" onchange="onDateChange()" style="width:100%;font-family:inherit;font-size:14px;"></div>
         <div><label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">종류</label>
           <select id="league-type" onchange="onTypeChange()"><option>단식</option><option>복식</option></select></div>
         <div><label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">세트</label>

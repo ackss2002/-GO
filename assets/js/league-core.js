@@ -370,22 +370,11 @@ function onDateChange(){
     document.getElementById('league-date').value = '';
     return;
   }
-  // 몇째주 금요일인지 계산
+  // 3주차(매월 3번째 금요일)이면 복식 자동 설정
   const weekNum = Math.ceil(d.getDate() / 7);
-  const weekEl = document.getElementById('league-week');
   const typeEl = document.getElementById('league-type');
-  if(weekNum === 1){ weekEl.value='1주차'; typeEl.value='단식'; }
-  else if(weekNum === 2){ weekEl.value='2주차'; typeEl.value='단식'; }
-  else if(weekNum === 3){ weekEl.value='3주차(복식)'; typeEl.value='복식'; }
-  else { weekEl.value='4주차'; typeEl.value='단식'; }
-  onTypeChange();
-}
-
-function autoSetType(){
-  const week = document.getElementById('league-week').value;
-  const typeEl = document.getElementById('league-type');
-  if(week === '3주차(복식)') typeEl.value = '복식';
-  else typeEl.value = '단식';
+  if(weekNum === 3){ typeEl.value='복식'; }
+  else { typeEl.value='단식'; }
   onTypeChange();
 }
 
@@ -398,8 +387,10 @@ function toggleP(name){
 
 function confirmPlayers(){
   const isDoubles = document.getElementById('league-type').value==='복식';
+  const dateVal = document.getElementById('league-date').value;
+  if(!dateVal){alert('날짜를 먼저 선택하세요.');document.getElementById('league-date').focus();return;}
   if(ST.week.players.length<(isDoubles?4:4)){alert('최소 4명 선택하세요.');return;}
-  ST.week.date=document.getElementById('league-date').value||new Date().toISOString().slice(0,10);
+  ST.week.date=dateVal;
   ST.week.type=document.getElementById('league-type').value;
   ST.week.set=document.getElementById('league-set').value;
   saveST();
