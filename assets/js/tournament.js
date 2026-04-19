@@ -283,8 +283,22 @@ function buildBracket(grpNames, results, size, strict){
   // sectionSize: 이 크기의 구역 안에 같은 조 선수가 2명 이상이면 교환 시도
   function fixLevel(sectionSize){
     const numSec = size / sectionSize;
+    // 교환 전후 섹션 내 같은 조 충돌 수 계산 (overSlot 위치를 overVal로 가정)
+    function cntConf(secStart, overSlot, overVal){
+      let c=0;
+      for(let a=secStart; a<secStart+sectionSize; a++){
+        const va=(a===overSlot)?overVal:bracket[a];
+        if(!va||va==='BYE'||!grpMap[va]) continue;
+        for(let b=a+1; b<secStart+sectionSize; b++){
+          const vb=(b===overSlot)?overVal:bracket[b];
+          if(!vb||vb==='BYE'||!grpMap[vb]) continue;
+          if(grpMap[va]===grpMap[vb]) c++;
+        }
+      }
+      return c;
+    }
     for(let sec=0; sec<numSec; sec++){
-      const s = sec*sectionSize, e = s+sectionSize;
+      const s=sec*sectionSize, e=s+sectionSize;
       for(let i=s; i<e; i++){
         if(!bracket[i]||bracket[i]==='BYE') continue;
         for(let j=i+1; j<e; j++){
@@ -297,11 +311,10 @@ function buildBracket(grpNames, results, size, strict){
               for(let k=os_s+sectionSize-1; k>=os_s&&!swapped; k--){
                 if(!bracket[k]||bracket[k]==='BYE') continue;
                 const nj=bracket[k], nk=bracket[j];
-                const secSlots  = Array.from({length:sectionSize},(_,x)=>s+x).filter(x=>x!==j);
-                const osSlots   = Array.from({length:sectionSize},(_,x)=>os_s+x).filter(x=>x!==k);
-                const okNj = secSlots.every(x=>!(bracket[x]!=='BYE'&&grpMap[bracket[x]]&&grpMap[nj]&&grpMap[bracket[x]]===grpMap[nj]));
-                const okNk = osSlots.every(x=>!(bracket[x]!=='BYE'&&grpMap[bracket[x]]&&grpMap[nk]&&grpMap[bracket[x]]===grpMap[nk]));
-                if(okNj&&okNk){ bracket[j]=nj; bracket[k]=nk; swapped=true; }
+                // 교환 후 두 섹션의 총 충돌 수가 줄면 허용 (더 작은 충돌로의 교환도 수용)
+                const cur=cntConf(s,-1,null)+cntConf(os_s,-1,null);
+                const nxt=cntConf(s,j,nj)+cntConf(os_s,k,nk);
+                if(nxt<cur){ bracket[j]=nj; bracket[k]=nk; swapped=true; }
               }
             }
           }
