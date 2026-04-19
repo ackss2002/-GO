@@ -1016,7 +1016,7 @@ function openScorePopup(gi, ri, ci){
       <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:24px;">
         <div style="text-align:center;flex:1;">
           <div style="font-size:16px;color:#1a1a2e;font-weight:700;margin-bottom:8px;">${escapeHtml(playerA)}</div>
-          <input type="number" id="popup-score-a" min="0" max="${max}" value="${valA}" inputmode="numeric"
+          <input type="text" id="popup-score-a" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${valA}"
             style="width:72px;height:64px;font-size:30px;font-weight:700;text-align:center;border:2px solid #1565C0;border-radius:10px;color:#1a1a2e;">
         </div>
         <div style="font-size:22px;font-weight:700;color:#bbb;padding-top:20px;">:</div>
