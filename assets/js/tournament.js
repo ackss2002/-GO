@@ -35,10 +35,7 @@ function goToTournament(){
   }
   saveST();
 
-  const bracketLabel = size===4?'4강':size===8?'8강':size===16?'16강':'32강';
-  document.getElementById('t-seeds').textContent =
-    bracketLabel + ' 토너먼트 대진\n' +
-    res.map(r=> (r.g+'조: '+ r.players.map((p,i)=>(i+1)+'위 '+escapeHtml(p.name)).join(', '))).join('\n');
+  document.getElementById('t-seeds').textContent = '';
 
   renderBracket(bracket, size);
   document.getElementById('t2').style.display='block';
@@ -128,11 +125,7 @@ function renderTournamentTab(){
   if(ST.tournament && ST.tournament.bracket && ST.tournament.bracket.length > 0){
     const seeds = ST.tournament.seeds;
     const size = ST.tournament.size;
-    document.getElementById('t-seeds').innerHTML =
-      '<div style="font-size:12px;font-weight:700;margin-bottom:8px;color:#e65100;">현재 토너먼트 대진</div>'+
-      ST.week.results.map(g=>'<div style="margin-bottom:4px;"><span style="font-size:11px;font-weight:700;color:#1565C0;">'+g.g+'조:</span> '+
-        g.players.map((p,i)=>'<span class="pill pill-blue" style="margin:2px;">'+(i+1)+'위 '+escapeHtml(p.name)+'</span>').join('')+'</div>'
-      ).join('');
+    document.getElementById('t-seeds').innerHTML = '';
   }
 }
 
