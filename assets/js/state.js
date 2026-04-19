@@ -113,6 +113,7 @@ function getMemberBuMap(){
   });
   getExternals().forEach(m=>{ map[m.name]=m.total; });
   (ST.week.tempPlayers||[]).forEach(m=>{ map[m.name]=m.total; });
+  (ST.guests||[]).forEach(m=>{ map[m.name]=m.total; });
   return map;
 }
 
@@ -350,6 +351,7 @@ function loadTestData(numGroups){
   MEMBERS.forEach(m=>{ memberBuMap2[m.name]=m.total; });
   getExternals().forEach(m=>{ memberBuMap2[m.name]=m.total; });
   (ST.week.tempPlayers||[]).forEach(m=>{ memberBuMap2[m.name]=m.total; });
+  (ST.guests||[]).forEach(m=>{ memberBuMap2[m.name]=m.total; });
   let matchHtml='';
   groups.forEach(function(grp, gi){
     const n=grp.length;

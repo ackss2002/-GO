@@ -769,6 +769,7 @@ function renderMatches(){
   MEMBERS.forEach(m=>{ memberBuMap[m.name]=m.bu!==m.total?m.bu+"("+m.total+")":m.total; });
   getExternals().forEach(m=>{ memberBuMap[m.name]=m.total; });
   (ST.week.tempPlayers||[]).forEach(m=>{ memberBuMap[m.name]=m.total; });
+  (ST.guests||[]).forEach(m=>{ memberBuMap[m.name]=m.total; });
   let html='';
   gs.forEach((grp,gi)=>{
     const n=grp.length;
@@ -788,7 +789,7 @@ function renderMatches(){
         </thead>
         <tbody>
           ${grp.map((p,ri)=>{
-            const isGuest = (ST.week.tempPlayers||[]).find(t=>t.name===p);
+            const isGuest = (ST.week.tempPlayers||[]).find(t=>t.name===p)||(ST.guests||[]).find(t=>t.name===p);
             const nameStyle = isGuest ? 'color:#546e7a;' : '';
             return `
           <tr>

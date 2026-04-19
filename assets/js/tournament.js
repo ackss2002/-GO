@@ -564,6 +564,7 @@ function renderBracket(bracket, size){
   MEMBERS.forEach(function(m){ buMap[m.name] = m.bu!==m.total ? m.bu+'('+m.total+')' : m.total; });
   getExternals().forEach(function(m){ buMap[m.name] = m.total; });
   (ST.week.tempPlayers||[]).forEach(function(m){ buMap[m.name] = m.total; });
+  (ST.guests||[]).forEach(function(m){ buMap[m.name] = m.total; });
   if(ST.doubles && ST.doubles.pairs){
     ST.doubles.pairs.forEach(function(pair){
       const tn=pair[0]+'/'+pair[1];
@@ -848,6 +849,9 @@ function _showPlayerPopupNow(e, name){
   // 팝업 내용 구성
   const memberBuMap3 = {};
   MEMBERS.forEach(function(m){ memberBuMap3[m.name]=m.total; });
+  getExternals().forEach(function(m){ memberBuMap3[m.name]=m.total; });
+  (ST.week.tempPlayers||[]).forEach(function(m){ memberBuMap3[m.name]=m.total; });
+  (ST.guests||[]).forEach(function(m){ memberBuMap3[m.name]=m.total; });
   const bu = memberBuMap3[name] || '';
 
   let html = '<div style="font-weight:800;font-size:14px;color:#1a1a2e;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:6px;">'
@@ -980,7 +984,7 @@ function saveResult(){
     } else if(isTemp){
       // 게스트 승점
       if(!ST.guestScores) ST.guestScores={};
-      const guest = (ST.week.tempPlayers||[]).find(p=>p.name===name);
+      const guest = (ST.week.tempPlayers||[]).find(p=>p.name===name)||(ST.guests||[]).find(p=>p.name===name);
       const bu = guest ? guest.total : '?';
       if(!ST.guestScores[name]) ST.guestScores[name]={w:0,s:0,t:0,pts:0,bu};
       if(i===0){ST.guestScores[name].w++;ST.guestScores[name].pts+=5;}
