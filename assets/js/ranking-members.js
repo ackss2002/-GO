@@ -255,7 +255,8 @@ function renderRanking(){
       const upTag=p.up?'<span class="pill pill-amber" style="margin-left:4px;">↑승급</span>':'';
       const exTag=p.isEx?'<span class="pill" style="margin-left:4px;background:#ffebee;color:#c62828;font-size:10px;">탈퇴</span>':'';
       const dormTag=p.isDormant?'<span class="pill" style="margin-left:4px;background:#eceff1;color:#607d8b;font-size:10px;">휴면</span>':'';
-      const promoLabel=`<span style="font-size:11px;color:#aaa;margin-left:3px;">(${p.promoPts})</span>`;
+      const promoColor = p.promoPts>=8?'#e65100':p.promoPts>=5?'#666':'#999';
+      const promoLabel=`<span style="font-size:12px;color:${promoColor};margin-left:3px;font-weight:600;">(${p.promoPts})</span>`;
 
       return `<tr><td><span class="rank-badge ${bg}">${rank}</span></td>
         <td style="cursor:pointer;" onclick="showPlayerTooltip('${escapeHtml(p.name)}',this)">
