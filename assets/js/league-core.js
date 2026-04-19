@@ -1034,7 +1034,13 @@ function openScorePopup(gi, ri, ci){
       </div>
     </div>`;
   modal.style.display = 'flex';
-  setTimeout(function(){ const inp=document.getElementById('popup-score-a'); if(inp){inp.focus();inp.select();} }, 100);
+  setTimeout(function(){
+    const ia=document.getElementById('popup-score-a');
+    const ib=document.getElementById('popup-score-b');
+    if(ia){ia.focus();ia.select();}
+    if(ia) ia.addEventListener('focus',function(){ia.select();});
+    if(ib) ib.addEventListener('focus',function(){ib.select();});
+  }, 100);
   // A 입력 후 엔터/탭 → B로 포커스
   setTimeout(function(){
     const ia=document.getElementById('popup-score-a');
