@@ -1022,7 +1022,7 @@ function openScorePopup(gi, ri, ci){
         <div style="font-size:22px;font-weight:700;color:#bbb;padding-top:20px;">:</div>
         <div style="text-align:center;flex:1;">
           <div style="font-size:16px;color:#1a1a2e;font-weight:700;margin-bottom:8px;">${escapeHtml(playerB)}</div>
-          <input type="number" id="popup-score-b" min="0" max="${max}" value="${valB}" inputmode="numeric"
+          <input type="text" id="popup-score-b" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${valB}"
             style="width:72px;height:64px;font-size:30px;font-weight:700;text-align:center;border:2px solid #e94560;border-radius:10px;color:#1a1a2e;">
         </div>
       </div>
@@ -1040,6 +1040,7 @@ function openScorePopup(gi, ri, ci){
     function addSelectOnFocus(inp){
       if(!inp) return;
       inp.addEventListener('focus',function(){ setTimeout(function(){inp.select();},0); });
+      inp.addEventListener('input',function(){ inp.value=inp.value.replace(/[^0-9]/g,''); });
     }
     addSelectOnFocus(ia);
     addSelectOnFocus(ib);
