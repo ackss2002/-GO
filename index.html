@@ -149,7 +149,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
     </div>
     <div class="step-body" id="s1">
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
-        <div><label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">날짜 <span style="color:#e94560;">*</span></label><input type="date" id="league-date" onchange="onDateChange()"></div>
+        <div><label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">날짜 <span style="color:#e94560;">*</span></label><input type="date" id="league-date" onchange="onDateChange()" onclick="this.showPicker&&this.showPicker()"></div>
         <div><label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">종류</label>
           <select id="league-type" onchange="onTypeChange()"><option>단식</option><option>복식</option></select></div>
         <div><label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">세트</label>
