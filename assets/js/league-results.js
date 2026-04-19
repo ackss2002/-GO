@@ -58,8 +58,9 @@ function calcResults(){
   if(blockIfTournamentInProgress()) return;
   const isDoubles = ST.week.type==='복식';
   if(isDoubles){ calcResultsDoubles(); return; }
-  const hasAnyResult = Array.from(document.querySelectorAll('[id^="g"][id*="r"][id*="c"]')).some(el=>el.value!=='');
-  if(!hasAnyResult){ alert('경기 결과를 먼저 입력하세요.'); return; }
+  const scoreInputs = Array.from(document.querySelectorAll('[id^="g"][id*="r"][id*="c"]'));
+  if(scoreInputs.length===0){ alert('경기 결과를 먼저 입력하세요.'); return; }
+  if(scoreInputs.some(el=>el.value===''||el.value===null)){ alert('모든 경기 점수를 입력한 후 순위를 계산하세요.'); return; }
   const gs=ST.week.groups.filter(g=>g.length>0);
   let all=[];
 
