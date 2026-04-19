@@ -54,14 +54,14 @@ function showPlayerTooltip(name, el){
     if(placements && placements.length){
       placements.forEach(function(p){
         var dateTxt = p.date.slice(5).replace('-','/');
-        if(p.r==='w') rows.push({date:dateTxt,type:'1분기 리그',icon:'🥇',result:'우승',pts:5});
-        else if(p.r==='s') rows.push({date:dateTxt,type:'1분기 리그',icon:'🥈',result:'준우승',pts:3});
-        else if(p.r==='t') rows.push({date:dateTxt,type:'1분기 리그',icon:'🥉',result:'3위',pts:2});
+        if(p.r==='w') rows.push({date:dateTxt,type:'금요리그',icon:'🥇',result:'우승',pts:5});
+        else if(p.r==='s') rows.push({date:dateTxt,type:'금요리그',icon:'🥈',result:'준우승',pts:3});
+        else if(p.r==='t') rows.push({date:dateTxt,type:'금요리그',icon:'🥉',result:'3위',pts:2});
       });
     } else {
-      for(var i=0;i<(q1.w||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥇',result:'우승',pts:5});
-      for(var i=0;i<(q1.s||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥈',result:'준우승',pts:3});
-      for(var i=0;i<(q1.t||0);i++) rows.push({date:'1분기',type:'1분기 리그',icon:'🥉',result:'3위',pts:2});
+      for(var i=0;i<(q1.w||0);i++) rows.push({date:'1분기',type:'금요리그',icon:'🥇',result:'우승',pts:5});
+      for(var i=0;i<(q1.s||0);i++) rows.push({date:'1분기',type:'금요리그',icon:'🥈',result:'준우승',pts:3});
+      for(var i=0;i<(q1.t||0);i++) rows.push({date:'1분기',type:'금요리그',icon:'🥉',result:'3위',pts:2});
     }
   }
 
@@ -83,9 +83,9 @@ function showPlayerTooltip(name, el){
     if((r.date||'') < Q2_START) return;
     if((r.type||'')==='복식') return;
     var f=r.final||{}, dateTxt=(r.date||'').slice(5).replace('-','/');
-    if(f.win===name)                         rows.push({date:dateTxt,type:'2분기 리그',icon:'🥇',result:'우승',pts:5});
-    else if(f.second===name)                 rows.push({date:dateTxt,type:'2분기 리그',icon:'🥈',result:'준우승',pts:3});
-    else if(f.third===name||f.third2===name) rows.push({date:dateTxt,type:'2분기 리그',icon:'🥉',result:'3위',pts:2});
+    if(f.win===name)                         rows.push({date:dateTxt,type:'금요리그',icon:'🥇',result:'우승',pts:5});
+    else if(f.second===name)                 rows.push({date:dateTxt,type:'금요리그',icon:'🥈',result:'준우승',pts:3});
+    else if(f.third===name||f.third2===name) rows.push({date:dateTxt,type:'금요리그',icon:'🥉',result:'3위',pts:2});
   });
 
   // 테이블 헤더
