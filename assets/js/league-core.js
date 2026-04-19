@@ -1049,8 +1049,10 @@ function openScorePopup(gi, ri, ci){
 }
 
 function saveScorePopup(gi, ri, ci){
-  const valA = document.getElementById('popup-score-a').value;
-  const valB = document.getElementById('popup-score-b').value;
+  let valA = document.getElementById('popup-score-a').value;
+  let valB = document.getElementById('popup-score-b').value;
+  // 0:0은 미입력으로 처리
+  if(valA==='0'&&valB==='0'){ valA=''; valB=''; }
   const elA = document.getElementById(`g${gi}r${ri}c${ci}`);
   const elB = document.getElementById(`g${gi}r${ci}c${ri}`);
   if(elA){ elA.value = valA; if(valA!==''){validateScore(gi,ri,ci); styleScoreCell(gi,ri,ci);} else { elA.style.background='transparent'; } }
