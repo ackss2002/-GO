@@ -382,8 +382,6 @@ function loadFromFirebase(){
       ST.scores['이원호'] = {w:0, s:0, t:1, pts:2};
     }
     localStorage.setItem('ttgo_v3', JSON.stringify(ST));
-    // format2로 정규화하여 Firebase 재저장 (다음 접속자도 올바른 데이터 로드)
-    try{ db.ref('ttgo').set({ST:ST, updatedAt:Date.now()}); }catch(e){}
     // 출석부 데이터 로드
     db.ref('ttgo_attendance').once('value').then(function(snap){
       if(snap.val()) localStorage.setItem('ttgo_attendance', JSON.stringify(snap.val()));
