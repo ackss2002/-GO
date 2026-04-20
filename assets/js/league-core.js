@@ -385,22 +385,15 @@ function cycleGDoubles(pairIdx){
 }
 
 function onDateChange(){
-  const el = document.getElementById('league-date');
-  const hint = document.getElementById('league-date-hint');
-  const val = el.value;
-  if(!val){ if(hint) hint.textContent=''; return; }
+  const val = document.getElementById('league-date').value;
+  if(!val) return;
   const d = new Date(val);
-  const day = d.getDay();
-  let snapped = false;
-  if(day !== 5){
-    // 같은 주(월~일)의 금요일로 스냅: 토(6)/일(0)은 직전 금요일, 월~목은 다음 금요일
-    const diff = (day===6) ? -1 : (day===0 ? -2 : (5-day));
-    d.setDate(d.getDate()+diff);
-    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
-    el.value = `${y}-${m}-${dd}`;
-    snapped = true;
+  // 금요일 체크 (5 = 금요일)
+  if(d.getDay() !== 5){
+    alert('금요일만 선택할 수 있습니다!');
+    document.getElementById('league-date').value = '';
+    return;
   }
-  if(hint) hint.textContent = snapped ? '해당 주 금요일로 자동 설정됨' : '';
   // 3주차(매월 3번째 금요일)이면 복식 자동 설정
   const weekNum = Math.ceil(d.getDate() / 7);
   const typeEl = document.getElementById('league-type');
@@ -1023,13 +1016,13 @@ function openScorePopup(gi, ri, ci){
       <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:24px;">
         <div style="text-align:center;flex:1;">
           <div style="font-size:16px;color:#1a1a2e;font-weight:700;margin-bottom:8px;">${escapeHtml(playerA)}</div>
-          <input type="text" id="popup-score-a" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${valA}"
+          <input type="number" id="popup-score-a" min="0" max="${max}" value="${valA}" inputmode="numeric"
             style="width:72px;height:64px;font-size:30px;font-weight:700;text-align:center;border:2px solid #1565C0;border-radius:10px;color:#1a1a2e;">
         </div>
         <div style="font-size:22px;font-weight:700;color:#bbb;padding-top:20px;">:</div>
         <div style="text-align:center;flex:1;">
           <div style="font-size:16px;color:#1a1a2e;font-weight:700;margin-bottom:8px;">${escapeHtml(playerB)}</div>
-          <input type="text" id="popup-score-b" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="${valB}"
+          <input type="number" id="popup-score-b" min="0" max="${max}" value="${valB}" inputmode="numeric"
             style="width:72px;height:64px;font-size:30px;font-weight:700;text-align:center;border:2px solid #e94560;border-radius:10px;color:#1a1a2e;">
         </div>
       </div>
@@ -1041,27 +1034,7 @@ function openScorePopup(gi, ri, ci){
       </div>
     </div>`;
   modal.style.display = 'flex';
-  setTimeout(function(){
-    const ia=document.getElementById('popup-score-a');
-    const ib=document.getElementById('popup-score-b');
-    [ia,ib].forEach(function(inp){
-      if(!inp) return;
-      inp.addEventListener('input',function(){ inp.value=inp.value.replace(/[^0-9]/g,''); });
-      if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
-        inp.addEventListener('touchstart',function(){
-          inp.focus();
-          var prev=inp.value;
-          inp._cleared=false;
-          setTimeout(function(){ prev=inp.value; inp.value=''; inp._cleared=true; inp._prev=prev; },300);
-        },{passive:true});
-        inp.addEventListener('blur',function(){ if(inp._cleared&&inp.value==='') inp.value=inp._prev||''; });
-      } else if('ontouchstart' in window){
-        inp.addEventListener('touchstart',function(){ inp.focus(); setTimeout(function(){inp.select();},0); },{passive:true});
-      } else {
-        inp.addEventListener('mousedown',function(){ setTimeout(function(){inp.select();},0); });
-      }
-    });
-  }, 100);
+  setTimeout(function(){ const inp=document.getElementById('popup-score-a'); if(inp){inp.focus();inp.select();} }, 100);
   // A 입력 후 엔터/탭 → B로 포커스
   setTimeout(function(){
     const ia=document.getElementById('popup-score-a');
@@ -1076,22 +1049,12 @@ function openScorePopup(gi, ri, ci){
 }
 
 function saveScorePopup(gi, ri, ci){
-  let valA = document.getElementById('popup-score-a').value;
-  let valB = document.getElementById('popup-score-b').value;
-  // 0:0은 미입력으로 처리
-  if(valA==='0'&&valB==='0'){ valA=''; valB=''; }
+  const valA = document.getElementById('popup-score-a').value;
+  const valB = document.getElementById('popup-score-b').value;
   const elA = document.getElementById(`g${gi}r${ri}c${ci}`);
   const elB = document.getElementById(`g${gi}r${ci}c${ri}`);
-  if(elA){ elA.value = valA; if(valA!==''){validateScore(gi,ri,ci); styleScoreCell(gi,ri,ci);} else { elA.style.background='transparent'; } }
-  if(elB){ elB.value = valB; if(valB!==''){validateScore(gi,ci,ri); styleScoreCell(gi,ci,ri);} else { elB.style.background='transparent'; } }
-  // 게임 태그 자동 done/해제
-  document.querySelectorAll(`[id^="gt${gi}_"]`).forEach(function(tag){
-    const tr=parseInt(tag.dataset.r), tc=parseInt(tag.dataset.c);
-    if((tr===ri&&tc===ci)||(tr===ci&&tc===ri)){
-      if(valA!==''&&valB!=='') tag.classList.add('done');
-      else if(valA===''&&valB==='') tag.classList.remove('done');
-    }
-  });
+  if(elA){ elA.value = valA; validateScore(gi,ri,ci); styleScoreCell(gi,ri,ci); }
+  if(elB){ elB.value = valB; validateScore(gi,ci,ri); styleScoreCell(gi,ci,ri); }
   realtimeCalc(gi);
   document.getElementById('score-input-modal').style.display = 'none';
 }
