@@ -486,6 +486,7 @@ function setupRealtimeSync(){
     renderDash();
     if(typeof renderRanking==='function') renderRanking();
     var t = localStorage.getItem('ttgo_active_tab');
+    if(t==='league'){ if(typeof renderLeague==='function') renderLeague(); if(typeof restoreLeagueUI==='function') restoreLeagueUI(); }
     if(t==='tournament' && typeof renderTournamentTab==='function') renderTournamentTab();
     if(t==='history' && typeof renderHistory==='function') renderHistory();
   });
