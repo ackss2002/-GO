@@ -147,6 +147,7 @@ function restoreLeagueUI(){
 function renderLeague(){
   if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
   if(!ST.week.players) ST.week.players=[];
+  var _ld=document.getElementById('league-date'); if(_ld&&ST.week.date) _ld.value=ST.week.date;
   const ps=ST.week.players;
   const isDoubles = ST.week.type==='복식';
   const nms = (ST.doubles&&ST.doubles.nonMembers)||[];
