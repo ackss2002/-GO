@@ -385,15 +385,22 @@ function cycleGDoubles(pairIdx){
 }
 
 function onDateChange(){
-  const val = document.getElementById('league-date').value;
-  if(!val) return;
+  const el = document.getElementById('league-date');
+  const hint = document.getElementById('league-date-hint');
+  const val = el.value;
+  if(!val){ if(hint) hint.textContent=''; return; }
   const d = new Date(val);
-  // 금요일 체크 (5 = 금요일)
-  if(d.getDay() !== 5){
-    alert('금요일만 선택할 수 있습니다!');
-    document.getElementById('league-date').value = '';
-    return;
+  const day = d.getDay();
+  let snapped = false;
+  if(day !== 5){
+    // 같은 주(월~일)의 금요일로 스냅: 토(6)/일(0)은 직전 금요일, 월~목은 다음 금요일
+    const diff = (day===6) ? -1 : (day===0 ? -2 : (5-day));
+    d.setDate(d.getDate()+diff);
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+    el.value = `${y}-${m}-${dd}`;
+    snapped = true;
   }
+  if(hint) hint.textContent = snapped ? '해당 주 금요일로 자동 설정됨' : '';
   // 3주차(매월 3번째 금요일)이면 복식 자동 설정
   const weekNum = Math.ceil(d.getDate() / 7);
   const typeEl = document.getElementById('league-type');
