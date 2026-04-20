@@ -1036,13 +1036,18 @@ function openScorePopup(gi, ri, ci){
     </div>`;
   modal.style.display = 'flex';
   setTimeout(function(){ const inp=document.getElementById('popup-score-a'); if(inp){inp.focus();inp.select();} }, 100);
-  // A 입력 후 엔터/탭 → B로 포커스
+  // A 입력 후 엔터/탭/숫자입력 → B로 포커스
   setTimeout(function(){
     const ia=document.getElementById('popup-score-a');
-    if(ia) ia.addEventListener('keydown', function(e){
-      if(e.key==='Enter'||e.key==='Tab'){ e.preventDefault(); const ib=document.getElementById('popup-score-b'); if(ib){ib.focus();ib.select();} }
-    });
     const ib=document.getElementById('popup-score-b');
+    if(ia){
+      ia.addEventListener('keydown', function(e){
+        if(e.key==='Enter'||e.key==='Tab'){ e.preventDefault(); if(ib){ib.focus();ib.select();} }
+      });
+      ia.addEventListener('input', function(){
+        if(ia.value!=='') { if(ib){ib.focus();ib.select();} }
+      });
+    }
     if(ib) ib.addEventListener('keydown', function(e){
       if(e.key==='Enter'){ e.preventDefault(); saveScorePopup(gi,ri,ci); }
     });
