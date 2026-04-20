@@ -1055,8 +1055,9 @@ function openScorePopup(gi, ri, ci){
           setTimeout(function(){ prev=inp.value; inp.value=''; inp._cleared=true; inp._prev=prev; },300);
         },{passive:true});
         inp.addEventListener('blur',function(){ if(inp._cleared&&inp.value==='') inp.value=inp._prev||''; });
-      }
-      if(!('ontouchstart' in window)){
+      } else if('ontouchstart' in window){
+        inp.addEventListener('touchstart',function(){ inp.focus(); setTimeout(function(){inp.select();},0); },{passive:true});
+      } else {
         inp.addEventListener('mousedown',function(){ setTimeout(function(){inp.select();},0); });
       }
     });
