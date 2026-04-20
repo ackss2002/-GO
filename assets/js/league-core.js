@@ -147,6 +147,9 @@ function restoreLeagueUI(){
 function renderLeague(){
   if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
   if(!ST.week.players) ST.week.players=[];
+  const _ld=document.getElementById('league-date'); if(_ld&&ST.week.date) _ld.value=ST.week.date;
+  const _lt=document.getElementById('league-type'); if(_lt&&ST.week.type) _lt.value=ST.week.type;
+  const _ls=document.getElementById('league-set'); if(_ls&&ST.week.set) _ls.value=ST.week.set;
   const ps=ST.week.players;
   const isDoubles = ST.week.type==='복식';
   const nms = (ST.doubles&&ST.doubles.nonMembers)||[];
