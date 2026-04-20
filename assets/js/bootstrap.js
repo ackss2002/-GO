@@ -483,6 +483,7 @@ function setupRealtimeSync(){
     localStorage.setItem('ttgo_v3', JSON.stringify(ST));
     renderDash();
     if(typeof renderLeague==='function') renderLeague();
+    if(typeof restoreLeagueUI==='function') restoreLeagueUI();
     if(typeof renderRanking==='function') renderRanking();
     var t = localStorage.getItem('ttgo_active_tab');
     if(t==='tournament' && typeof renderTournamentTab==='function') renderTournamentTab();
