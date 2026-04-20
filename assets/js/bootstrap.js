@@ -382,6 +382,8 @@ function loadFromFirebase(){
       ST.scores['이원호'] = {w:0, s:0, t:1, pts:2};
     }
     localStorage.setItem('ttgo_v3', JSON.stringify(ST));
+    // format2로 정규화하여 Firebase 재저장 (다음 접속자도 올바른 데이터 로드)
+    try{ db.ref('ttgo').set({ST:ST, updatedAt:Date.now()}); }catch(e){}
     // 출석부 데이터 로드
     db.ref('ttgo_attendance').once('value').then(function(snap){
       if(snap.val()) localStorage.setItem('ttgo_attendance', JSON.stringify(snap.val()));
@@ -469,9 +471,9 @@ function setupRealtimeSync(){
     var stData = data.ST || (data.scores !== undefined ? data : null);
     if(!stData) return;
     var co = ST.carryOver;
-    var savedGroups = ST.week && ST.week.groups;
+    var week = ST.week;
     Object.assign(ST, stData);
-    if(savedGroups) ST.week.groups = savedGroups;
+    ST.week = week;
     if(co) ST.carryOver = co;
     if(!ST.scores) ST.scores={};
     if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
@@ -482,6 +484,7 @@ function setupRealtimeSync(){
     if(!ST.tournament) ST.tournament={};
     localStorage.setItem('ttgo_v3', JSON.stringify(ST));
     renderDash();
+    if(typeof renderLeague==='function') renderLeague();
     if(typeof renderRanking==='function') renderRanking();
     var t = localStorage.getItem('ttgo_active_tab');
     if(t==='tournament' && typeof renderTournamentTab==='function') renderTournamentTab();
