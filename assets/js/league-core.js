@@ -238,7 +238,7 @@ function removeTempPlayer(name){
 
 function onTypeChange(){
   const isDoubles = document.getElementById('league-type').value === '복식';
-  document.getElementById('nonmember-area').style.display = isDoubles ? 'block' : 'none';
+  const na = document.getElementById('nonmember-area'); if(na) na.style.display = isDoubles ? 'block' : 'none';
 }
 
 function addNonMember(){
