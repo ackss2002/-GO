@@ -471,9 +471,7 @@ function setupRealtimeSync(){
     var stData = data.ST || (data.scores !== undefined ? data : null);
     if(!stData) return;
     var co = ST.carryOver;
-    var week = ST.week;
     Object.assign(ST, stData);
-    ST.week = week;
     if(co) ST.carryOver = co;
     if(!ST.scores) ST.scores={};
     if(!ST.week) ST.week={date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
