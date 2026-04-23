@@ -33,7 +33,15 @@ try {
 }
 function getExternals(){ return []; }
 function saveExternals(arr){}
-function saveST(){ localStorage.setItem('ttgo_v3', JSON.stringify(ST)); if(typeof db!=='undefined'){ try{ db.ref('ttgo').set(ST); }catch(e){} } }
+function saveST(){
+  localStorage.setItem('ttgo_v3', JSON.stringify(ST));
+  if(typeof db!=='undefined'){
+    try{
+      // Save in normalized format so realtime listeners always receive {ST: ...}
+      db.ref('ttgo').set({ST: ST, updatedAt: Date.now()});
+    }catch(e){}
+  }
+}
 
 var MNAMES = MEMBERS.map(m=>m.name);
 var INIT_SCORES = {};
