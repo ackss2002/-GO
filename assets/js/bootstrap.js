@@ -528,8 +528,14 @@ function setupRealtimeSync(){
         // 사용자가 날짜 선택 중이면 리그 DOM 재렌더링을 건너뛰어
         // iOS의 네이티브 날짜 피커가 닫히는 문제를 방지
         var ld = document.getElementById('league-date');
-        var activeId = (document && document.activeElement && document.activeElement.id) || '';
-        if(!(ld && activeId === 'league-date')){
+        // 우선적으로 focus/blur 기반 플래그를 체크 (iOS에서 더 신뢰성 있음).
+        var datePickerOpen = (typeof window._isDatePickerOpen !== 'undefined') ? window._isDatePickerOpen : false;
+        // 폴백: document.activeElement 검사
+        if(!datePickerOpen){
+          var activeId = (document && document.activeElement && document.activeElement.id) || '';
+          datePickerOpen = activeId === 'league-date';
+        }
+        if(!(ld && datePickerOpen)){
           if(typeof renderLeague==='function') renderLeague();
           if(typeof restoreLeagueUI==='function') restoreLeagueUI();
         }

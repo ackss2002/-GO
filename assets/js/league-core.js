@@ -14,6 +14,22 @@ function initScores(){
   alert('누적 승점 초기화 완료!');
 }
 
+// iOS 날짜 피커 포커스 플래그: 네이티브 피커가 열릴 때 재렌더로 인한 피커 닫힘을 방지
+// 포커스/블러 이벤트로 전역 플래그를 관리한다.
+if(typeof window !== 'undefined') window._isDatePickerOpen = false;
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var ld = document.getElementById('league-date');
+    if(!ld) return;
+    // focus 시 플래그 설정
+    ld.addEventListener('focus', function(){ window._isDatePickerOpen = true; });
+    // blur 시 플래그 해제 (짧은 지연을 주어 iOS 네이티브 처리 여유 확보)
+    ld.addEventListener('blur', function(){ setTimeout(function(){ window._isDatePickerOpen = false; }, 150); });
+    // 일부 브라우저에서 클릭으로 피커가 열릴 수 있어 click도 보조로 사용
+    ld.addEventListener('click', function(){ /* noop to ensure pointer interaction registers */ });
+  }catch(e){ console.error('datepicker focus bind error', e); }
+});
+
 function resetAll(){
   function doReset(){
     ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
