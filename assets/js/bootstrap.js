@@ -133,6 +133,40 @@ if (typeof window !== 'undefined') {
     };
     console.log('[DEBUG] window.renderMembers 더미 바인딩됨');
   }
+
+    // 디버그 배너 생성 및 상태 업데이트 함수
+    function createDebugBanner(){
+      if(document.getElementById('realtime-debug')) return;
+      try{
+        var d = document.createElement('div');
+        d.id = 'realtime-debug';
+        d.style.position = 'fixed';
+        d.style.right = '12px';
+        d.style.bottom = '12px';
+        d.style.zIndex = 9999;
+        d.style.background = 'rgba(0,0,0,0.6)';
+        d.style.color = 'white';
+        d.style.padding = '8px 10px';
+        d.style.borderRadius = '8px';
+        d.style.fontSize = '12px';
+        d.style.maxWidth = '280px';
+        d.style.boxShadow = '0 6px 18px rgba(0,0,0,0.4)';
+        d.innerHTML = '<div style="font-weight:700;margin-bottom:4px;">Realtime Debug</div><div id="realtime-debug-msg">init</div>';
+        document.body.appendChild(d);
+      }catch(e){ console.error('debug banner create error', e); }
+    }
+
+    function setDebugMessage(msg){
+      try{ var el = document.getElementById('realtime-debug-msg'); if(el) el.textContent = msg; }catch(e){}
+    }
+
+    function logRealtimeEvent(path, ok){
+      try{
+        var t = new Date().toLocaleTimeString();
+        setDebugMessage(path + ' @ ' + t + (ok? ' (ok)':' (no data)'));
+        console.log('[RT]', path, ok, t);
+      }catch(e){}
+    }
 }
 
 // renderMembersAdminUI 함수 내부에서 데이터 없을 때 안내 메시지 보강(이미 정의된 함수라면 패치 필요)
@@ -463,10 +497,13 @@ var _realtimeSyncReady = false;
 function setupRealtimeSync(){
   if(_realtimeSyncReady || typeof db === 'undefined') return;
   _realtimeSyncReady = true;
+  // iOS에서 디버그 메시지 표시
+  try{ createDebugBanner(); setDebugMessage('realtime init'); }catch(e){}
 
   // ST 데이터 (경기결과, 토너먼트, 순위)
   db.ref('ttgo').on('value', function(snap){
     var data = snap.val();
+    logRealtimeEvent('ttgo', !!data);
     if(!data) return;
     var stData = data.ST || (data.scores !== undefined ? data : null);
     if(!stData) return;
@@ -509,6 +546,7 @@ function setupRealtimeSync(){
   // 회원 데이터
   db.ref('members').on('value', function(snap){
     var val = snap.val();
+    logRealtimeEvent('members', !!val && Array.isArray(val) && val.length>0);
     if(!val || !Array.isArray(val) || !val.length) return;
     MEMBERS.length=0; val.forEach(function(m){MEMBERS.push(m);}); window.MEMBERS=MEMBERS;
     localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
@@ -518,6 +556,7 @@ function setupRealtimeSync(){
 
   db.ref('dormant').on('value', function(snap){
     var val = snap.val();
+    logRealtimeEvent('dormant', !!val && Array.isArray(val));
     if(!val || !Array.isArray(val)) return;
     DORMANT.length=0; val.forEach(function(m){DORMANT.push(m);}); window.DORMANT=DORMANT;
     localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
@@ -526,6 +565,7 @@ function setupRealtimeSync(){
 
   db.ref('ex_members').on('value', function(snap){
     var val = snap.val();
+    logRealtimeEvent('ex_members', !!val && Array.isArray(val));
     window.EX_MEMBERS = (val && Array.isArray(val)) ? val.slice() : (window.EX_MEMBERS||[]);
     localStorage.setItem('ttgo_ex_members', JSON.stringify(window.EX_MEMBERS));
     if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
@@ -533,6 +573,7 @@ function setupRealtimeSync(){
 
   // 출석부
   db.ref('ttgo_attendance').on('value', function(snap){
+    logRealtimeEvent('ttgo_attendance', !!snap.val());
     if(!snap.val()) return;
     localStorage.setItem('ttgo_attendance', JSON.stringify(snap.val()));
     var t = localStorage.getItem('ttgo_active_tab');
@@ -541,6 +582,7 @@ function setupRealtimeSync(){
 
   // 경기 기록
   db.ref('ttgo_history').on('value', function(snap){
+    logRealtimeEvent('ttgo_history', !!snap.val());
     if(!snap.val()) return;
     localStorage.setItem('ttgo_history', JSON.stringify(snap.val()));
     var t = localStorage.getItem('ttgo_active_tab');
