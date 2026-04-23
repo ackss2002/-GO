@@ -167,6 +167,43 @@ if (typeof window !== 'undefined') {
         console.log('[RT]', path, ok, t);
       }catch(e){}
     }
+    // 실시간으로 빈번히 들어오는 이벤트가 많으면 동기 렌더링으로 메인스레드가 멈출 수 있음
+    // 따라서 렌더 호출은 디바운스해서 처리한다.
+    if(typeof window !== 'undefined' && !window._realtimeRenderScheduler){
+      window._realtimeRenderScheduler = (function(){
+        var timer = null;
+        var pending = {};
+        function schedule(key){
+          pending[key] = true;
+          if(timer) return;
+          timer = setTimeout(function(){
+            timer = null;
+            // 실행 시점에 날짜 피커 열림 등 UI 상태를 확인하고 안전하게 렌더 실행
+            try{
+              if(pending['ttgo']){
+                if(typeof renderDash==='function') renderDash();
+                if(typeof renderRanking==='function') renderRanking();
+                var t = localStorage.getItem('ttgo_active_tab');
+                if(t==='league'){
+                  var ld = document.getElementById('league-date');
+                  var datePickerOpen = (typeof window._isDatePickerOpen !== 'undefined') ? window._isDatePickerOpen : false;
+                  if(!datePickerOpen){ if(typeof renderLeague==='function') renderLeague(); if(typeof restoreLeagueUI==='function') restoreLeagueUI(); }
+                }
+                if(t==='tournament' && typeof renderTournamentTab==='function') renderTournamentTab();
+                if(t==='history' && typeof renderHistory==='function') renderHistory();
+              }
+              if(pending['members']){ if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||''); if(typeof renderRanking==='function') renderRanking(); }
+              if(pending['dormant']){ if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||''); }
+              if(pending['ex_members']){ if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||''); }
+              if(pending['ttgo_attendance']){ if(localStorage.getItem('ttgo_active_tab')==='attendance' && typeof renderAttendance==='function') renderAttendance(); }
+              if(pending['ttgo_history']){ if(localStorage.getItem('ttgo_active_tab')==='history' && typeof renderHistory==='function') renderHistory(); }
+            }catch(e){ console.error('realtime render scheduler error', e); }
+            pending = {};
+          }, 180);
+        }
+        return { schedule: schedule };
+      })();
+    }
 }
 
 // renderMembersAdminUI 함수 내부에서 데이터 없을 때 안내 메시지 보강(이미 정의된 함수라면 패치 필요)
@@ -520,33 +557,9 @@ function setupRealtimeSync(){
     if(!ST.final) ST.final={win:'',second:'',third:'',third2:'',lucky:''};
     if(!ST.tournament) ST.tournament={};
     localStorage.setItem('ttgo_v3', JSON.stringify(ST));
-    renderDash();
-    if(typeof renderRanking==='function') renderRanking();
-    var t = localStorage.getItem('ttgo_active_tab');
-    if(t==='league'){
-      try{
-        // 사용자가 날짜 선택 중이면 리그 DOM 재렌더링을 건너뛰어
-        // iOS의 네이티브 날짜 피커가 닫히는 문제를 방지
-        var ld = document.getElementById('league-date');
-        // 우선적으로 focus/blur 기반 플래그를 체크 (iOS에서 더 신뢰성 있음).
-        var datePickerOpen = (typeof window._isDatePickerOpen !== 'undefined') ? window._isDatePickerOpen : false;
-        // 폴백: document.activeElement 검사
-        if(!datePickerOpen){
-          var activeId = (document && document.activeElement && document.activeElement.id) || '';
-          datePickerOpen = activeId === 'league-date';
-        }
-        if(!(ld && datePickerOpen)){
-          if(typeof renderLeague==='function') renderLeague();
-          if(typeof restoreLeagueUI==='function') restoreLeagueUI();
-        }
-      }catch(e){
-        // 안전장치: 에러 발생 시 기존 동작 유지
-        if(typeof renderLeague==='function') renderLeague();
-        if(typeof restoreLeagueUI==='function') restoreLeagueUI();
-      }
-    }
-    if(t==='tournament' && typeof renderTournamentTab==='function') renderTournamentTab();
-    if(t==='history' && typeof renderHistory==='function') renderHistory();
+    // 렌더 호출은 스케줄러를 통해 디바운스 처리
+    try{ if(window._realtimeRenderScheduler) window._realtimeRenderScheduler.schedule('ttgo');
+    }catch(e){ console.error('schedule ttgo error', e); }
   });
 
   // 회원 데이터
@@ -556,8 +569,7 @@ function setupRealtimeSync(){
     if(!val || !Array.isArray(val) || !val.length) return;
     MEMBERS.length=0; val.forEach(function(m){MEMBERS.push(m);}); window.MEMBERS=MEMBERS;
     localStorage.setItem('ttgo_members', JSON.stringify(MEMBERS));
-    if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
-    if(typeof renderRanking==='function') renderRanking();
+    try{ if(window._realtimeRenderScheduler) window._realtimeRenderScheduler.schedule('members'); }catch(e){ console.error('schedule members error', e); }
   });
 
   db.ref('dormant').on('value', function(snap){
@@ -566,7 +578,7 @@ function setupRealtimeSync(){
     if(!val || !Array.isArray(val)) return;
     DORMANT.length=0; val.forEach(function(m){DORMANT.push(m);}); window.DORMANT=DORMANT;
     localStorage.setItem('ttgo_dormant', JSON.stringify(DORMANT));
-    if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+    try{ if(window._realtimeRenderScheduler) window._realtimeRenderScheduler.schedule('dormant'); }catch(e){ console.error('schedule dormant error', e); }
   });
 
   db.ref('ex_members').on('value', function(snap){
@@ -574,7 +586,7 @@ function setupRealtimeSync(){
     logRealtimeEvent('ex_members', !!val && Array.isArray(val));
     window.EX_MEMBERS = (val && Array.isArray(val)) ? val.slice() : (window.EX_MEMBERS||[]);
     localStorage.setItem('ttgo_ex_members', JSON.stringify(window.EX_MEMBERS));
-    if(typeof renderMembersAdminUI==='function') renderMembersAdminUI(window.currentUser||'');
+    try{ if(window._realtimeRenderScheduler) window._realtimeRenderScheduler.schedule('ex_members'); }catch(e){ console.error('schedule ex_members error', e); }
   });
 
   // 출석부
@@ -582,8 +594,7 @@ function setupRealtimeSync(){
     logRealtimeEvent('ttgo_attendance', !!snap.val());
     if(!snap.val()) return;
     localStorage.setItem('ttgo_attendance', JSON.stringify(snap.val()));
-    var t = localStorage.getItem('ttgo_active_tab');
-    if(t==='attendance' && typeof renderAttendance==='function') renderAttendance();
+    try{ if(window._realtimeRenderScheduler) window._realtimeRenderScheduler.schedule('ttgo_attendance'); }catch(e){ console.error('schedule ttgo_attendance error', e); }
   });
 
   // 경기 기록
@@ -591,8 +602,7 @@ function setupRealtimeSync(){
     logRealtimeEvent('ttgo_history', !!snap.val());
     if(!snap.val()) return;
     localStorage.setItem('ttgo_history', JSON.stringify(snap.val()));
-    var t = localStorage.getItem('ttgo_active_tab');
-    if(t==='history' && typeof renderHistory==='function') renderHistory();
+    try{ if(window._realtimeRenderScheduler) window._realtimeRenderScheduler.schedule('ttgo_history'); }catch(e){ console.error('schedule ttgo_history error', e); }
   });
 
 }
