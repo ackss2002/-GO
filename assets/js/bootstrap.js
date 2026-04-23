@@ -486,7 +486,22 @@ function setupRealtimeSync(){
     renderDash();
     if(typeof renderRanking==='function') renderRanking();
     var t = localStorage.getItem('ttgo_active_tab');
-    if(t==='league'){ if(typeof renderLeague==='function') renderLeague(); if(typeof restoreLeagueUI==='function') restoreLeagueUI(); }
+    if(t==='league'){
+      try{
+        // 사용자가 날짜 선택 중이면 리그 DOM 재렌더링을 건너뛰어
+        // iOS의 네이티브 날짜 피커가 닫히는 문제를 방지
+        var ld = document.getElementById('league-date');
+        var activeId = (document && document.activeElement && document.activeElement.id) || '';
+        if(!(ld && activeId === 'league-date')){
+          if(typeof renderLeague==='function') renderLeague();
+          if(typeof restoreLeagueUI==='function') restoreLeagueUI();
+        }
+      }catch(e){
+        // 안전장치: 에러 발생 시 기존 동작 유지
+        if(typeof renderLeague==='function') renderLeague();
+        if(typeof restoreLeagueUI==='function') restoreLeagueUI();
+      }
+    }
     if(t==='tournament' && typeof renderTournamentTab==='function') renderTournamentTab();
     if(t==='history' && typeof renderHistory==='function') renderHistory();
   });
