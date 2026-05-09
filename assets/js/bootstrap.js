@@ -411,6 +411,49 @@ restoreLeagueUI();
   localStorage.setItem('ttgo_q1hist_v1','done');
 })();
 
+// 경기 기록 요약 시드 (없는 날짜만 추가)
+(function seedHistorySummaries(){
+  if(localStorage.getItem('ttgo_hist_seed_v1')) return;
+  var history=[];
+  try{ history=JSON.parse(localStorage.getItem('ttgo_history')||'[]'); }catch(e){}
+
+  var seeds=[
+    {date:'2026-04-10', type:'Singles', set:'3-game-2-win', final:{win:'Choi Yangnim', second:'Lee Hyun-gu', third:'Lee Won-ho'}},
+    {date:'2026-04-01', type:'Songgang Exchange', set:'', final:{win:'Lee Jin-gyu', second:'Kim Jae-hong', third:'Shin Jeong-min'}},
+    {date:'2026-03-27', type:'Friday League', set:'', final:{win:'Ahn Chi-guk', second:'Lee Sang-geon', third:'Park Han-sun'}},
+    {date:'2026-03-18', type:'Purumi Exchange', set:'', final:{win:'Im Gye-su', second:'Lee Jin-gyu', third:'Im Geun-suk'}},
+    {date:'2026-03-13', type:'Friday League', set:'', final:{win:'Lee Won-ho', second:'Im Gye-su', third:'Lee Sang-geon'}},
+    {date:'2026-03-05', type:'KEPCO Exchange', set:'', final:{win:'Kim Deok-gi', second:'Jeong Yong-chan', third:'Ahn Chi-guk'}},
+    {date:'2026-02-27', type:'Friday League', set:'', final:{win:'Lee Mi-jin', second:'Park Han-sun', third:'Min Gyeong-suk'}},
+    {date:'2026-02-13', type:'Friday League', set:'', final:{win:'Lee Won-ho', second:'Hwang Dong-hu', third:'Jo Chung-gi'}},
+    {date:'2026-02-10', type:'LG Exchange', set:'', final:{win:'Kim Jeong-man', second:'Lee Won-ho', third:'Han Gyeol'}},
+    {date:'2026-02-06', type:'Friday League', set:'', final:{win:'Kim Deok-gi', second:'Kim Jong-hwa', third:'Kim Young-seo'}},
+    {date:'2026-01-16', type:'Friday League', set:'', final:{win:'Choi Yangnim', second:'Lee Hee-suk', third:'Kim Deok-gi'}},
+    {date:'2026-01-09', type:'Friday League', set:'', final:{win:'Kim Jeong-yeon', second:'Lee Byeong-chan', third:'Lee Hyun-gu'}}
+  ];
+
+  seeds.forEach(function(s){
+    var idx = history.findIndex(function(h){ return h.date===s.date; });
+    if(idx >= 0) return;
+    history.push({
+      date: s.date,
+      week: '',
+      type: s.type,
+      set: s.set,
+      players: [],
+      groups: [],
+      results: [],
+      final: Object.assign({third2:'', lucky:''}, s.final),
+      savedAt: Date.now()
+    });
+  });
+
+  history.sort(function(a,b){ return b.date.localeCompare(a.date); });
+  localStorage.setItem('ttgo_history', JSON.stringify(history));
+  if(typeof db!=='undefined') db.ref('ttgo_history').set(history);
+  localStorage.setItem('ttgo_hist_seed_v1','done');
+})();
+
 // ── Firebase 연동 함수 ──
 function saveToFirebase(){
   if(typeof db === 'undefined') return;

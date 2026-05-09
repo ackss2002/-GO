@@ -20,13 +20,33 @@ var DORMANT_DEFAULT = [
   {name:'이동규',g:'남',bu:5,total:5},
   {name:'허순임',g:'여',bu:9,total:9},
 ];
+
+// 스토리지 키
+var STORAGE_KEYS = {
+  members: 'ttgo_members',
+  dormant: 'ttgo_dormant',
+  state: 'ttgo_v3'
+};
+
+// 안전한 스토리지 헬퍼 (safe.js 우선 사용)
+var safeStorageGet = (typeof window !== 'undefined' && typeof window.safeStorageGet === 'function')
+  ? window.safeStorageGet
+  : function(key, fallback){
+      try{ var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }catch(e){ return fallback; }
+    };
+var safeStorageSet = (typeof window !== 'undefined' && typeof window.safeStorageSet === 'function')
+  ? window.safeStorageSet
+  : function(key, value){
+      try{ localStorage.setItem(key, JSON.stringify(value)); return true; }catch(e){ return false; }
+    };
+
 // localStorage에 저장된 회원 데이터가 있으면 우선 사용 (탈퇴/휴면/수정 내역 유지)
 var MEMBERS, DORMANT, EX_MEMBERS_SAVED;
 try {
-  var _sm = localStorage.getItem('ttgo_members');
-  var _sd = localStorage.getItem('ttgo_dormant');
-  MEMBERS  = _sm ? JSON.parse(_sm) : MEMBERS_DEFAULT.slice();
-  DORMANT  = _sd ? JSON.parse(_sd) : DORMANT_DEFAULT.slice();
+  var _sm = safeStorageGet(STORAGE_KEYS.members, null);
+  var _sd = safeStorageGet(STORAGE_KEYS.dormant, null);
+  MEMBERS  = Array.isArray(_sm) ? _sm : MEMBERS_DEFAULT.slice();
+  DORMANT  = Array.isArray(_sd) ? _sd : DORMANT_DEFAULT.slice();
 } catch(e) {
   MEMBERS = MEMBERS_DEFAULT.slice();
   DORMANT = DORMANT_DEFAULT.slice();
@@ -34,7 +54,7 @@ try {
 function getExternals(){ return []; }
 function saveExternals(arr){}
 function saveST(){
-  localStorage.setItem('ttgo_v3', JSON.stringify(ST));
+  safeStorageSet(STORAGE_KEYS.state, ST);
   if(typeof db!=='undefined'){
     try{
       // Save in normalized format so realtime listeners always receive {ST: ...}
@@ -70,11 +90,11 @@ var ST = loadST();
 // [방어코드] ST.week가 undefined면 항상 기본값으로 초기화
 if (!ST.week) {
   ST.week = {date:'',type:'단식',set:'3판2승',players:[],groups:[[],[],[],[]],results:[]};
-  localStorage.setItem('ttgo_v3', JSON.stringify(ST));
+  safeStorageSet(STORAGE_KEYS.state, ST);
 }
 ensureCarryOver();
 function loadST(){
-  try{ const s=localStorage.getItem('ttgo_v3');if(s)return JSON.parse(s); }catch(e){}
+  try{ const s=safeStorageGet(STORAGE_KEYS.state, null);if(s)return s; }catch(e){}
   return {
     scores:{},  // 2분기 순수 획득분만
     carryOver: CARRY_OVER_DATA,

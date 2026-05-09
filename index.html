@@ -577,6 +577,19 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 <div id="history" class="section">
   <div class="card">
     <div class="card-title">📋 경기 기록</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;">
+      <input id="history-search" type="text" placeholder="Search by name, date, or type" style="flex:1;min-width:160px;" />
+      <select id="history-type" style="min-width:140px;">
+        <option value="">All types</option>
+      </select>
+      <select id="history-sort" style="min-width:120px;">
+        <option value="desc">Newest</option>
+        <option value="asc">Oldest</option>
+      </select>
+      <button id="history-reset" class="btn btn-sm" type="button">Reset</button>
+      <button id="history-reload" class="btn btn-sm btn-primary" type="button" onclick="forceLoadHistory()">강제 로드</button>
+      <div id="history-count" style="font-size:12px;color:#888;"></div>
+    </div>
     <div id="history-list"></div>
   </div>
   <div id="history-detail" style="display:none;">

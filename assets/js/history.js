@@ -98,6 +98,31 @@ function initHistoryUI(){
   });
 }
 
+function forceLoadHistory(){
+  if(typeof db === 'undefined'){
+    alert('Firebase가 아직 초기화되지 않았습니다. 페이지를 새로고침 후 다시 시도하세요.');
+    return;
+  }
+  const listEl = document.getElementById('history-list');
+  if(listEl) listEl.innerHTML = '<div style="color:#888;font-size:13px;text-align:center;padding:40px 0;">Firebase에서 경기 기록을 불러오는 중입니다...</div>';
+
+  db.ref('ttgo_history').once('value').then(function(snap){
+    const data = snap.val();
+    if(!data){
+      listEl.innerHTML = '<div style="color:#666;font-style:italic;text-align:center;padding:60px 0;font-size:15px;">Firebase에 경기 기록 데이터가 없습니다.</div>';
+      return;
+    }
+    try{
+      localStorage.setItem('ttgo_history', JSON.stringify(data));
+    }catch(e){ console.error('localStorage set failed', e); }
+    renderHistory();
+    alert('Firebase에서 경기 기록을 강제로 로드했습니다.');
+  }).catch(function(err){
+    console.error('forceLoadHistory error', err);
+    alert('Firebase에서 경기 기록을 불러오는 데 실패했습니다. 콘솔을 확인하세요.');
+  });
+}
+
 function renderHistory(){
   const history = getHistoryView();
   const listEl = document.getElementById('history-list');

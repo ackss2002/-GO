@@ -20,6 +20,21 @@
     if(str==null) return '';
     return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
   }
+
+  // 안전한 JSON 파싱 및 스토리지 접근
+  function safeJsonParse(text, fallback){
+    if(text==null || text==='') return fallback;
+    try{ return JSON.parse(text); }catch(e){ return fallback; }
+  }
+  function safeStorageGet(key, fallback){
+    try{ return safeJsonParse(localStorage.getItem(key), fallback); }catch(e){ return fallback; }
+  }
+  function safeStorageSet(key, value){
+    try{ localStorage.setItem(key, JSON.stringify(value)); return true; }catch(e){ return false; }
+  }
   window.escapeHtml = escapeHtml;
   window.jsEscape = jsEscape;
+  window.safeJsonParse = safeJsonParse;
+  window.safeStorageGet = safeStorageGet;
+  window.safeStorageSet = safeStorageSet;
 })(window);
